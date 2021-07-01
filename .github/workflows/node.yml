@@ -43,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/onezerocompany/devcontainers:deno-${{ matrix.deno }}
+          tags: ghcr.io/onezerocompany/devcontainers:node-${{ matrix.node }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           build-args: |
