@@ -9,3 +9,5 @@ unzip deno.zip
 rm deno.zip
 chmod 755 deno
 mv deno /bin/deno
+echo "export DENO_INSTALL=\"$deno_install\"" > /home/dev/~.zshrc
+echo "export PATH=\"\$DENO_INSTALL/bin:\$PATH\"" > /home/dev/~.zshrc
