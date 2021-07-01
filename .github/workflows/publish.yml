@@ -45,7 +45,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           build-args: |
             deno=${{ matrix.deno }}
-            dev_env="Deno"
+            dev_env=Deno
           platform: linux/amd64, linux/arm64
       - name: Move cache
         run: |
@@ -96,7 +96,7 @@ jobs:
           build-args: |
             deno=${{ matrix.deno }}
             node=${{ matrix.node }}
-            dev_env="Node"
+            dev_env=Node
           platform: linux/amd64, linux/arm64
       - name: Move cache
         run: |
