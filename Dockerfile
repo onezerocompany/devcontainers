@@ -1,22 +1,21 @@
-FROM frolvlad/alpine-glibc
+ARG deno="1.11.3"
+FROM denoland/deno:alpine-${deno}
 
 # Setup scripts
 COPY scripts /scripts
 RUN chmod +x /scripts/*
 
+# Add dev user
 RUN addgroup --gid 1000 dev \
  && adduser --uid 1000 --disabled-password dev --ingroup dev
 
 # Intall build tools
 RUN /scripts/setup.sh
 
-# Install Deno
-ARG deno
+# Setup Deno
 ENV DENO_DIR /deno-dir/
 ENV DENO_INSTALL_ROOT /usr/local
 RUN mkdir /deno-dir/ && chown dev:dev /deno-dir/
-RUN if [ ${deno}} ]; then /scripts/install-glib.sh; fi
-RUN if [ ${deno} ]; then /scripts/install-deno.sh ${deno}; fi
 
 # # Install Node
 ARG node
