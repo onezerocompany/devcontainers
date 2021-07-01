@@ -7,25 +7,19 @@ on:
 
 jobs:
   deno:
-    name: Deno Dev
+    name: Node Dev
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         deno:
-          - latest
           - 1.11.3
-          - 1.11.2
-          - 1.11.1
-          - 1.11.0
-          - 1.10.0
-          - 1.9.2
-          - 1.9.0
-          - 1.8.0
-          - 1.7.0
-          - 1.6.0
-          - 1.5.0
-          - 1.0.0
+        node:
+          # - 16.4.0 does not work yet somehow
+          - 16.3.0
+          - 16.2.0
+          - 14.17.1
+          - 12.22.1
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -54,7 +48,8 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           build-args: |
             deno=${{ matrix.deno }}
-            dev_env="Deno"
+            node=${{ matrix.node }}
+            dev_env="Node"
           platform: linux/amd64, linux/arm64
       - name: Move cache
         run: |

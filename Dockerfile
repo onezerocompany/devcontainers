@@ -6,8 +6,8 @@ COPY scripts /scripts
 RUN chmod +x /scripts/*
 
 # Add dev user
-RUN addgroup --gid 1000 dev \
- && adduser --uid 1000 --disabled-password dev --ingroup dev
+RUN addgroup --gid 1001 dev \
+ && adduser --uid 1001 --disabled-password dev --ingroup dev
 
 # Intall build tools
 RUN /scripts/setup.sh
@@ -15,16 +15,17 @@ RUN /scripts/setup.sh
 # Setup Deno
 ENV DENO_DIR /deno-dir/
 ENV DENO_INSTALL_ROOT /usr/local
-RUN mkdir /deno-dir/ && chown dev:dev /deno-dir/
+RUN chown dev:dev /deno-dir/
 
 # # Install Node
 ARG node
-RUN if [ ${node} ]; then /scripts/install-node.sh ${node}; fi
 ARG npm
+RUN if [ ${node} ]; then /scripts/install-node.sh ${node}; fi
 RUN if [ ${npm} ]; then /scripts/install-npm.sh ${npm}}; fi
 
 # Generate header
-RUN /scripts/generate-header.sh
+ARG dev_env="Typescript"
+RUN /scripts/generate-header.sh ${dev_env} ${node}
 
 # Install shell
 RUN /scripts/install-zsh.sh
