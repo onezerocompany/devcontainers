@@ -5,3 +5,4 @@ apk add --no-cache --virtual=.build-dependencies \
   ca-certificates \
   libstdc++
 touch /home/dev/.zshrc
+chown dev:dev /home/dev/.zshrc
