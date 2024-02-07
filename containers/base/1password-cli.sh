@@ -3,8 +3,8 @@ VERSION="v$(curl https://app-updates.agilebits.com/check/1/0/CLI2/en/2.0.0/N -s 
 
 ARCH=$(uname -m)
 case $ARCH in
-  x64) ARCH="x64" ;;
-  x86_64) ARCH="x64" ;;
+  x64) ARCH="amd64" ;;
+  x86_64) ARCH="amd64" ;;
   aarch64) ARCH="arm64" ;;
   arm64) ARCH="arm64" ;;
   *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
