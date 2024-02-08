@@ -1,4 +1,4 @@
-name: Publish Docker Image
+name: Publish Docker Images
 
 on:
   schedule:
@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  build-and-publish:
+  base-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,11 +31,11 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./containers/base
+          context: ./base-image
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-base:latest
-            ghcr.io/${{ github.repository }}-base:${{ github.sha }}
+            ghcr.io/onezerocompany/base:latest
+            ghcr.io/onezerocompany/base:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}-base:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}-base:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/onezerocompany/base:cache
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/base:cache

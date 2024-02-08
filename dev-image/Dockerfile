@@ -1,15 +1,4 @@
-FROM debian:bookworm
-
-# Install basic tools
-RUN apt-get update && apt-get install -y \
-    curl \
-    git \
-    gnupg \
-    lsb-release \
-    sudo \
-    wget \
-    zsh \
-    unzip
+FROM ghcr.io/onezerocompany/base-i
 
 # Install vscode-cli
 COPY vscode-cli.sh /tmp/vscode-cli.sh
