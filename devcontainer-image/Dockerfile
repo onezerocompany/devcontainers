@@ -1,7 +1,5 @@
 FROM ghcr.io/onezerocompany/base
 
-USER root
-
 # Install common utils
 COPY common-utils.sh /tmp/common-utils.sh
 RUN chmod +x /tmp/common-utils.sh && /tmp/common-utils.sh
@@ -21,3 +19,5 @@ RUN echo "cat /etc/motd" >> /home/coder/.zshrc
 RUN rm -rf /tmp/*
 
 USER coder
+
+CMD ["/bin/zsh"]

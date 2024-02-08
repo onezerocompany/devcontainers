@@ -27,6 +27,4 @@ RUN apt clean -y && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
-USER coder
-
 CMD ["/bin/zsh"]
