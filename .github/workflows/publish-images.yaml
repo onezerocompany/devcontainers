@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Build Image
         uses: ./.github/actions/build-image
         with:
@@ -26,6 +29,9 @@ jobs:
     needs: base-image
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Build Image
         uses: ./../actions/build-image
         with:
@@ -38,6 +44,9 @@ jobs:
     needs: base-image
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Build Image
         uses: ./../actions/build-image
         with:
