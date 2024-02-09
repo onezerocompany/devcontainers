@@ -1,0 +1,57 @@
+name: "Build Image"
+description: "Builds a Docker image and pushes it to a registry"
+
+inputs:
+  github-token:
+    description: "GitHub token"
+    required: true
+    default: ${{ secrets.GITHUB_TOKEN }}
+  name:
+    description: "Name of the Docker image"
+    required: true
+  tags:
+    description: "Tags for the Docker image"
+    required: true
+    default: "latest"
+  platforms:
+    description: "Platforms to build the Docker image for"
+    required: true
+    default: "linux/amd64,linux/arm64"
+  folder:
+    description: "Folder containing the Dockerfile"
+    required: true
+    default: "."
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log into GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.github-token }}
+
+    - name: Generate Tags
+      id: tags
+      shell: bash
+      run: |
+        echo "${{ inputs.tags }" | tr ',' '\n' | xargs -I {tag} echo "ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:{tag}"
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./devcontainer-image
+        push: true
+        tags: ${{ steps.tags.outputs.stdout }}
+        platforms: ${{ inputs.platforms }}
+        cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/cache:${{ inputs.name }}
+        cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/cache:${{ inputs.name }}
