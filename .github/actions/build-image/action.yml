@@ -17,6 +17,10 @@ inputs:
     description: "Folder containing the Dockerfile"
     required: true
     default: "."
+  dry-run:
+    description: "Whether to perform a dry run"
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -36,8 +40,8 @@ runs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: ./devcontainer-image
-        push: true
+        context: ${{ inputs.folder }}
+        push: ${{ !fromJson(inputs.dry-run) }}
         tags: |
           ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:latest
           ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:${{ github.sha }}
