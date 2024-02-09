@@ -38,17 +38,18 @@ runs:
         password: ${{ inputs.github-token }}
 
     - name: Generate Tags
-      id: tags
+      id: generate-tags
       shell: bash
       run: |
-        echo "${{ inputs.tags }}" | tr ',' '\n' | xargs -I {tag} echo "ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:{tag}"
+        TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | xargs -I {tag} echo "ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:{tag}")
+        echo "::set-output name=tags::${TAGS}"
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: ./devcontainer-image
         push: true
-        tags: ${{ steps.tags.outputs.stdout }}
+        tags: ${{ steps.generate-tags.outputs.tags }}
         platforms: ${{ inputs.platforms }}
         cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/cache:${{ inputs.name }}
         cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/cache:${{ inputs.name }}
