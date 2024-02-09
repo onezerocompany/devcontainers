@@ -19,7 +19,6 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           name: base
-          tags: latest,${{ github.sha }}
           platforms: |
             linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v5,linux/386,linux/ppc64le,linux/s390x,linux/mips64le
           folder: ./base-image
@@ -36,7 +35,6 @@ jobs:
         uses: ./../actions/build-image
         with:
           name: runner
-          tags: latest,${{ github.sha }}
           folder: ./runner-image
 
   devcontainer:
@@ -51,5 +49,4 @@ jobs:
         uses: ./../actions/build-image
         with:
           name: devcontainer
-          tags: latest,${{ github.sha }}
           folder: ./devcontainer-image

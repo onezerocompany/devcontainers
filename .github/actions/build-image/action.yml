@@ -9,10 +9,6 @@ inputs:
   name:
     description: "Name of the Docker image"
     required: true
-  tags:
-    description: "Tags for the Docker image"
-    required: true
-    default: "latest"
   platforms:
     description: "Platforms to build the Docker image for"
     required: true
@@ -37,19 +33,14 @@ runs:
         username: ${{ github.repository_owner }}
         password: ${{ inputs.github-token }}
 
-    - name: Generate Tags
-      id: generate-tags
-      shell: bash
-      run: |
-        TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | xargs -I {tag} echo "ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:{tag}")
-        echo "tags=`${TAGS}`" >> $GITHUB_OUTPUT
-
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: ./devcontainer-image
         push: true
-        tags: ${{ steps.generate-tags.outputs.tags }}
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:latest
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:${{ github.sha }}
         platforms: ${{ inputs.platforms }}
         cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/cache:${{ inputs.name }}
         cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/cache:${{ inputs.name }}
