@@ -8,7 +8,8 @@ RUN apt install -y --no-install-recommends \
   vim \
   procps \
   zsh \
-  sudo
+  sudo \
+  ca-certificates
 
 RUN adduser coder && \
   usermod -aG sudo coder && \
