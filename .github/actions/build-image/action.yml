@@ -42,7 +42,7 @@ runs:
       shell: bash
       run: |
         TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | xargs -I {tag} echo "ghcr.io/${{ github.repository_owner }}/${{ inputs.name }}:{tag}")
-        echo "tags=\"${TAGS}\"" >> $GITHUB_OUTPUT
+        echo "tags=`${TAGS}`" >> $GITHUB_OUTPUT
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
