@@ -33,3 +33,4 @@ jobs:
           imageName: ghcr.io/onezerocompany/runner
           cacheFrom: ghcr.io/onezerocompany/runner
           push: always
+          platform: linux/amd64,linux/arm64
