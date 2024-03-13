@@ -1,0 +1,25 @@
+name: Build and Publish Runner Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build runner image
+        uses: devcontainers/ci@v0.3
+        with:
+          subFolder: images/runner
+          imageName: ghcr.io/onezerocompany/runner
+          cacheFrom: ghcr.io/onezerocompany/runner
+          push: always

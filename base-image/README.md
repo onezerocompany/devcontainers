@@ -1,1 +1,0 @@
-# OneZero base image
