@@ -26,21 +26,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update skopeo
-        run: |
-          REPO_URL="https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_22.04"
-          sudo sh -c "echo 'deb ${REPO_URL}/ /' > /etc/apt/sources.list.d/skopeo.list"
-          curl -fsSL ${REPO_URL}/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/skopeo.gpg > /dev/null
-
-          sudo apt update
-          sudo apt install skopeo
-          skopeo --version
-
-      - name: Build runner image
-        uses: devcontainers/ci@v0.3
+      - name: Build and push
+        uses: docker/build-push-action@v2
         with:
-          subFolder: images/runner
-          imageName: ghcr.io/onezerocompany/runner
-          cacheFrom: ghcr.io/onezerocompany/runner
-          push: always
-          platform: linux/amd64,linux/arm64
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/runner-image:latest
