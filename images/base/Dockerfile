@@ -12,3 +12,16 @@ RUN apt-get update && \
 # Make zsh default shell
 RUN chsh -s $(which zsh)
 SHELL ["/bin/zsh", "-c"]
+
+COPY scripts /scripts
+RUN chmod +x /scripts/*
+
+# Setup user
+RUN /scripts/setup-user.sh
+RUN rm -rf /scripts
+
+USER runner
+# --- all below will be run as user ---
+
+# Install docker-in-docker using setup script
+RUN curl -fsSL https://get.docker.com/rootless | sh
