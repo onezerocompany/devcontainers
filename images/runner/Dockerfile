@@ -4,7 +4,7 @@ RUN sudo apt-get update && \
     sudo apt-get install -y curl
 
 # Install apt-fast
-RUN /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+RUN sudo /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 
 # Install default packages
 RUN sudo apt-get -y upgrade && \
