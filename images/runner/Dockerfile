@@ -4,6 +4,16 @@ RUN apt-get -y install \
     build-essential make cmake libglu1-mesa \
     python3 python3-pip python3-venv
 
+COPY scripts /scripts
+RUN chmod +x /scripts/*
+
+# Setup user
+RUN /scripts/setup-user.sh
+RUN rm -rf /scripts
+
+# Install docker-in-docker CLI
+RUN curl -fsSL https://get.docker.com | sh
+
 # JavaScript / TypeScript
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && \
@@ -13,3 +23,5 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
 
 # Install bun
 RUN curl -fsSL https://bun.sh/install | bash
+
+USER runner
