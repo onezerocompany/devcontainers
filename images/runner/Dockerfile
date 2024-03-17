@@ -1,4 +1,4 @@
-FROM ghcr.io/actions/actions-runner:latest
+FROM ghcr.io/onezerocompany/base:latest
 
 # Install apt-fast
 RUN /bin/bash -c "$(curl -sL https://git.io/vokNn)"
