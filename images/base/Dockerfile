@@ -7,7 +7,11 @@ RUN /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get -y install \
-    zsh curl wget git unzip zip tar xz-utils
+    zsh curl wget git unzip zip tar xz-utils \
+    # Install docker-in-docker dependencies
+    uidmap iptables iproute2 \
+    apt-transport-https ca-certificates gnupg lsb-release \
+    libseccomp2 slirp4netns fuse-overlayfs
 
 # Make zsh default shell
 RUN chsh -s $(which zsh)
@@ -24,4 +28,5 @@ USER runner
 # --- all below will be run as user ---
 
 # Install docker-in-docker using setup script
+RUN 
 RUN curl -fsSL https://get.docker.com/rootless | sh
