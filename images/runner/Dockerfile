@@ -1,20 +1,8 @@
 FROM ghcr.io/onezerocompany/base:latest
 
-# Install apt-fast
-RUN /bin/bash -c "$(curl -sL https://git.io/vokNn)"
-
-RUN sudo apt-get update && \
-    sudo apt-get -y upgrade && \
-    sudo apt-get -y install \
-    zsh curl wget git unzip tar zip xz-utils \
-    build-essential make cmake \
-    libglu1-mesa \
-    python3 python3-pip python3-venv \
-    clang ninja-build pkg-config libgtk-3-dev liblzma-dev scrcpy default-jre
-
-# Make zsh default shell
-RUN sudo chsh -s $(which zsh)
-SHELL ["/bin/zsh", "-c"]
+RUN apt-get -y install \
+    build-essential make cmake libglu1-mesa \
+    python3 python3-pip python3-venv
 
 # JavaScript / TypeScript
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
