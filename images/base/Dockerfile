@@ -1,10 +1,13 @@
 FROM debian:bookworm-slim
 
+RUN apt-get update && \
+    apt-get install -y curl
+
 # Install apt-fast
 RUN /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 
 # Install default packages
-RUN apt-get update && \
+RUN 
     apt-get -y upgrade && \
     apt-get -y install \
     zsh curl wget git unzip zip tar xz-utils \

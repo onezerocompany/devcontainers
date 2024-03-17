@@ -1,13 +1,15 @@
 FROM ghcr.io/actions/actions-runner:latest
 
+RUN sudo apt-get update && \
+    sudo apt-get install -y curl
+
 # Install apt-fast
 RUN /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 
 # Install default packages
-RUN sudo apt-get update && \
-    sudo apt-get -y upgrade && \
+RUN sudo apt-get -y upgrade && \
     sudo apt-get -y install \
-    zsh curl wget git unzip zip tar xz-utils \
+    zsh wget git unzip zip tar xz-utils \
     build-essential make cmake libglu1-mesa \
     python3 python3-pip python3-venv
 
