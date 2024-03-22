@@ -52,6 +52,7 @@ RUN apt-get -y upgrade && \
     build-essential make cmake libglu1-mesa \
     python3 python3-pip python3-venv \
     jq ca-certificates lsb-release \
+    skopeo \
     && rm -rf /var/lib/apt/lists/*
 
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
