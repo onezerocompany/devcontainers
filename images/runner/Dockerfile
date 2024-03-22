@@ -68,6 +68,8 @@ COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib
 
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
 
+USER runner
+
 # JavaScript / TypeScript
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && \
@@ -77,5 +79,3 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
 
 # Install bun
 RUN curl -fsSL https://bun.sh/install | bash
-
-USER runner
