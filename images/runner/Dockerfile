@@ -77,5 +77,12 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
     nvm install --lts --latest-npm --default && \
     npm install -g yarn pnpm
 
+# add to bash profile
+RUN echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.bashrc
+
 # Install bun
 RUN curl -fsSL https://bun.sh/install | bash
+
+# add to bash profile
+RUN echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
