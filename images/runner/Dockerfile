@@ -36,23 +36,6 @@ ENV RUNNER_MANUALLY_TRAP_SIG=1
 ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 ENV ImageOS=ubuntu22
 
-RUN apt-get update -y \
-    && apt-get install -y software-properties-common \
-    && add-apt-repository -y ppa:git-core/ppa \
-    && apt-get update -y \
-    && apt-get install -y --no-install-recommends curl wget sudo \
-    && /bin/bash -c "$(curl -sL https://git.io/vokNn)"
-
-# Install default packages
-RUN apt-get -y upgrade && \
-    apt-get -y install \
-    zsh git unzip zip tar xz-utils \
-    build-essential make cmake libglu1-mesa \
-    python3 python3-pip python3-venv \
-    jq ca-certificates lsb-release \
-    skopeo \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
     && usermod -aG sudo runner \
