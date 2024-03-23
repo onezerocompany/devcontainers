@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime-deps:6.0-jammy as build
+FROM ghcr.io/onezerocompany/base as build
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -6,8 +6,6 @@ ARG RUNNER_VERSION=2.314.1
 ARG RUNNER_CONTAINER_HOOKS_VERSION=0.6.0
 ARG DOCKER_VERSION=25.0.4
 ARG BUILDX_VERSION=0.13.1
-
-RUN apt update -y && apt install curl unzip -y
 
 WORKDIR /actions-runner
 RUN export RUNNER_ARCH=${TARGETARCH} \
@@ -31,7 +29,7 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
         "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${TARGETARCH}" \
     && chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:6.0-jammy
+FROM ghcr.io/onezerocompany/base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RUNNER_MANUALLY_TRAP_SIG=1
