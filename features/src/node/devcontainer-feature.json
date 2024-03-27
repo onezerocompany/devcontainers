@@ -1,6 +1,6 @@
 {
   "name": "Node.js",
-  "id": "onezero-nodejs",
+  "id": "node",
   "version": "1.0.0",
   "options": {
     "yarn": {
