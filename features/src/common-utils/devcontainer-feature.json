@@ -1,7 +1,6 @@
 {
   "name": "OneZero Common Utils",
   "keywords": ["common", "utilities", "utils"],
-  "init": ,
   "id": "onezero-common-utils",
   "version": "1.0.0",
   "description": "Common utilities for OneZero projects",
@@ -19,7 +18,7 @@
     "motd": {
       "type": "boolean",
       "description": "Install Message of the Day",
-      "default": true,
+      "default": true
     },
     "user": {
       "type": "string",
