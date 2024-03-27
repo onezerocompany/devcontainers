@@ -11,7 +11,7 @@
     "pnpm": {
       "type": "boolean",
       "description": "Install PNPM package manager",
-      "default": false
+      "default": true
     },
     "version": {
       "type": "string",

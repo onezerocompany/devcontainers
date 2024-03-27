@@ -24,7 +24,7 @@ if [ "$INSTALL_ZSH" = "true" ]; then
 fi
 
 # Install MOTD
-INSTALL_MOTD=${MOTD:-"true"}
-if [ "$INSTALL_MOTD" = "true" ]; then
-  # Install MOTD
-fi
+# INSTALL_MOTD=${MOTD:-"true"}
+# if [ "$INSTALL_MOTD" = "true" ]; then
+
+# fi

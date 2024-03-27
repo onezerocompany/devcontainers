@@ -1,17 +1,18 @@
-#!/usr/bin/env bash -e
+#!/bin/sh -e
 
 INSTALL_YARN=${YARN:-"false"}
 INSTALL_PNPM=${PNPM:-"false"}
 NODE_VERSION=${VERSION:-"lts"}
 GLOBAL_PACKAGES=${GLOBAL_PACKAGES:-""}
 
+export SHELL="zsh"
+
 # Install NVM
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 
 # Load NVM
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 # Install NVM into bash
 echo "export NVM_DIR=\"$NVM_DIR\"" >> $HOME/.bashrc
@@ -25,16 +26,14 @@ if [ -f "$HOME/.zshrc" ]; then
   echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> $HOME/.zshrc
 fi
 
-# Install NVM into fish (if it exists)
-if [ -f "$HOME/.config/fish/config.fish" ]; then
-  echo "set -x NVM_DIR \"$NVM_DIR\"" >> $HOME/.config/fish/config.fish
-  echo "[ -s \"\$NVM_DIR/nvm.sh\" ]; and source \"\$NVM_DIR/nvm.sh\"" >> $HOME/.config/fish/config.fish
-  echo "[ -s \"\$NVM_DIR/bash_completion\" ]; and source \"\$NVM_DIR/bash_completion\"" >> $HOME/.config/fish/config.fish
-fi
-
 # Install Node.js
-nvm install $NODE_VERSION
-nvm alias default $NODE_VERSION
+if [ "$NODE_VERSION" = "lts" ]; then
+  nvm install --lts --default
+  nvm use --lts
+else
+  nvm install $NODE_VERSION --default
+  nvm use $NODE_VERSION
+fi
 
 # Install Yarn
 if [ "$INSTALL_YARN" = "true" ]; then
@@ -43,12 +42,17 @@ fi
 
 # Install PNPM
 if [ "$INSTALL_PNPM" = "true" ]; then
-  npm install -g pnpm
+  curl -fsSL https://get.pnpm.io/install.sh | sh -
 fi
 
 # Install global packages
 # split by comma and remove leading and trailing whitespaces
-IFS=',' read -ra packages <<< "$GLOBAL_PACKAGES"
-for package in "${packages[@]}"; do
-  npm install -g $package
-done
+GLOBAL_PACKAGES=$(echo $GLOBAL_PACKAGES | tr -d '[:space:]')
+if [ -n "$GLOBAL_PACKAGES" ]; then
+  OLD_IFS=$IFS
+  IFS=','
+  for package in $GLOBAL_PACKAGES; do
+    npm install -g $package
+  done
+  IFS=$OLD_IFS
+fi

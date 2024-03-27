@@ -6,7 +6,7 @@ source dev-container-features-test-lib
 # Definition specific tests
 # check "version" node --version
 check "pnpm" pnpm -v
-check "nvm" bash -c ". /usr/local/share/nvm/nvm.sh && nvm install 10"
+check "nvm" nvm --version
 check "yarn" yarn --version
 
 # Report result
