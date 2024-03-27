@@ -23,9 +23,3 @@ if [ "$INSTALL_ZSH" = "true" ]; then
   # Set prompt in zshrc for 'zero' user
   echo 'PROMPT="%F{green}%n@%m%f %F{blue}%~%f %# "' >> ~/.zshrc
 fi
-
-# Install MOTD
-# INSTALL_MOTD=${MOTD:-"true"}
-# if [ "$INSTALL_MOTD" = "true" ]; then
-
-# fi
