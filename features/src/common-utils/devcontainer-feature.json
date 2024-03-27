@@ -1,0 +1,30 @@
+{
+  "name": "OneZero Common Utils",
+  "keywords": ["common", "utilities", "utils"],
+  "init": ,
+  "id": "onezero-common-utils",
+  "version": "1.0.0",
+  "description": "Common utilities for OneZero projects",
+  "options": {
+    "zsh": {
+      "type": "boolean",
+      "description": "Install zsh",
+      "default": true
+    },
+    "zsh_default": {
+      "type": "boolean",
+      "description": "Set zsh as default shell",
+      "default": true
+    },
+    "motd": {
+      "type": "boolean",
+      "description": "Install Message of the Day",
+      "default": true,
+    },
+    "user": {
+      "type": "string",
+      "description": "User to create",
+      "default": "zero"
+    }
+  }
+}

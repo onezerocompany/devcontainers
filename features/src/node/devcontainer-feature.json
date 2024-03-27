@@ -1,0 +1,28 @@
+{
+  "name": "Node.js",
+  "id": "onezero-nodejs",
+  "version": "1.0.0",
+  "options": {
+    "yarn": {
+      "type": "boolean",
+      "description": "Install Yarn package manager",
+      "default": true
+    },
+    "pnpm": {
+      "type": "boolean",
+      "description": "Install PNPM package manager",
+      "default": false
+    },
+    "version": {
+      "type": "string",
+      "description": "Node.js version",
+      "default": "lts",
+      "proposals": ["lts", "latest", "18", "20", "21"]
+    },
+    "globalPackages": {
+      "type": "string",
+      "description": "Global packages to install (comma separated)",
+      "default": ""
+    }
+  }
+}

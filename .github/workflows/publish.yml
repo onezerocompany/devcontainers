@@ -1,4 +1,4 @@
-name: Build and Publish Images
+name: Build and Publish Images & Features
 
 on:
   schedule:
@@ -70,3 +70,18 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:buildcache
           tags: ghcr.io/${{ github.repository_owner }}/runner:latest
           push: true
+
+  features:
+    name: Build and Publish Features
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: "Publish Features"
+        uses: devcontainers/action@v1
+        with:
+          publish-features: "true"
+          base-path-to-features: "./features"
+          publish-templates: "onezerocompany/devcontainer/features"
