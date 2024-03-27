@@ -2,7 +2,7 @@
   "name": "OneZero Universal",
   "image": "ghcr.io/onezerocompany/base",
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:latest": {},
-    "ghcr.io/onezerocompany/features/node:latest": {}
+    "ghcr.io/onezerocompany/features/common-utils:1": {},
+    "ghcr.io/onezerocompany/features/node:1": {}
   }
 }
