@@ -84,4 +84,4 @@ jobs:
         with:
           publish-features: "true"
           base-path-to-features: "./features"
-          publish-templates: "onezerocompany/devcontainer/features"
+          features-namespace: "onezerocompany/devcontainer/features"
