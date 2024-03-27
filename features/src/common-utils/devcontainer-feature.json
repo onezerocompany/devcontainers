@@ -1,7 +1,7 @@
 {
   "name": "OneZero Common Utils",
   "keywords": ["common", "utilities", "utils"],
-  "id": "onezero-common-utils",
+  "id": "common-utils",
   "version": "1.0.0",
   "description": "Common utilities for OneZero projects",
   "options": {
