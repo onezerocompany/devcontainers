@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 INSTALL_YARN=${YARN:-"false"}
 INSTALL_PNPM=${PNPM:-"false"}

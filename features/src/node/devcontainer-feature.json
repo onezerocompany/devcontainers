@@ -19,7 +19,7 @@
       "default": "lts",
       "proposals": ["lts", "latest", "18", "20", "21"]
     },
-    "globalPackages": {
+    "global_packages": {
       "type": "string",
       "description": "Global packages to install (comma separated)",
       "default": ""

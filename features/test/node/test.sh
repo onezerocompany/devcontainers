@@ -4,9 +4,9 @@
 source dev-container-features-test-lib
 
 # Definition specific tests
-# check "version" node --version
+# check "nvm" nvm --version
+check "node" node --version
 check "pnpm" pnpm -v
-check "nvm" nvm --version
 check "yarn" yarn --version
 
 # Report result
