@@ -33,6 +33,8 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
 
 FROM ghcr.io/onezerocompany/base
 
+USER root
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RUNNER_MANUALLY_TRAP_SIG=1
 ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
@@ -42,7 +44,7 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
     && usermod -aG sudo runner \
     && usermod -aG docker runner \
-    && echo "runner ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers \
+    && echo "runner ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers \
     && echo "Defaults env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers
 
 WORKDIR /home/runner
