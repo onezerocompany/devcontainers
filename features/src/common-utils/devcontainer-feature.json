@@ -3,7 +3,7 @@
   "description": "Common utilities for OneZero projects",
   "keywords": ["common", "utilities", "utils"],
   "id": "common-utils",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "options": {
     "auto_cd": {
       "type": "boolean",
@@ -24,6 +24,12 @@
       "type": "boolean",
       "description": "Install a message of the day for the terminal",
       "default": true
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run the container as",
+      "default": "zero",
+      "proposals": ["zero", "vscode", "root"]
     }
   },
   "installsAfter": [

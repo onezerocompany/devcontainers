@@ -3,7 +3,7 @@
   "description": "Node.js with Yarn and PNPM package managers",
   "keywords": ["node", "javascript", "npm", "yarn", "pnpm"],
   "id": "node",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "options": {
     "yarn": {
       "type": "boolean",
@@ -25,6 +25,12 @@
       "type": "string",
       "description": "Global packages to install (comma separated)",
       "default": ""
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run the container as",
+      "default": "zero",
+      "proposals": ["zero", "vscode", "root"]
     }
   }
 }

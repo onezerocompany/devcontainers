@@ -4,27 +4,22 @@ INSTALL_YARN=${YARN:-"false"}
 INSTALL_PNPM=${PNPM:-"false"}
 NODE_VERSION=${VERSION:-"lts"}
 GLOBAL_PACKAGES=${GLOBAL_PACKAGES:-""}
-
-export SHELL="zsh"
+USER=${USER:-"zero"}
 
 # Install NVM
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+export SHELL="zsh"
+su $USER -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash"
 
 # Load NVM
-export NVM_DIR="$HOME/.nvm"
+USER_HOME=$(su $USER -c "echo \$HOME")
+export NVM_DIR="$USER_HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 # Install NVM into bash
-echo "export NVM_DIR=\"$NVM_DIR\"" >> $HOME/.bashrc
-echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> $HOME/.bashrc
-echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> $HOME/.bashrc
-
-# Install NVM into zsh (if it exists)
-if [ -f "$HOME/.zshrc" ]; then
-  echo "export NVM_DIR=\"$NVM_DIR\"" >> $HOME/.zshrc
-  echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> $HOME/.zshrc
-  echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> $HOME/.zshrc
-fi
+BASHRC_PATH="$USER_HOME/.bashrc"
+echo "export NVM_DIR=\"$NVM_DIR\"" >> $BASHRC_PATH
+echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> $BASHRC_PATH
+echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> $BASHRC_PATH
 
 # Install Node.js
 if [ "$NODE_VERSION" = "lts" ]; then
@@ -42,7 +37,7 @@ fi
 
 # Install PNPM
 if [ "$INSTALL_PNPM" = "true" ]; then
-  curl -fsSL https://get.pnpm.io/install.sh | sh -
+  su $USER -c "curl -fsSL https://get.pnpm.io/install.sh | sh -"
 fi
 
 # Install global packages

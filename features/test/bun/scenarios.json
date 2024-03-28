@@ -1,13 +1,5 @@
 {
-  "latest_on_base": {
-    "image": "ghcr.io/onezerocompany/base",
-    "features": {
-      "bun": {
-        "version": "latest"
-      }
-    }
-  },
-  "specific_on_base": {
+  "specific-bun": {
     "image": "ghcr.io/onezerocompany/base",
     "features": {
       "bun": {

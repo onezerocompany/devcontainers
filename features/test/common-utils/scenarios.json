@@ -1,8 +1,13 @@
 {
-  "default_on_base": {
+  "common-utils-all-false": {
     "image": "ghcr.io/onezerocompany/base",
     "features": {
-      "common-utils": {}
+      "common-utils": {
+        "auto_cd": false,
+        "zoxide": false,
+        "eza": false,
+        "motd": false
+      }
     }
   }
 }

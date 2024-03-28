@@ -1,12 +1,14 @@
 #!/bin/bash -e
 
+USER=${USER:-"zero"}
+ZSHRC="$(su $USER -c 'echo $HOME')/.zshrc"
+
 # auto-cd
 AUTO_CD=${AUTO_CD:-"false"}
 if [ "$AUTO_CD" = "true" ]; then
   # add auto-cd to zshrc if available
-  if [ -f ~/.zshrc ]; then
-    echo "Adding auto-cd to zshrc"
-    echo "setopt auto_cd" >> ~/.zshrc
+  if [ -f $ZSHRC ]; then
+    echo "setopt auto_cd" >> $ZSHRC
   fi
 fi
 
@@ -14,11 +16,10 @@ fi
 ZOXIDE=${ZOXIDE:-"false"}
 if [ "$ZOXIDE" = "true" ]; then
   # Install zoxide
-  curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+  su $USER -c "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash"
   # add zoxide to zshrc if available
-  if [ -f ~/.zshrc ]; then
-    echo "Adding zoxide to zshrc"
-    echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> ~/.zshrc
+  if [ -f $ZSHRC ]; then
+    echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> $ZSHRC
   fi
 fi
 
@@ -33,20 +34,19 @@ if [ "$EZA" = "true" ]; then
   sudo apt update
   sudo apt install -y eza
   # add eza to zshrc if available
-  if [ -f ~/.zshrc ]; then
+  if [ -f $ZSHRC ]; then
     echo "Adding eza to zshrc"
-    echo "alias ls=\"eza\"" >> ~/.zshrc
-    echo "alias ll=\"eza -l\"" >> ~/.zshrc
-    echo "alias la=\"eza -la\"" >> ~/.zshrc
+    echo "alias ls=\"eza\"" >> $ZSHRC
+    echo "alias ll=\"eza -l\"" >> $ZSHRC
+    echo "alias la=\"eza -la\"" >> $ZSHRC
   fi
 fi
 
 # motd
 MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then
-  # Install motd.sh
-  echo "Adding motd to zshrc"
-  echo "source $(dirname $0)/.motd_gen.sh" >> /etc/motd
-  # print motd on zsh startup
-  echo "cat /etc/motd" >> ~/.zshrc
+  MOTD=$(eval "$(dirname $0)/motd_gen.sh")
+  echo $MOTD > /etc/motd
+  chmod 644 /etc/motd
+  echo "cat /etc/motd" >> $ZSHRC
 fi
