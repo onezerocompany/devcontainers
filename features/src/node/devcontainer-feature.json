@@ -1,7 +1,7 @@
 {
   "name": "Node.js",
   "id": "node",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "options": {
     "yarn": {
       "type": "boolean",
@@ -24,5 +24,6 @@
       "description": "Global packages to install (comma separated)",
       "default": ""
     }
-  }
+  },
+  "installsAfter": ["ghcr.io/onezerocompany/features/common-utils:1"]
 }
