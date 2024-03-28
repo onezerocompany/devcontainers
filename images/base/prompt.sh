@@ -33,3 +33,4 @@ else
 fi
 
 PROMPT+=" $(cursor →) "
+echo $PROMPT
