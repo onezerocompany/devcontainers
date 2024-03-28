@@ -1,39 +1,26 @@
 FROM ubuntu:22.04
 
-# Dotnet ENV
 ENV \
-    # Configure web servers to bind to port 80 when present
     ASPNETCORE_URLS=http://+:80 \
-    # Enable detection of running in a container
     DOTNET_RUNNING_IN_CONTAINER=true
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -y \
-    && apt-get install -y software-properties-common \
-    && add-apt-repository -y ppa:git-core/ppa \
-    && apt-get update -y \
-    && apt-get install -y --no-install-recommends curl wget sudo \
-    && /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+RUN apt-get update -y && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository -y ppa:git-core/ppa && \
+    add-apt-repository -y ppa:apt-fast/stable && \
+    apt-get update -y && \
+    apt-get install -y apt-fast
 
-RUN apt-get -y upgrade && \
-    apt-get -y install \
+RUN apt-fast -y upgrade && \
+    apt-fast -y install \
+    curl wget sudo gpg nano vim \
     zsh git unzip zip tar xz-utils \
     jq ca-certificates lsb-release \
-    gpg nano vi \
-		# Build dependencies
     build-essential make cmake libglu1-mesa \
-		software-properties-common \
-		# Python dependencies
     python3 python3-pip python3-venv \
-		# .NET dependencies
-		libc6 \
-		libgcc1 \
-		libgssapi-krb5-2 \
-		libicu70 \
-		libssl3 \
-		libstdc++6 \
-		zlib1g \
-		# DevContainer tools
+    libc6 libgcc1 libgssapi-krb5-2 \
+    libicu70 libssl3 libstdc++6 zlib1g \
     skopeo
 
 RUN useradd -m zero && \
@@ -49,6 +36,7 @@ COPY prompt.sh /home/zero/.zsh/prompt.sh
 RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
     chmod +x /home/zero/.zsh/prompt.sh && \
     echo "precmd() {\n  source "/home/zero/.zsh/prompt.sh"\n}" >> /home/zero/.zshrc && \
+    echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
     chown zero:zero /home/zero/.zshrc
 
 WORKDIR /home/zero

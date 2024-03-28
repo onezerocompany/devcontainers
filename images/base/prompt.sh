@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-PROJECT_NAME=${PROJECT_NAME:-"home"}
+PROJECT_NAME=${PROJECT_NAME:-"@$(whoami)"}
 PROMPT_BASE_DIR=${PROMPT_BASE_DIR:-$HOME}
 CURRENT_DIR=$(pwd)
 
@@ -23,7 +23,10 @@ if [[ $CURRENT_DIR == $PROMPT_BASE_DIR* ]]; then
 
   # if the current directory is not the base directory
   if [[ $CURRENT_DIR != $PROMPT_BASE_DIR ]]; then
-    PROMPT+=" $(path ${CURRENT_DIR#$PROMPT_BASE_DIR})"
+    if [[ $PROJECT_NAME != "" ]]; then
+      PROMPT+=" "
+    fi
+    PROMPT+="$(path ${CURRENT_DIR#$PROMPT_BASE_DIR})"
   fi
 else
   PROMPT+=$(path $CURRENT_DIR)
