@@ -19,6 +19,7 @@ RUN apt-get -y upgrade && \
     apt-get -y install \
     zsh git unzip zip tar xz-utils \
     jq ca-certificates lsb-release \
+    gpg \
 		# Build dependencies
     build-essential make cmake libglu1-mesa \
 		software-properties-common \
@@ -40,7 +41,20 @@ RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \
     echo "zero ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
-RUN chsh -s /bin/zsh zero && \
+RUN chsh -s /bin/zsh && \
+    chsh -s /bin/zsh zero && \
     chown -R zero:zero /home/zero
 
+# User prompt.sh file
+COPY prompt.sh /home/zero/.zsh/prompt.sh
+RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
+    chmod +x /home/zero/.zsh/prompt.sh && \
+    echo "PROMPT='$(/home/zero/.zsh/prompt.sh)'" >> /home/zero/.zshrc && \
+    chown zero:zero /home/zero/.zshrc
+
+WORKDIR /home/zero
 USER zero
+
+RUN touch ~/.sudo_as_admin_successful
+
+CMD ["/bin/zsh"]
