@@ -33,7 +33,7 @@
     }
   },
   "installsAfter": [
-    "ghcr.io/onezerocompany/devcontainers/features/bun",
-    "ghcr.io/onezerocompany/devcontainers/features/node"
+    "ghcr.io/onezerocompany/features/bun",
+    "ghcr.io/onezerocompany/features/node"
   ]
 }
