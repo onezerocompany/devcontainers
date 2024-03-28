@@ -2,12 +2,6 @@
   "name": "OneZero Universal",
   "image": "ghcr.io/onezerocompany/base",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {},
-    "ghcr.io/onezerocompany/devcontainers/features/node": {
-      "version": "lts",
-      "yarn": true,
-      "pnpm": true,
-      "global_packages": ["astro"]
-    }
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
   }
 }

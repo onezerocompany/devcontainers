@@ -1,9 +1,9 @@
 features to complete:
 
 - [ ] Common Utils
-- [ ] Node.js
+- [x] Node.js
 - [ ] Flutter & Dart
-- [ ] Bun
+- [x] Bun
 - [ ] Golang
 - [ ] Rust
 - [ ] Python

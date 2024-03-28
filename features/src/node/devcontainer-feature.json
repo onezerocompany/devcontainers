@@ -1,5 +1,7 @@
 {
   "name": "Node.js",
+  "description": "Node.js with Yarn and PNPM package managers",
+  "keywords": ["node", "javascript", "npm", "yarn", "pnpm"],
   "id": "node",
   "version": "1.0.2",
   "options": {
@@ -25,5 +27,7 @@
       "default": ""
     }
   },
-  "installsAfter": ["ghcr.io/onezerocompany/features/common-utils:1"]
+  "installsAfter": [
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils"
+  ]
 }

@@ -1,29 +1,29 @@
 {
   "name": "OneZero Common Utils",
+  "description": "Common utilities for OneZero projects",
   "keywords": ["common", "utilities", "utils"],
   "id": "common-utils",
   "version": "1.0.2",
-  "description": "Common utilities for OneZero projects",
   "options": {
-    "zsh": {
+    "auto_cd": {
       "type": "boolean",
-      "description": "Install zsh",
+      "description": "Automatically change to the project directory when opening a terminal",
       "default": true
     },
-    "zsh_default": {
+    "zoxide": {
       "type": "boolean",
-      "description": "Set zsh as default shell",
+      "description": "Install Zoxide for fast directory navigation",
+      "default": true
+    },
+    "eza": {
+      "type": "boolean",
+      "description": "Install Eza for easy project management",
       "default": true
     },
     "motd": {
       "type": "boolean",
-      "description": "Install Message of the Day",
+      "description": "Install a message of the day for the terminal",
       "default": true
-    },
-    "user": {
-      "type": "string",
-      "description": "User to create",
-      "default": "zero"
     }
   }
 }

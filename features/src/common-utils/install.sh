@@ -1,25 +1,52 @@
 #!/bin/bash -e
 
-# Setup user 'zero'
-USER=${USER:-"zero"}
-if [ ! -d "/home/$USER" ]; then
-  useradd -m -s /bin/bash $USER
-  echo "$USER:$USER" | chpasswd
-  usermod -aG sudo $USER
+# auto-cd
+AUTO_CD=${AUTO_CD:-"false"}
+if [ "$AUTO_CD" = "true" ]; then
+  # add auto-cd to zshrc if available
+  if [ -f ~/.zshrc ]; then
+    echo "Adding auto-cd to zshrc"
+    echo "setopt auto_cd" >> ~/.zshrc
+  fi
 fi
 
-# Install ZSH
-INSTALL_ZSH=${ZSH:-"true"}
-if [ "$INSTALL_ZSH" = "true" ]; then
-  apt-get update
-  apt-get install -y zsh
-  # Set ZSH as default shell permanently
-  ZSH_DEFAULT=${ZSH_DEFAULT:-"true"}
-  if [ "$ZSH_DEFAULT" = "true" ]; then
-    chsh -s $(which zsh)
-    chsh -s $(which zsh) $USER
+# zoxide
+ZOXIDE=${ZOXIDE:-"false"}
+if [ "$ZOXIDE" = "true" ]; then
+  # Install zoxide
+  curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+  # add zoxide to zshrc if available
+  if [ -f ~/.zshrc ]; then
+    echo "Adding zoxide to zshrc"
+    echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> ~/.zshrc
   fi
+fi
 
-  # Set prompt in zshrc for 'zero' user
-  echo 'PROMPT="%F{green}%n@%m%f %F{blue}%~%f %# "' >> ~/.zshrc
+# eza
+EZA=${EZA:-"false"}
+if [ "$EZA" = "true" ]; then
+  # Install eza
+  sudo mkdir -p /etc/apt/keyrings
+  wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+  sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+  sudo apt update
+  sudo apt install -y eza
+  # add eza to zshrc if available
+  if [ -f ~/.zshrc ]; then
+    echo "Adding eza to zshrc"
+    echo "alias ls=\"eza\"" >> ~/.zshrc
+    echo "alias ll=\"eza -l\"" >> ~/.zshrc
+    echo "alias la=\"eza -la\"" >> ~/.zshrc
+  fi
+fi
+
+# motd
+MOTD=${MOTD:-"false"}
+if [ "$MOTD" = "true" ]; then
+  # Install motd.sh
+  echo "Adding motd to zshrc"
+  echo "source $(dirname $0)/.motd_gen.sh" >> /etc/motd
+  # print motd on zsh startup
+  echo "cat /etc/motd" >> ~/.zshrc
 fi

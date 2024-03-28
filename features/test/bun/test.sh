@@ -3,8 +3,9 @@
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "bash" bash --version
-check "zsh" zsh --version
+check "shell is zsh" echo $SHELL | grep zsh
+
+check "bun" bun --version
 
 # Report result
 reportResults
