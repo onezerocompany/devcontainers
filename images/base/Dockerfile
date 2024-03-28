@@ -35,3 +35,12 @@ RUN apt-get -y upgrade && \
 		# DevContainer tools
     skopeo \
     && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m zero && \
+    echo "zero:zero" | chpasswd && adduser zero sudo && \
+    echo "zero ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    
+RUN chsh -s /bin/zsh zero && \
+    chown -R zero:zero /home/zero
+
+USER zero
