@@ -19,6 +19,7 @@ RUN apt-get -y upgrade && \
     apt-get -y install \
     zsh git unzip zip tar xz-utils \
     jq ca-certificates lsb-release \
+    gpg nano vi \
 		# Build dependencies
     build-essential make cmake libglu1-mesa \
 		software-properties-common \
@@ -47,7 +48,7 @@ RUN chsh -s /bin/zsh && \
 COPY prompt.sh /home/zero/.zsh/prompt.sh
 RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
     chmod +x /home/zero/.zsh/prompt.sh && \
-    echo -e "precmd() {\nsource "/Users/lucasilverentand/.zsh/prompt.sh"\n}" >> /home/zero/.zshrc && \
+    echo "precmd() {\n  source "/home/zero/.zsh/prompt.sh"\n}" >> /home/zero/.zshrc && \
     chown zero:zero /home/zero/.zshrc
 
 WORKDIR /home/zero
