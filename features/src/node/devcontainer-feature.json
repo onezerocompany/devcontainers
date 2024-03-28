@@ -26,8 +26,5 @@
       "description": "Global packages to install (comma separated)",
       "default": ""
     }
-  },
-  "installsAfter": [
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils"
-  ]
+  }
 }

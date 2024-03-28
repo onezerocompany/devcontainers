@@ -11,8 +11,5 @@
       "default": "latest",
       "proposals": ["latest"]
     }
-  },
-  "installsAfter": [
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils"
-  ]
+  }
 }

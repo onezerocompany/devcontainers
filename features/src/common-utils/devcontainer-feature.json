@@ -25,5 +25,9 @@
       "description": "Install a message of the day for the terminal",
       "default": true
     }
-  }
+  },
+  "installsAfter": [
+    "ghcr.io/onezerocompany/devcontainers/features/bun",
+    "ghcr.io/onezerocompany/devcontainers/features/node"
+  ]
 }

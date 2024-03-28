@@ -34,8 +34,7 @@ RUN apt-get -y upgrade && \
 		libstdc++6 \
 		zlib1g \
 		# DevContainer tools
-    skopeo \
-    && rm -rf /var/lib/apt/lists/*
+    skopeo
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \

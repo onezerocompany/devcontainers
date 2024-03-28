@@ -2,6 +2,8 @@
   "name": "OneZero Universal",
   "image": "ghcr.io/onezerocompany/base",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {},
+    "ghcr.io/onezerocompany/devcontainers/features/node": {},
+    "ghcr.io/onezerocompany/devcontainers/features/bun": {}
   }
 }
