@@ -8,7 +8,7 @@ test() {
 
 check "zoxide" test "command -v zoxide"
 check "eza" test "command -v eza"
-check "bat" test "command -v bat"
+check "bat" test "command -v batcat"
 check "motd" test "cat /etc/motd"
 check "auto-cd" test "grep 'setopt auto_cd' ~/.zshrc"
 

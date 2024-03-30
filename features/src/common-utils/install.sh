@@ -3,6 +3,8 @@
 USER=${USER:-"zero"}
 ZSHRC="$(su $USER -c 'echo $HOME')/.zshrc"
 
+apt-get update
+
 # auto-cd
 AUTO_CD=${AUTO_CD:-"false"}
 if [ "$AUTO_CD" = "true" ]; then
@@ -28,7 +30,7 @@ if [ "$BAT" = "true" ]; then
   # Install bat
   apt-get install -y bat
   # add bat to zshrc if available
-  echo "alias cat=\"bat\"" >> $ZSHRC
+  echo "alias cat=\"batcat\"" >> $ZSHRC
 fi
 
 # eza
@@ -53,8 +55,7 @@ fi
 # motd
 MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then
-  MOTD=$(eval "$(dirname $0)/motd_gen.sh")
-  echo -n $MOTD > /etc/motd
+  $(dirname $0)/motd_gen.sh > /etc/motd
   chmod 644 /etc/motd
-  echo "cat /etc/motd" >> $ZSHRC
+  echo "echo eval \"cat /etc/motd\"" >> $ZSHRC
 fi
