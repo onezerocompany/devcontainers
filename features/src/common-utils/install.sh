@@ -54,7 +54,7 @@ fi
 MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then
   MOTD=$(eval "$(dirname $0)/motd_gen.sh")
-  echo $MOTD > /etc/motd
+  echo -n $MOTD > /etc/motd
   chmod 644 /etc/motd
-  echo "cat /etc/motd" >> "/etc/profile.d/motd.sh"
+  echo "cat /etc/motd" >> $ZSHRC
 fi
