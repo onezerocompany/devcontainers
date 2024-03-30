@@ -14,6 +14,7 @@ fi
 ZOXIDE=${ZOXIDE:-"false"}
 if [ "$ZOXIDE" = "true" ]; then
   # Install zoxide
+  apt-get install -y fzf
   su $USER -c "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash"
   # add zoxide to path
   echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> $ZSHRC
