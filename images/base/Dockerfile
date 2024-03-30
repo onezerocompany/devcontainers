@@ -31,12 +31,12 @@ RUN chsh -s /bin/zsh && \
     chsh -s /bin/zsh zero && \
     chown -R zero:zero /home/zero
 
-# User prompt.sh file
 COPY prompt.sh /home/zero/.zsh/prompt.sh
 RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
     chmod +x /home/zero/.zsh/prompt.sh && \
     echo "setopt PROMPT_SUBST" >> /home/zero/.zshrc && \
-    cat /home/zero/.zsh/prompt.sh >> /home/zero/.zshrc && \
+    cat /home/zero/.zsh/prompt.sh) >> /home/zero/.zshrc && \
+    echo "" >> /home/zero/.zshrc && \
     rm /home/zero/.zsh/prompt.sh && \
     echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
     chown zero:zero /home/zero/.zshrc
