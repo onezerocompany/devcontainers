@@ -1,36 +1,30 @@
-#!/bin/zsh
-
-PROJECT_NAME=${PROJECT_NAME:-"@$(whoami)"}
-PROMPT_BASE_DIR=${PROMPT_BASE_DIR:-$HOME}
-CURRENT_DIR=$(pwd)
-
-PROMPT=""
-
-name () {
-  echo -e "\033[0;32m$1\033[0m"
-}
-
-path () {  
-  echo -e "\033[0;36m$1\033[0m"
-}
-
-cursor () {
-  echo -e "\033[2m$1\033[0m"
-}
-
-if [[ $CURRENT_DIR == $PROMPT_BASE_DIR* ]]; then
-  PROMPT+=$(name $PROJECT_NAME)
-
-  # if the current directory is not the base directory
-  if [[ $CURRENT_DIR != $PROMPT_BASE_DIR ]]; then
-    if [[ $PROJECT_NAME != "" ]]; then
-      PROMPT+=" "
-    fi
-    PROMPT+="$(path ${CURRENT_DIR#$PROMPT_BASE_DIR})"
+name() {
+  local dir=$(pwd)
+  local name=${PROJECT_NAME:-"@$(whoami)"}
+  local home=$(echo $HOME)
+  if [[ -n $PROJECT_DIR && $dir == $PROJECT_DIR ]]; then
+    echo "$name"
+  elif [[ -n $PROJECT_DIR && $dir == $PROJECT_DIR* ]]; then
+    echo "$name "
+  elif [[ $dir == $home ]]; then
+    echo "$name"
+  elif [[ $dir == $home* ]]; then
+    echo "$name "
+  else
+    echo ""
   fi
-else
-  PROMPT+=$(path $CURRENT_DIR)
-fi
+}
 
-PROMPT+=" $(cursor →) "
-echo $PROMPT
+directory() {
+  local dir=$(pwd)
+  local home=$(echo $HOME)
+  if [[ -n $PROJECT_DIR && $dir == $PROJECT_DIR* ]]; then
+    echo ${dir#$PROJECT_DIR}
+  elif [[ $dir == $home* ]]; then
+    echo ${dir#$home}
+  else
+    echo $dir
+  fi
+}
+
+PROMPT='%F{green}$(name)%f%F{cyan}$(directory)%f → '
