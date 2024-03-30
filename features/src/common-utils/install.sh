@@ -22,6 +22,15 @@ if [ "$ZOXIDE" = "true" ]; then
   echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> $ZSHRC
 fi
 
+# bat
+BAT=${BAT:-"false"}
+if [ "$BAT" = "true" ]; then
+  # Install bat
+  apt-get install -y bat
+  # add bat to zshrc if available
+  echo "alias cat=\"bat\"" >> $ZSHRC
+fi
+
 # eza
 EZA=${EZA:-"false"}
 if [ "$EZA" = "true" ]; then

@@ -20,6 +20,11 @@
       "description": "Install Eza for easy project management",
       "default": true
     },
+    "bat": {
+      "type": "boolean",
+      "description": "Install Bat for syntax highlighting",
+      "default": true
+    },
     "motd": {
       "type": "boolean",
       "description": "Install a message of the day for the terminal",
