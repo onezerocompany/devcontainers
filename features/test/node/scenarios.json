@@ -1,0 +1,14 @@
+{
+  "specific-node": {
+    "image": "ghcr.io/onezerocompany/base",
+    "features": {
+      "node": {
+        "yarn": false,
+        "pnpm": false,
+        "version": "20",
+        "global_packages": [],
+        "user": "zero"
+      }
+    }
+  }
+}

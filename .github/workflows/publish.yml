@@ -84,6 +84,7 @@ jobs:
         with:
           publish-features: "true"
           base-path-to-features: "./features/src"
+          disable-repo-tagging: "true"
           features-namespace: "onezerocompany/devcontainers/features"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

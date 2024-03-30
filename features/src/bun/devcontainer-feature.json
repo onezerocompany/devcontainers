@@ -10,6 +10,12 @@
       "description": "Bun version",
       "default": "latest",
       "proposals": ["latest"]
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run bun as",
+      "default": "zero",
+      "proposals": ["zero", "root", "vscode"]
     }
   }
 }

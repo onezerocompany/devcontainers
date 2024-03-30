@@ -8,9 +8,7 @@ test() {
 
 # Definition specific tests
 check "nvm" test "nvm --version"
-check "node" test "node --version"
-check "pnpm" test "pnpm -v"
-check "yarn" test "yarn --version"
+check "node" test "node --version | grep -qE '^v20\.'"
 
 # Report result
 reportResults

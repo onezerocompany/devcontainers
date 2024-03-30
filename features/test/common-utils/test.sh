@@ -1,13 +1,15 @@
-#!/bin/zsh
+#!/bin/bash
 
 source dev-container-features-test-lib
 
-check "bash" which bash
-check "zsh" which zsh
-check "zoxide" which zoxide
-check "eza" which eza
-check "motd" test -f /etc/motd
-check "auto-cd" cat ~/.zshrc | grep "setopt auto_cd"
+test() {
+  zsh -c "source ~/.zshrc && $1"
+}
+
+check "zoxide" test "command -v zoxide"
+check "eza" test "command -v eza"
+check "motd" test "cat /etc/motd"
+check "auto-cd" test "grep 'setopt auto_cd' ~/.zshrc"
 
 # Report result
 reportResults

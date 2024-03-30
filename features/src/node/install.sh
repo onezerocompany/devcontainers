@@ -22,12 +22,14 @@ echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> $BASHRC_PATH
 echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> $BASHRC_PATH
 
 # Install Node.js
-if [ "$NODE_VERSION" = "lts" ]; then
-  nvm install --lts --default
-  nvm use --lts
-else
-  nvm install $NODE_VERSION --default
-  nvm use $NODE_VERSION
+if [ "$NODE_VERSION" != "none" ]; then
+  if [ "$NODE_VERSION" = "lts" ]; then
+    nvm install --lts --default
+    nvm use --lts
+  else
+    nvm install $NODE_VERSION --default
+    nvm use $NODE_VERSION
+  fi
 fi
 
 # Install Yarn

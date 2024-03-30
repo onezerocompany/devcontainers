@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Optional: Import test library
 source dev-container-features-test-lib
 
-check "bun" bash --version | grep "1.0.0"
+test () {
+  zsh -c "source ~/.zshrc && $1"
+}
+
+check "bun" test "bun --version | grep \"1.0.0\""
 
 # Report result
 reportResults

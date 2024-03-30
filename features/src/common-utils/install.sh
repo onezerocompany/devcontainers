@@ -7,9 +7,7 @@ ZSHRC="$(su $USER -c 'echo $HOME')/.zshrc"
 AUTO_CD=${AUTO_CD:-"false"}
 if [ "$AUTO_CD" = "true" ]; then
   # add auto-cd to zshrc if available
-  if [ -f $ZSHRC ]; then
-    echo "setopt auto_cd" >> $ZSHRC
-  fi
+  echo "setopt auto_cd" >> $ZSHRC
 fi
 
 # zoxide
@@ -17,10 +15,10 @@ ZOXIDE=${ZOXIDE:-"false"}
 if [ "$ZOXIDE" = "true" ]; then
   # Install zoxide
   su $USER -c "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash"
+  # add zoxide to path
+  echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> $ZSHRC
   # add zoxide to zshrc if available
-  if [ -f $ZSHRC ]; then
-    echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> $ZSHRC
-  fi
+  echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> $ZSHRC
 fi
 
 # eza
@@ -48,5 +46,5 @@ if [ "$MOTD" = "true" ]; then
   MOTD=$(eval "$(dirname $0)/motd_gen.sh")
   echo $MOTD > /etc/motd
   chmod 644 /etc/motd
-  echo "cat /etc/motd" >> $ZSHRC
+  echo "cat /etc/motd" >> "/etc/profile.d/motd.sh"
 fi

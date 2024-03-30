@@ -3,7 +3,7 @@
   "description": "Common utilities for OneZero projects",
   "keywords": ["common", "utilities", "utils"],
   "id": "common-utils",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "options": {
     "auto_cd": {
       "type": "boolean",
@@ -33,7 +33,7 @@
     }
   },
   "installsAfter": [
-    "ghcr.io/onezerocompany/features/bun",
-    "ghcr.io/onezerocompany/features/node"
+    "ghcr.io/onezerocompany/devcontainers/features/bun",
+    "ghcr.io/onezerocompany/devcontainers/features/node"
   ]
 }
