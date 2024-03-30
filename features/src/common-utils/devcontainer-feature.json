@@ -31,9 +31,5 @@
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
     }
-  },
-  "installsAfter": [
-    "ghcr.io/onezerocompany/devcontainers/features/bun",
-    "ghcr.io/onezerocompany/devcontainers/features/node"
-  ]
+  }
 }
