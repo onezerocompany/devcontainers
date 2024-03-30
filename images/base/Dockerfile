@@ -35,7 +35,7 @@ COPY prompt.sh /home/zero/.zsh/prompt.sh
 RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
     chmod +x /home/zero/.zsh/prompt.sh && \
     echo "setopt PROMPT_SUBST" >> /home/zero/.zshrc && \
-    cat /home/zero/.zsh/prompt.sh) >> /home/zero/.zshrc && \
+    cat /home/zero/.zsh/prompt.sh >> /home/zero/.zshrc && \
     echo "" >> /home/zero/.zshrc && \
     rm /home/zero/.zsh/prompt.sh && \
     echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
