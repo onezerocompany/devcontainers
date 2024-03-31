@@ -1,0 +1,44 @@
+{
+  "id": "terraform",
+  "version": "1.3.6",
+  "name": "Terraform, tflint, and TFGrunt",
+  "description": "Installs the Terraform CLI and optionally TFLint. Auto-detects latest version and installs needed dependencies.",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": ["latest", "none", "1.1", "1.0", "0.15"],
+      "default": "latest",
+      "description": "Terraform version"
+    },
+    "tflint": {
+      "type": "string",
+      "proposals": ["latest", "0.47.0", "0.46.1"],
+      "default": "latest",
+      "description": "Tflint version (https://github.com/terraform-linters/tflint/releases)"
+    },
+    "installTfSummarize": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install tfsummarize, a tool to summarize terraform plan output"
+    },
+    "installTFsec": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install tfsec, a tool to spot potential misconfigurations for your terraform code"
+    },
+    "installTerraformDocs": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install terraform-docs, a utility to generate documentation from Terraform modules"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["HashiCorp.terraform"],
+      "settings": {
+        "terraform.languageServer.enable": true,
+        "terraform.languageServer.args": ["serve"]
+      }
+    }
+  }
+}

@@ -14,14 +14,42 @@ RUN apt-get update -y && \
 
 RUN apt-fast -y upgrade && \
     apt-fast -y install \
-    curl wget sudo gpg nano vim \
-    zsh git unzip zip tar xz-utils \
-    jq ca-certificates lsb-release \
-    build-essential make cmake libglu1-mesa \
-    python3 python3-pip python3-venv \
-    libc6 libgcc1 libgssapi-krb5-2 \
-    libicu70 libssl3 libstdc++6 zlib1g \
-    skopeo
+        curl \
+        wget \
+        sudo \
+        gpg \
+        nano \
+        vim \
+        zsh \
+        git \
+        zip unzip \
+        tar xz-utils \
+        jq \
+        ca-certificates \
+        lsb-release \
+        build-essential \
+        make \
+        cmake \
+        libglu1-mesa \
+        libc6 libc6-dev \
+        libgcc1 libgcc-9-dev \
+        libgssapi-krb5-2 \
+        libicu70 \
+        libssl3 \
+        libstdc++6 \
+        zlib1g zlib1g-dev \
+        skopeo \
+        binutils \
+        gnupg2 \
+        libcurl4-openssl-dev \
+        libedit2 \
+        libpython3.8 \
+        libsqlite3-0 \
+        libstdc++-9-dev \
+        libxml2-dev \
+        libz3-dev \
+        pkg-config \
+        tzdata \
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \

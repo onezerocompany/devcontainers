@@ -3,7 +3,7 @@
   "description": "Node.js with Yarn and PNPM package managers",
   "keywords": ["node", "javascript", "npm", "yarn", "pnpm"],
   "id": "node",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "options": {
     "yarn": {
       "type": "boolean",

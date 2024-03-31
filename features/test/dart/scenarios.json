@@ -1,0 +1,10 @@
+{
+  "specific-dart": {
+    "image": "ghcr.io/onezerocompany/base",
+    "features": {
+      "dart": {
+        "version": "3.3.3"
+      }
+    }
+  }
+}

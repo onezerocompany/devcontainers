@@ -1,0 +1,21 @@
+{
+  "name": "Dart",
+  "description": "Dart SDKs",
+  "keywords": ["dart"],
+  "id": "dart",
+  "version": "1.0.0",
+  "options": {
+    "version": {
+      "type": "string",
+      "description": "Dart version",
+      "default": "stable",
+      "proposals": ["stable", "beta", "dev"]
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run the container as",
+      "default": "zero",
+      "proposals": ["zero", "vscode", "root"]
+    }
+  }
+}

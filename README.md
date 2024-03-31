@@ -1,15 +1,23 @@
-features to complete:
+# OneZero DevContainers
 
-- [ ] Common Utils
-- [ ] Node.js
-- [ ] Flutter & Dart
+This repository contains a collection of devcontainers, templates and features for Visual Studio Code.
+
+## features to complete
+
+- [x] Common Utils
+- [x] Node.js
 - [x] Bun
+- [x] Dart
+- [x] Terraform (+ tf-summary)
+- [x] Docker
+- [ ] Kubectl (+ helm)
+
+---
+
+- [ ] Flutter (+ Android Studio)
+- [ ] Ruby
+- [ ] Fastlane
 - [ ] Golang
 - [ ] Rust
 - [ ] Python
 - [ ] Swift
-- [ ] Android SDK
-- [ ] Fastlane
-- [ ] Terraform (+ tf-summary)
-- [ ] Docker (cli only)
-- [ ] Kubectl (+ helm)
