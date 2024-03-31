@@ -49,7 +49,7 @@ RUN apt-fast -y upgrade && \
         libxml2-dev \
         libz3-dev \
         pkg-config \
-        tzdata \
+        tzdata
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \
