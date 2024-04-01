@@ -38,11 +38,17 @@
     }
   },
   "installsAfter": [
-    "node",
     "bun",
+    "dart",
     "docker",
-    "terraform",
+    "fastlane",
     "flutter",
-    "kubernetes"
+    "go",
+    "kubernetes",
+    "node",
+    "python",
+    "ruby",
+    "rust",
+    "terraform"
   ]
 }

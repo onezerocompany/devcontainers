@@ -15,10 +15,9 @@ This repository contains a collection of devcontainers, templates and features f
 - [x] Python
 - [x] Ruby
 - [x] Kubectl (+ helm)
+- [x] Fastlane
+- [x] Swift
+- [x] Trivy
+- [x] Flutter (+ Android Studio)
 
 ---
-
-- [ ] Fastlane
-- [ ] Flutter (+ Android Studio)
-- [ ] Swift
-- [ ] Trivy

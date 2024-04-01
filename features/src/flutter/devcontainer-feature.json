@@ -11,6 +11,11 @@
       "default": "stable",
       "proposals": ["stable", "beta", "dev"]
     },
+    "install_fvm": {
+      "type": "boolean",
+      "description": "Install fvm",
+      "default": true
+    },
     "user": {
       "type": "string",
       "description": "User to run the container as",
@@ -19,5 +24,8 @@
     }
   },
   "capAdd": ["SYS_PTRACE"],
-  "securityOpt": ["seccomp=unconfined"]
+  "securityOpt": ["seccomp=unconfined"],
+  "containerEnv": {
+    "FVM_DIR": "/etc/fvm"
+  }
 }

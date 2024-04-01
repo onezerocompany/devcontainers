@@ -1,0 +1,28 @@
+{
+  "name": "Trivy",
+  "description": "Trivy CLI",
+  "keywords": ["trivy", "security", "vulnerability", "scanner"],
+  "id": "trivy",
+  "version": "1.0.0",
+  "options": {
+    "version": {
+      "type": "string",
+      "description": "Trivy version",
+      "default": "latest",
+      "proposals": ["latest", "0.19.2", "0.19.1", "0.19.0"]
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run the container as",
+      "default": "zero",
+      "proposals": ["zero", "vscode", "root"]
+    }
+  },
+  "capAdd": ["SYS_PTRACE"],
+  "securityOpt": ["seccomp=unconfined"],
+  "customizations": {
+    "vscode": {
+      "extensions": ["AquaSecurityOfficial.trivy-vulnerability-scanner"]
+    }
+  }
+}

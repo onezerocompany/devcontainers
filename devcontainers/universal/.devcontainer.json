@@ -2,17 +2,21 @@
   "name": "OneZero Universal",
   "image": "ghcr.io/onezerocompany/base",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {},
+    // languages & frameworks
     "ghcr.io/onezerocompany/devcontainers/features/node": {},
     "ghcr.io/onezerocompany/devcontainers/features/bun": {},
     "ghcr.io/onezerocompany/devcontainers/features/go": {},
     "ghcr.io/onezerocompany/devcontainers/features/rust": {},
+    "ghcr.io/onezerocompany/devcontainers/features/swift": {},
     "ghcr.io/onezerocompany/devcontainers/features/python": {},
     "ghcr.io/onezerocompany/devcontainers/features/docker": {},
     "ghcr.io/onezerocompany/devcontainers/features/ruby": {},
-    "ghcr.io/onezerocompany/devcontainers/features/fastlane": {},
-    "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
     "ghcr.io/onezerocompany/devcontainers/features/flutter": {},
-    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {}
+    // tools
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {},
+    "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
+    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
+    "ghcr.io/onezerocompany/devcontainers/features/fastlane": {},
+    "ghcr.io/onezerocompany/devcontainers/features/trivy": {}
   }
 }
