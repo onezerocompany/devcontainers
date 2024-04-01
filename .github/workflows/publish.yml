@@ -89,10 +89,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  universal_devcontainer:
-    name: Build and Publish Universal Devcontainer
+  devcontainers:
+    name: Build and Publish Devcontainers
     runs-on: ubuntu-latest
     needs: [features, base]
+    strategy:
+      matrix:
+        devcontainer: [universal, minimal]
 
     steps:
       - name: Checkout repository
@@ -116,9 +119,9 @@ jobs:
         env:
           BUILDX_NO_DEFAULT_ATTESTATIONS: true
         with:
-          subFolder: devcontainers/universal
-          imageName: ghcr.io/${{ github.repository_owner }}/devcontainer/universal
-          cacheFrom: ghcr.io/${{ github.repository_owner }}/devcontainer/universal
+          subFolder: devcontainers/${{ matrix.devcontainer }}
+          imageName: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer }}
+          cacheFrom: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer }}
           push: filter
           refFilterForPush: refs/heads/main
           platform: linux/amd64,linux/arm64

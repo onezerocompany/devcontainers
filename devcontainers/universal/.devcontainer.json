@@ -1,5 +1,5 @@
 {
-  "name": "OneZero Universal",
+  "name": "OneZero Universal Devcontainer",
   "image": "ghcr.io/onezerocompany/base",
   "features": {
     // languages & frameworks
@@ -19,5 +19,20 @@
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
     "ghcr.io/onezerocompany/devcontainers/features/fastlane": {},
     "ghcr.io/onezerocompany/devcontainers/features/trivy": {}
-  }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "workbench.preferredDarkColorTheme": "Default Dark Modern",
+        "workbench.preferredLightColorTheme": "Default Light Modern",
+        "workbench.colorTheme": "Default Dark Modern",
+        "window.autoDetectColorScheme": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  },
+  "remoteUser": "zero"
 }
