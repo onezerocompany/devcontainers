@@ -39,10 +39,10 @@ function download_flutter_sdk() {
 mkdir -p $FLUTTER_DIR
 chmod -R 777 $FLUTTER_DIR
 
-# Install required packages
-apt-get install -y curl git unzip xz-utils zip libglu1-mesa
-
+apt-get update -y 
 apt-get install -y \
+  curl git unzip xz-utils \
+  zip libglu1-mesa \
   clang cmake git \
   ninja-build pkg-config \
   libgtk-3-dev liblzma-dev \
