@@ -59,6 +59,10 @@ RUN chsh -s /bin/zsh && \
     chsh -s /bin/zsh zero && \
     chown -R zero:zero /home/zero
 
+RUN \
+    echo "autoload -Uz compinit" >> /home/zero/.zshrc && \ 
+    echo "compinit" >> /home/zero/.zshrc
+
 COPY prompt.sh /home/zero/.zsh/prompt.sh
 RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
     chmod +x /home/zero/.zsh/prompt.sh && \

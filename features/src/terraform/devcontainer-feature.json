@@ -21,11 +21,6 @@
       "default": true,
       "description": "Install tfsummarize, a tool to summarize terraform plan output"
     },
-    "installTFsec": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install tfsec, a tool to spot potential misconfigurations for your terraform code"
-    },
     "installTerraformDocs": {
       "type": "boolean",
       "default": true,

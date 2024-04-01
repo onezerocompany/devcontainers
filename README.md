@@ -21,3 +21,4 @@ This repository contains a collection of devcontainers, templates and features f
 - [ ] Rust
 - [ ] Python
 - [ ] Swift
+- [ ] Trivy

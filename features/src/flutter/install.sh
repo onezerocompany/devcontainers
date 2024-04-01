@@ -42,7 +42,7 @@ chmod -R 777 $FLUTTER_DIR
 # Install required packages
 apt-get install -y curl git unzip xz-utils zip libglu1-mesa
 
-apt-get install \
+apt-get install -y \
   clang cmake git \
   ninja-build pkg-config \
   libgtk-3-dev liblzma-dev \
