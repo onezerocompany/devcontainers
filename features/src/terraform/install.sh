@@ -436,7 +436,4 @@ fi
 
 rm -rf /tmp/tf-downloads ${GNUPGHOME}
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 echo "Done!"

@@ -449,7 +449,4 @@ EOF
 chmod +x /usr/local/share/docker-init.sh
 chown ${USERNAME}:root /usr/local/share/docker-init.sh
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 echo "Done!"
