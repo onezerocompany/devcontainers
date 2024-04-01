@@ -7,7 +7,7 @@
     "ghcr.io/onezerocompany/devcontainers/features/bun": {},
     "ghcr.io/onezerocompany/devcontainers/features/docker": {},
     "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
-    "ghcr.io/onezerocompany/devcontainers/features/flutter": {},,
+    "ghcr.io/onezerocompany/devcontainers/features/flutter": {},
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {}
   }
 }
