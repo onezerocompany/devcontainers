@@ -17,5 +17,7 @@
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
     }
-  }
+  },
+  "capAdd": ["SYS_PTRACE"],
+  "securityOpt": ["seccomp=unconfined"]
 }

@@ -24,9 +24,6 @@ DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -361,8 +358,6 @@ usermod -aG docker "${USERNAME}"
 
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
-    # Clean up
-    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 echo "docker-init doesn't exist, adding..."
@@ -377,8 +372,6 @@ fi
 if [ "${ENABLE_NONROOT_DOCKER}" = "false" ] || [ "${USERNAME}" = "root" ]; then
     echo -e '#!/usr/bin/env bash\nexec "$@"' > /usr/local/share/docker-init.sh
     chmod +x /usr/local/share/docker-init.sh
-    # Clean up
-    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 

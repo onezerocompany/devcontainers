@@ -28,7 +28,7 @@ function download_flutter_sdk() {
 
     # Download the SDK archive
     echo "Downloading Flutter SDK from: $DOWNLOAD_URL"
-    if ! wget -q --show-progress -O "/tmp/flutter_linux.tar.xz" "$DOWNLOAD_URL"; then
+    if ! wget -q -O "/tmp/flutter_linux.tar.xz" "$DOWNLOAD_URL"; then
         echo "Download failed. Please check your network connection or the provided channel/version."
         return 1
     fi

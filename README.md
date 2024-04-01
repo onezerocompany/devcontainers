@@ -10,15 +10,15 @@ This repository contains a collection of devcontainers, templates and features f
 - [x] Dart
 - [x] Terraform (+ tf-summary)
 - [x] Docker
-- [ ] Kubectl (+ helm)
+- [x] Golang
+- [x] Rust
+- [x] Python
+- [x] Ruby
+- [x] Kubectl (+ helm)
 
 ---
 
-- [ ] Flutter (+ Android Studio)
-- [ ] Ruby
 - [ ] Fastlane
-- [ ] Golang
-- [ ] Rust
-- [ ] Python
+- [ ] Flutter (+ Android Studio)
 - [ ] Swift
 - [ ] Trivy
