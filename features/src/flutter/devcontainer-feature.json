@@ -3,7 +3,7 @@
   "description": "Flutter and Dart SDKs",
   "keywords": ["flutter", "dart", "mobile", "android", "ios"],
   "id": "flutter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "options": {
     "version": {
       "type": "string",

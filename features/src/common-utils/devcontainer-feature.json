@@ -36,5 +36,13 @@
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
     }
-  }
+  },
+  "installsAfter": [
+    "node",
+    "bun",
+    "docker",
+    "terraform",
+    "flutter",
+    "kubernetes"
+  ]
 }
