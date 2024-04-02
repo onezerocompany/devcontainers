@@ -10,7 +10,7 @@ PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
 # if python version is 'none', python will not be installed
-if [ "${PYTHON_VERSION}" = "none" || "$INSTALL" != "true" ]; then
+if [[ "${PYTHON_VERSION}" = "none" || "$INSTALL" != "true" ]]; then
     exit 0
 fi
 

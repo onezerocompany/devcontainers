@@ -52,6 +52,13 @@ if [ "$EZA" = "true" ]; then
   fi
 fi
 
+# tools
+TOOLS=${TOOLS:-"false"}
+if [ "$TOOLS" = "true" ]; then
+  $(dirname $0)/tools.sh > /usr/local/bin/tools
+  chmod +x /usr/local/bin/tools
+fi
+
 # motd
 MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then

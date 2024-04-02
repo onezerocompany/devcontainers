@@ -5,7 +5,7 @@ USER=${USER:-"zero"}
 DART_DIR=${DART_DIR:-"/usr/local/lib/dart-sdk"}
 CHANNEL_OR_VERSION=${VERSION:-"stable"}
 
-if [ "$CHANNEL_OR_VERSION" = "none" || "$INSTALL" != "true" ]; then
+if [[ "$CHANNEL_OR_VERSION" = "none" || "$INSTALL" != "true" ]]; then
   echo "Skipping Dart SDK installation"
   exit 0
 fi

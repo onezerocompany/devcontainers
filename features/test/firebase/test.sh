@@ -7,7 +7,7 @@ test() {
 }
 
 # Definition specific tests
-check "fastlane" test "fastlane --version"
+check "firebase" test "firebase --version"
 
 # Report result
 reportResults

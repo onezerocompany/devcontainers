@@ -7,7 +7,7 @@ CHANNEL_OR_VERSION=${VERSION:-"stable"}
 INSTALL_FVM=${INSTALL_FVM:-"true"}
 FVM_DIR=${FVM_DIR:-"/etc/fvm"}
 
-if [ "$INSTALL" != "true" ]; then
+if [[ "$INSTALL" != "true" || "$CHANNEL_OR_VERSION" == "none" ]]; then
   echo "Skipping Flutter SDK installation"
   exit 0
 fi

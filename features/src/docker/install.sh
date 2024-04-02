@@ -17,7 +17,7 @@ DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jam
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
 
 
-if [ "${DOCKER_VERSION}" = "none" || "$INSTALL" != "true" ]; then
+if [[ "${DOCKER_VERSION}" = "none" || "$INSTALL" != "true" ]]; then
     echo "Skipping Docker installation"
     exit 0
 fi
@@ -179,7 +179,7 @@ install_compose_switch_fallback() {
 export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr wget
+check_packages curl ca-certificates gnupg2 dirmngr wget
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi

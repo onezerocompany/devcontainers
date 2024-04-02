@@ -1,6 +1,6 @@
 #!/bin/bash
 
-horizontal=
+horizontal=false
 
 while getopts "h" opt; do
   case $opt in
