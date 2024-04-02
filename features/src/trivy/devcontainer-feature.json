@@ -3,7 +3,7 @@
   "description": "Trivy CLI",
   "keywords": ["trivy", "security", "vulnerability", "scanner"],
   "id": "trivy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "options": {
     "install": {
       "type": "boolean",

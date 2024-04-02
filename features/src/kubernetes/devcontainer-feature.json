@@ -3,7 +3,7 @@
   "description": "Kubernetes CLI tools",
   "keywords": ["kubernetes", "kubectl", "helm", "kustomize"],
   "id": "kubernetes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "options": {
     "install": {
       "type": "boolean",

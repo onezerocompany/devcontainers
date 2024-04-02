@@ -3,7 +3,7 @@
   "description": "Bun runtime for JavaScript projects",
   "keywords": ["bun", "runtime", "javascript"],
   "id": "bun",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "options": {
     "install": {
       "type": "boolean",

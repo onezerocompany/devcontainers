@@ -3,7 +3,7 @@
   "name": "Firebase",
   "description": "Firebase CLI",
   "keywords": ["firebase", "cli", "cloud"],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "options": {
     "install": {
       "type": "boolean",
