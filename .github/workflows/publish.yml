@@ -114,7 +114,7 @@ jobs:
     needs: [features, base]
     strategy:
       matrix:
-        devcontainer: [universal, minimal]
+        devcontainer: [flutter, minimal]
 
     steps:
       - name: Checkout repository
