@@ -1,16 +1,16 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping Node.js installation"
-  exit 0
-fi
-
 INSTALL_YARN=${YARN:-"false"}
 INSTALL_PNPM=${PNPM:-"false"}
 NODE_VERSION=${VERSION:-"lts"}
 GLOBAL_PACKAGES=${GLOBAL_PACKAGES:-""}
 USER=${USER:-"zero"}
+
+if [ "$INSTALL" != "true" ]; then
+  echo "Skipping Node.js installation"
+  exit 0
+fi
 
 # Install NVM
 export SHELL="zsh"

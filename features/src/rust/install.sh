@@ -1,18 +1,6 @@
-#!/usr/bin/env bash
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-#
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/rust.md
-# Maintainer: The VS Code and Codespaces Teams
+#!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-    echo "Skipping Rust installation"
-    exit 0
-fi
-
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 
@@ -22,7 +10,10 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 UPDATE_RUST="${UPDATE_RUST:-"false"}"
 
-set -e
+if [ "$INSTALL" != "true" ]; then
+    echo "Skipping Rust installation"
+    exit 0
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'

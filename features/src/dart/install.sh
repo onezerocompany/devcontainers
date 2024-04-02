@@ -1,16 +1,11 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping Dart SDK installation"
-  exit 0
-fi
-
 USER=${USER:-"zero"}
 DART_DIR=${DART_DIR:-"/usr/local/lib/dart-sdk"}
 CHANNEL_OR_VERSION=${VERSION:-"stable"}
 
-if [ "$CHANNEL_OR_VERSION" = "none" ]; then
+if [ "$CHANNEL_OR_VERSION" = "none" || "$INSTALL" != "true" ]; then
   echo "Skipping Dart SDK installation"
   exit 0
 fi
@@ -58,7 +53,7 @@ function download_dart_sdk() {
 
   # Download the SDK archive
   echo "Downloading Dart SDK from: $DOWNLOAD_URL"
-  if ! wget -q --show-progress -O "/tmp/dart-sdk.zip" "$DOWNLOAD_URL"; then
+  if ! wget -q -O "/tmp/dart-sdk.zip" "$DOWNLOAD_URL"; then
     echo "Download failed. Please check your network connection or the provided channel/version."
     return 1
   fi

@@ -1,12 +1,12 @@
 #!/bin/bash -e
 
+USER=${USER:-"zero"}
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping OnePassword CLI installation"
+
+if [ "$INSTALL" != "true" ]; then
+  echo "Skipping 1Password CLI installation"
   exit 0
 fi
-
-USER=${USER:-"zero"}
 
 ARCH=$(uname -m)
 case $ARCH in

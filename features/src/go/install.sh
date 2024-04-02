@@ -1,11 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping Go installation"
-  exit 0
-fi
-
 TARGET_GO_VERSION="${VERSION:-"latest"}"
 GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
 
@@ -17,7 +12,10 @@ INSTALL_GO_TOOLS="${INSTALL_GO_TOOLS:-"true"}"
 # https://www.google.com/linuxrepositories/
 GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"
 
-set -e
+if [ "$INSTALL" != "true" ]; then
+  echo "Skipping Go installation"
+  exit 0
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'

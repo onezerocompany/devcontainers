@@ -3,6 +3,12 @@
 USER=${USER:-"zero"}
 INSTALL_KUBECTL=${KUBECTL:-"true"}
 INSTALL_HELM=${HELM:-"true"}
+INSTALL=${INSTALL:-"true"}
+
+if [ "$INSTALL" != "true" ]; then
+  echo "Skipping Kubernetes tools installation"
+  exit 0
+fi
 
 determine_arch() {
   case $(uname -m) in

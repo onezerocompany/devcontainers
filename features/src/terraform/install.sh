@@ -1,12 +1,6 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping Terraform installation"
-  exit 0
-fi
-
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
@@ -22,6 +16,11 @@ GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkps://keyserver.pgp.com"
 KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
+
+if [ "$INSTALL" != "true" ]; then
+    echo "Skipping Terraform installation"
+    exit 0
+fi
 
 architecture="$(uname -m)"
 case ${architecture} in

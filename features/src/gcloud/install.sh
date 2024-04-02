@@ -1,13 +1,13 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
+USER=${USER:-"zero"}
+VERSION=${VERSION:-"latest"}
+
+if [ "$INSTALL" != "true" ]; then
   echo "Skipping Google Cloud SDK installation"
   exit 0
 fi
-
-USER=${USER:-"zero"}
-VERSION=${VERSION:-"latest"}
 
 # Function to fetch the latest version information
 get_latest_version() {

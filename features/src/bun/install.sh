@@ -1,16 +1,11 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping bun installation"
-  exit 0
-fi
-
 VERSION=${VERSION:-"latest"}
 USER=${USER:-"zero"}
 ZSHRC=${ZSHRC:-"$(su $USER -c 'echo $HOME')/.zshrc"}
 
-if [ "$VERSION" = "none" ]; then
+if [ "$VERSION" = "none" || "$INSTALL" != "true" ]; then
   echo "Skipping bun installation"
   exit 0
 elif [ "$VERSION" = "latest" ]; then

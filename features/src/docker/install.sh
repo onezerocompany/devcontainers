@@ -1,20 +1,6 @@
-#!/usr/bin/env bash
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-#
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker.md
-# Maintainer: The VS Code and Codespaces Teams
-
-set -e
+#!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-    echo "Skipping Docker installation"
-    exit 0
-fi
-
 DOCKER_VERSION="${VERSION:-"latest"}"
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
@@ -31,7 +17,7 @@ DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jam
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
 
 
-if [ "${DOCKER_VERSION}" = "none" ]; then
+if [ "${DOCKER_VERSION}" = "none" || "$INSTALL" != "true" ]; then
     echo "Skipping Docker installation"
     exit 0
 fi

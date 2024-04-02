@@ -1,9 +1,10 @@
 #!/bin/bash -e
 
+INSTALL=${INSTALL:-"true"}
 USER=${USER:-"zero"}
 VERSION=${VERSION:-"latest"}
 
-if [ "$VERSION" = "none" ]; then
+if [ "$VERSION" = "none" || "$INSTALL" != "true" ]; then
   echo "Skipping Fastlane installation"
   exit 0
 fi

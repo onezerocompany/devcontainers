@@ -7,7 +7,6 @@
     "ghcr.io/onezerocompany/devcontainers/features/bun": {},
     "ghcr.io/onezerocompany/devcontainers/features/docker": {},
     "ghcr.io/onezerocompany/devcontainers/features/ruby": {},
-    "ghcr.io/onezerocompany/devcontainers/features/dart": {},
     "ghcr.io/onezerocompany/devcontainers/features/flutter": {},
     // tools
     "ghcr.io/onezerocompany/devcontainers/features/terraform": {},

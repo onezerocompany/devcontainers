@@ -1,18 +1,6 @@
-#!/usr/bin/env bash
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-#
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/ruby.md
-# Maintainer: The VS Code and Codespaces Teams
+#!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-    echo "Skipping Ruby installation"
-    exit 0
-fi
-
 RUBY_VERSION="${VERSION:-"latest"}"
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -34,7 +22,10 @@ keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
-set -e
+if [ "$INSTALL" != "true" ]; then
+    echo "Skipping Ruby installation"
+    exit 0
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'

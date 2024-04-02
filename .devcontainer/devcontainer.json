@@ -1,0 +1,63 @@
+{
+  "name": "my-flutter-app",
+  "image": "ghcr.io/onezerocompany/base",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "workbench.preferredDarkColorTheme": "Default Dark Modern",
+        "workbench.preferredLightColorTheme": "Default Light Modern",
+        "workbench.colorTheme": "Default Dark Modern",
+        "window.autoDetectColorScheme": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  },
+  "remoteUser": "zero",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/flutter": {
+      "version": "latest"
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/node": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/bun": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/python": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/go": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/swift": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/rust": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/terraform": {
+      "install": "true"
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/docker": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/firebase": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/gcloud": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/fastlane": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {
+      "install": ""
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/trivy": {},
+    "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
+  }
+}

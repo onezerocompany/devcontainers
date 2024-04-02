@@ -1,8 +1,7 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
+if [ "$INSTALL" != "true" ]; then
   echo "Skipping Trivy installation"
   exit 0
 fi

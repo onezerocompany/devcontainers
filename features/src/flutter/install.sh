@@ -1,16 +1,16 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
-  echo "Skipping Flutter SDK installation"
-  exit 0
-fi
-
 USER=${USER:-"zero"}
 FLUTTER_DIR=${FLUTTER_DIR:-"/opt/flutter"}
 CHANNEL_OR_VERSION=${VERSION:-"stable"}
 INSTALL_FVM=${INSTALL_FVM:-"true"}
 FVM_DIR=${FVM_DIR:-"/etc/fvm"}
+
+if [ "$INSTALL" != "true" ]; then
+  echo "Skipping Flutter SDK installation"
+  exit 0
+fi
 
 # in case we are on arm64, fail gracefully
 if [ "$(uname -m)" == "aarch64" ]; then

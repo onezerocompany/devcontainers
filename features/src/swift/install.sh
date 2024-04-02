@@ -1,13 +1,13 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-if [ "$INSTALL" = "false" ]; then
+USER=${USER:-"zero"}
+VERSION=${VERSION:-"latest"}
+
+if [ "$INSTALL" != "true" ]; then
   echo "Skipping Swift installation"
   exit 0
 fi
-
-USER=${USER:-"zero"}
-VERSION=${VERSION:-"latest"}
 
 # Install required packages
 apt-get update -y
