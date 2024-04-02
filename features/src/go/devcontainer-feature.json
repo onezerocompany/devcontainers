@@ -4,6 +4,11 @@
   "name": "Go",
   "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Go",
+      "default": true
+    },
     "version": {
       "type": "string",
       "proposals": ["latest", "none", "1.21", "1.20"],

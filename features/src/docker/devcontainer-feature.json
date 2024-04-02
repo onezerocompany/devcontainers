@@ -4,6 +4,11 @@
   "name": "Docker",
   "description": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
   "options": {
+    "install": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Docker CLI"
+    },
     "version": {
       "type": "string",
       "proposals": ["latest", "none", "20.10"],

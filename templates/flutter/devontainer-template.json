@@ -1,0 +1,84 @@
+{
+  "id": "flutter-app",
+  "version": "1.0.0",
+  "name": "Flutter App",
+  "description": "Work on your Flutter app using a development container",
+  "options": {
+    "name": {
+      "type": "string",
+      "default": "my-flutter-app",
+      "description": "The name of the app"
+    },
+    "version": {
+      "type": "string",
+      "default": "latest",
+      "description": "The version of Flutter to use. For example, 'latest' or '1.17.5'.",
+      "proposals": ["latest"]
+    },
+    "node": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Node.js?"
+    },
+    "bun": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Bun?"
+    },
+    "python": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Python?"
+    },
+    "go": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Go?"
+    },
+    "ruby": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Ruby?"
+    },
+    "swift": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Swift?"
+    },
+    "rust": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Rust?"
+    },
+    "terraform": {
+      "type": "boolean",
+      "default": true,
+      "description": "Do you manage your infrastructure with Terraform?"
+    },
+    "docker": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app require running docker containers?"
+    },
+    "firebase": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Firebase?"
+    },
+    "gcloud": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Google Cloud Platform?"
+    },
+    "fastlane": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use Fastlane?"
+    },
+    "kubernetes": {
+      "type": "boolean",
+      "default": false,
+      "description": "Does your app use a Kubernetes cluster?"
+    }
+  }
+}

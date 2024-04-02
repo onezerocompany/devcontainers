@@ -7,6 +7,12 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/ruby.md
 # Maintainer: The VS Code and Codespaces Teams
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+    echo "Skipping Ruby installation"
+    exit 0
+fi
+
 RUBY_VERSION="${VERSION:-"latest"}"
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"

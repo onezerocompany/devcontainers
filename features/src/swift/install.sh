@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+  echo "Skipping Swift installation"
+  exit 0
+fi
+
 USER=${USER:-"zero"}
 VERSION=${VERSION:-"latest"}
 

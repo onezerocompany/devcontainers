@@ -1,10 +1,19 @@
 #!/bin/bash -e
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+  echo "Skipping bun installation"
+  exit 0
+fi
+
 VERSION=${VERSION:-"latest"}
 USER=${USER:-"zero"}
 ZSHRC=${ZSHRC:-"$(su $USER -c 'echo $HOME')/.zshrc"}
 
-if [ "$VERSION" = "latest" ]; then
+if [ "$VERSION" = "none" ]; then
+  echo "Skipping bun installation"
+  exit 0
+elif [ "$VERSION" = "latest" ]; then
   # Install the latest version of bun
   su $USER -c "curl -fsSL https://bun.sh/install | bash"
 else

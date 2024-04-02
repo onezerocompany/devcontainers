@@ -7,6 +7,14 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker.md
 # Maintainer: The VS Code and Codespaces Teams
 
+set -e
+
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+    echo "Skipping Docker installation"
+    exit 0
+fi
+
 DOCKER_VERSION="${VERSION:-"latest"}"
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
@@ -22,7 +30,11 @@ MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
 
-set -e
+
+if [ "${DOCKER_VERSION}" = "none" ]; then
+    echo "Skipping Docker installation"
+    exit 0
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'

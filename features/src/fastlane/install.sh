@@ -3,6 +3,11 @@
 USER=${USER:-"zero"}
 VERSION=${VERSION:-"latest"}
 
+if [ "$VERSION" = "none" ]; then
+  echo "Skipping Fastlane installation"
+  exit 0
+fi
+
 # install locales
 apt-get install -y locales
 locale-gen en_US.UTF-8
@@ -13,4 +18,8 @@ echo "export LANG=en_US.UTF-8" >> /home/$USER/.zshrc
 echo "export LC_ALL=en_US.UTF-8" >> /home/$USER/.bashrc
 echo "export LANG=en_US.UTF-8" >> /home/$USER/.bashrc
 
-gem install fastlane
+if [ "$VERSION" = "latest" ]; then
+  gem install fastlane
+else 
+  gem install fastlane -v $VERSION
+fi

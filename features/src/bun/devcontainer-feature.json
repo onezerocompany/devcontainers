@@ -5,6 +5,11 @@
   "id": "bun",
   "version": "1.0.5",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install bun",
+      "default": true
+    },
     "version": {
       "type": "string",
       "description": "Bun version",

@@ -5,6 +5,11 @@
   "id": "node",
   "version": "1.0.6",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Node.js",
+      "default": true
+    },
     "yarn": {
       "type": "boolean",
       "description": "Install Yarn package manager",

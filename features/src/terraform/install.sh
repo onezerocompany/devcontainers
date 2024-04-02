@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+  echo "Skipping Terraform installation"
+  exit 0
+fi
+
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}

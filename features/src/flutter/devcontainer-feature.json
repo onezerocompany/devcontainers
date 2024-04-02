@@ -5,6 +5,11 @@
   "id": "flutter",
   "version": "1.0.1",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Flutter SDK",
+      "default": true
+    },
     "version": {
       "type": "string",
       "description": "Flutter version",

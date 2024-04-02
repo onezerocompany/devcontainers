@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+  echo "Skipping Go installation"
+  exit 0
+fi
+
 TARGET_GO_VERSION="${VERSION:-"latest"}"
 GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
 

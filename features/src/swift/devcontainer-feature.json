@@ -5,6 +5,11 @@
   "id": "swift",
   "version": "1.0.0",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Swift SDK",
+      "default": true
+    },
     "version": {
       "type": "string",
       "description": "Swift version",

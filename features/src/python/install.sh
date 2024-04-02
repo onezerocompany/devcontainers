@@ -7,6 +7,12 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/python.md
 # Maintainer: The VS Code and Codespaces Teams
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+    echo "Skipping Python installation"
+    exit 0
+fi
+
 PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
 SKIP_VULNERABILITY_PATCHING="${SKIPVULNERABILITYPATCHING:-"false"}"
@@ -14,6 +20,11 @@ OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+
+# if python version is 'none', python will not be installed
+if [ "${PYTHON_VERSION}" = "none" ]; then
+    exit 0
+fi
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 

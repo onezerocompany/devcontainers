@@ -5,17 +5,10 @@
   "id": "trivy",
   "version": "1.0.0",
   "options": {
-    "version": {
-      "type": "string",
-      "description": "Trivy version",
-      "default": "latest",
-      "proposals": ["latest", "0.19.2", "0.19.1", "0.19.0"]
-    },
-    "user": {
-      "type": "string",
-      "description": "User to run the container as",
-      "default": "zero",
-      "proposals": ["zero", "vscode", "root"]
+    "install": {
+      "type": "boolean",
+      "description": "Install Trivy",
+      "default": true
     }
   },
   "capAdd": ["SYS_PTRACE"],

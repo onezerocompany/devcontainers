@@ -4,6 +4,11 @@
   "name": "Rust",
   "description": "Installs Rust, common Rust utilities, and their required dependencies",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Rust",
+      "default": true
+    },
     "version": {
       "type": "string",
       "proposals": [

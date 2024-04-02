@@ -1,0 +1,20 @@
+{
+  "id": "onepassword",
+  "name": "1Password CLI",
+  "description": "1Password CLI",
+  "keywords": ["1password", "cli"],
+  "version": "1.0.0",
+  "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install 1Password CLI",
+      "default": true
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run the container as",
+      "default": "zero",
+      "proposals": ["zero", "vscode", "root"]
+    }
+  }
+}

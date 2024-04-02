@@ -5,6 +5,11 @@
   "id": "dart",
   "version": "1.0.0",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Dart SDK",
+      "default": true
+    },
     "version": {
       "type": "string",
       "description": "Dart version",

@@ -3,6 +3,11 @@
   "id": "gcloud",
   "version": "1.0.0",
   "options": {
+    "install": {
+      "description": "Install the Google Cloud CLI",
+      "type": "boolean",
+      "default": true
+    },
     "version": {
       "description": "Version of the Google Cloud CLI to install",
       "type": "string",

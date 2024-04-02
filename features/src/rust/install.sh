@@ -7,6 +7,12 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/rust.md
 # Maintainer: The VS Code and Codespaces Teams
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+    echo "Skipping Rust installation"
+    exit 0
+fi
+
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 

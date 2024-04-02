@@ -5,6 +5,11 @@
   "id": "kubernetes",
   "version": "1.0.0",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Kubernetes CLI tools",
+      "default": true
+    },
     "kubectl": {
       "type": "boolean",
       "description": "Install kubectl",

@@ -1,8 +1,19 @@
 #!/bin/bash -e
 
+INSTALL=${INSTALL:-"true"}
+if [ "$INSTALL" = "false" ]; then
+  echo "Skipping Dart SDK installation"
+  exit 0
+fi
+
 USER=${USER:-"zero"}
 DART_DIR=${DART_DIR:-"/usr/local/lib/dart-sdk"}
 CHANNEL_OR_VERSION=${VERSION:-"stable"}
+
+if [ "$CHANNEL_OR_VERSION" = "none" ]; then
+  echo "Skipping Dart SDK installation"
+  exit 0
+fi
 
 function arch() {
   case $(dpkg --print-architecture) in

@@ -89,6 +89,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  templates:
+    name: Build and Publish Templates
+    runs-on: ubuntu-latest
+    needs: [features]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: "Publish Templates"
+        uses: devcontainers/action@v1
+        with:
+          publish-templates: "true"
+          base-path-to-templates: "./templates/src"
+          disable-repo-tagging: "true"
+          templates-namespace: "onezerocompany/devcontainers/templates"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   devcontainers:
     name: Build and Publish Devcontainers
     runs-on: ubuntu-latest

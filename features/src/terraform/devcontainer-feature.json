@@ -4,6 +4,11 @@
   "name": "Terraform, tflint, and TFGrunt",
   "description": "Installs the Terraform CLI and optionally TFLint. Auto-detects latest version and installs needed dependencies.",
   "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install Terraform",
+      "default": true
+    },
     "version": {
       "type": "string",
       "proposals": ["latest", "none", "1.1", "1.0", "0.15"],
