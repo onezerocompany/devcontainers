@@ -1,7 +1,5 @@
 #!/bin/bash
 
-horizontal=false
-
 while getopts "h" opt; do
   case $opt in
     h)
@@ -24,7 +22,7 @@ function tool () {
   then
     local version=$(eval "$tool $version_cmd | $extract_version" | head -n 1) 
     if [ -z "$horizontal" ]; then
-      printf "$tool \e[32m$version\e[0m\n"
+      printf "$tool\e[2m($version)\e[0m\n"
     else
       charcount+=#"$tool $version "
       if [ ${#charcount} -gt 80 ]; then
@@ -66,4 +64,6 @@ tool "python"
 tool "pip"
 tool "pipenv"
 
-echo ""
+if [ -z "$horizontal" ]; then
+  echo ""
+fi
