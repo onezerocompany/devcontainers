@@ -26,9 +26,12 @@ function tool () {
     if [ -z "$horizontal" ]; then
       printf "$tool \e[32m$version\e[0m\n"
     else
-
-      charcount=$(($charcount + ${#"$tool $version "}))
-      printf "$tool \e[32m$version\e[0m "
+      charcount+=#"$tool $version "
+      if [ ${#charcount} -gt 80 ]; then
+        printf "\n"
+        charcount=0
+      fi
+      printf "$tool\e[2m($version)\e[0m "
     fi
   fi
 }
@@ -62,3 +65,5 @@ tool "helm" "version"
 tool "python"
 tool "pip"
 tool "pipenv"
+
+echo ""
