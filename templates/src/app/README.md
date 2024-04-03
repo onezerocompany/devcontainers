@@ -1,14 +1,13 @@
 
-# Flutter App (flutter)
+# App (app)
 
-Work on your Flutter app using a development container
+Work on your app using a OneZero development container
 
 ## Options
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| name | The name of the app | string | my-flutter-app |
-| version | The version of Flutter to use. For example, 'latest' or '1.17.5'. | string | latest |
+| flutter | Does your app use Flutter? | boolean | true |
 | node | Does your app use Node.js? | boolean | false |
 | bun | Does your app use Bun? | boolean | false |
 | python | Does your app use Python? | boolean | false |
@@ -27,4 +26,4 @@ Work on your Flutter app using a development container
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-template.json](devcontainer-template.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/onezerocompany/devcontainers/blob/main/templates/src/app/devcontainer-template.json).  Add additional notes to a `NOTES.md`._

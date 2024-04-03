@@ -1,19 +1,13 @@
 {
-  "id": "flutter",
+  "id": "app",
   "version": "1.0.0",
-  "name": "Flutter App",
-  "description": "Work on your Flutter app using a development container",
+  "name": "App",
+  "description": "Work on your app using a OneZero development container",
   "options": {
-    "name": {
-      "type": "string",
-      "default": "my-flutter-app",
-      "description": "The name of the app"
-    },
-    "version": {
-      "type": "string",
-      "default": "latest",
-      "description": "The version of Flutter to use. For example, 'latest' or '1.17.5'.",
-      "proposals": ["latest"]
+    "flutter": {
+      "type": "boolean",
+      "default": true,
+      "description": "Does your app use Flutter?"
     },
     "node": {
       "type": "boolean",
