@@ -3,7 +3,7 @@
   "description": "Bun runtime for JavaScript projects",
   "keywords": ["bun", "runtime", "javascript"],
   "id": "bun",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "options": {
     "install": {
       "type": "boolean",
@@ -21,6 +21,11 @@
       "description": "User to run bun as",
       "default": "zero",
       "proposals": ["zero", "root", "vscode"]
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["oven.bun-vscode"]
     }
   }
 }

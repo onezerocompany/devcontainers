@@ -3,7 +3,7 @@
   "name": "Firebase",
   "description": "Firebase CLI",
   "keywords": ["firebase", "cli", "cloud"],
-  "version": "1.0.1",
+  "version": "1.1.0",
   "options": {
     "install": {
       "type": "boolean",
@@ -15,6 +15,11 @@
       "description": "User to run the container as",
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["toba.vsfire"]
     }
   }
 }

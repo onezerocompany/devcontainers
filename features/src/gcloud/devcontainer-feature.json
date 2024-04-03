@@ -1,7 +1,7 @@
 {
   "name": "Google Cloud CLI",
   "id": "gcloud",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "options": {
     "install": {
       "description": "Install the Google Cloud CLI",
@@ -18,6 +18,11 @@
       "type": "string",
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["GoogleCloudTools.cloudcode"]
     }
   }
 }

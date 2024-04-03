@@ -3,7 +3,7 @@
   "description": "Flutter and Dart SDKs",
   "keywords": ["flutter", "dart", "mobile", "android", "ios"],
   "id": "flutter",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "options": {
     "install": {
       "type": "boolean",
@@ -32,5 +32,10 @@
   "securityOpt": ["seccomp=unconfined"],
   "containerEnv": {
     "FVM_DIR": "/etc/fvm"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["Dart-Code.flutter"]
+    }
   }
 }

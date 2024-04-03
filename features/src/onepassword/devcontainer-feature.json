@@ -3,7 +3,7 @@
   "name": "1Password CLI",
   "description": "1Password CLI",
   "keywords": ["1password", "cli"],
-  "version": "1.0.1",
+  "version": "1.1.0",
   "options": {
     "install": {
       "type": "boolean",
@@ -15,6 +15,11 @@
       "description": "User to run the container as",
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["1Password.op-vscode"]
     }
   }
 }
