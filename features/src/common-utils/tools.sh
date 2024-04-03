@@ -64,6 +64,6 @@ tool "python"
 tool "pip"
 tool "pipenv"
 
-if [ -z "$horizontal" ]; then
+if [ ! -z "$horizontal" ]; then
   echo ""
 fi
