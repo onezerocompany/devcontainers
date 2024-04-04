@@ -59,9 +59,6 @@
     "ghcr.io/onezerocompany/devcontainers/features/gcloud": {
       "install": "${templateOption:gcloud}"
     },
-    "ghcr.io/onezerocompany/devcontainers/features/fastlane": {
-      "install": "${templateOption:fastlane}"
-    },
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {
       "install": "${templateOption:kubernetes}"
     },

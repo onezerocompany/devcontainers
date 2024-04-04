@@ -17,45 +17,18 @@
   },
   "remoteUser": "zero",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/flutter": {
-      "version": "latest"
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/node": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/bun": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/python": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/go": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/swift": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/rust": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/terraform": {
-      "install": "true"
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/docker": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/firebase": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/gcloud": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/fastlane": {
-      "install": ""
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {
-      "install": ""
-    },
+    "ghcr.io/onezerocompany/devcontainers/features/flutter": {},
+    "ghcr.io/onezerocompany/devcontainers/features/node": {},
+    "ghcr.io/onezerocompany/devcontainers/features/bun": {},
+    "ghcr.io/onezerocompany/devcontainers/features/python": {},
+    "ghcr.io/onezerocompany/devcontainers/features/go": {},
+    "ghcr.io/onezerocompany/devcontainers/features/swift": {},
+    "ghcr.io/onezerocompany/devcontainers/features/rust": {},
+    "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
+    "ghcr.io/onezerocompany/devcontainers/features/docker": {},
+    "ghcr.io/onezerocompany/devcontainers/features/firebase": {},
+    "ghcr.io/onezerocompany/devcontainers/features/gcloud": {},
+    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
     "ghcr.io/onezerocompany/devcontainers/features/trivy": {},
     "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
     "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
