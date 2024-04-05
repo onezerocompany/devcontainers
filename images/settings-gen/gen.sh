@@ -16,6 +16,7 @@ echo "Docker started."
 # apply DOCKER_CONFIG_BASE64 if set
 if [ -n "$DOCKER_CONFIG_BASE64" ]; then
   echo "Applying DOCKER_CONFIG_BASE64..."
+  mkdir -p /root/.docker
   echo "$DOCKER_CONFIG_BASE64" | base64 -d > /root/.docker/config.json
 fi
 
