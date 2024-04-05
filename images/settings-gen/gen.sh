@@ -13,6 +13,12 @@ done
 
 echo "Docker started."
 
+# apply DOCKER_CONFIG_BASE64 if set
+if [ -n "$DOCKER_CONFIG_BASE64" ]; then
+  echo "Applying DOCKER_CONFIG_BASE64..."
+  echo "$DOCKER_CONFIG_BASE64" | base64 -d > /root/.docker/config.json
+fi
+
 echo "Reading configuration..."
 mkdir -p /vscode-settings
 devcontainer read-configuration --workspace-folder /workspace --include-merged-configuration > /vscode-settings/merged-settings.json
