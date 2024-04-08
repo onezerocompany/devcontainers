@@ -16,10 +16,5 @@
       "default": "zero",
       "proposals": ["zero", "vscode", "root"]
     }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": ["1Password.op-vscode"]
-    }
   }
 }
