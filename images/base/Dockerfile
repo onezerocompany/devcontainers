@@ -12,8 +12,8 @@ RUN apt-get update -y && \
     apt-get update -y
     # apt-get install -y apt-fast
 
-RUN apt-fast -y upgrade && \
-    apt-fast -y install \
+RUN apt-get upgrade -y && \
+    apt-get install -y \
         curl \
         wget \
         sudo \
