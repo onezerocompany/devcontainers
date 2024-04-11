@@ -13,6 +13,7 @@ RUN apt-get update -y && \
     apt-get install -y apt-fast
 
 RUN apt-fast -y upgrade && \
+    apt-fast update -y && \
     apt-fast -y install \
         curl \
         wget \
@@ -47,6 +48,7 @@ RUN apt-fast -y upgrade && \
         libsqlite3-0 \
         libstdc++-9-dev \
         libxml2-dev \
+        libz3-dev \
         pkg-config \
         tzdata \
         gnome-keyring
