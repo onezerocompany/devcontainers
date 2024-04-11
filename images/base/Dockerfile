@@ -49,7 +49,6 @@ RUN apt-fast -y upgrade && \
         libxml2-dev \
         libz3-dev \
         pkg-config \
-        tzdata \
         gnome-keyring
 
 RUN useradd -m zero && \
