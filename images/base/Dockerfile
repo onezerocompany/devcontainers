@@ -47,8 +47,8 @@ RUN apt-fast -y upgrade && \
         libsqlite3-0 \
         libstdc++-9-dev \
         libxml2-dev \
-        libz3-dev \
         pkg-config \
+        tzdata \
         gnome-keyring
 
 RUN useradd -m zero && \
