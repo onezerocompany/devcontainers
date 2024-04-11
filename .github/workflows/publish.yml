@@ -145,7 +145,11 @@ jobs:
     needs: [features, base]
     strategy:
       matrix:
-        devcontainer: [flutter, minimal]
+        devcontainer:
+          [
+            { id: flutter, platforms: "linux/amd64" },
+            { id: minimal, platforms: "linux/amd64,linux/arm64" },
+          ]
 
     steps:
       - name: Checkout repository
@@ -169,10 +173,10 @@ jobs:
         env:
           BUILDX_NO_DEFAULT_ATTESTATIONS: true
         with:
-          subFolder: devcontainers/${{ matrix.devcontainer }}
-          imageName: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer }}
-          cacheFrom: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer }}
+          subFolder: devcontainers/${{ matrix.devcontainer.id }}
+          imageName: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer.id }}
+          cacheFrom: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer.id }}
           push: filter
           refFilterForPush: refs/heads/main
-          platform: linux/amd64,linux/arm64
+          platform: ${{ matrix.devcontainer.platforms }}
           imageTag: latest
