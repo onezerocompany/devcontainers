@@ -50,8 +50,7 @@ RUN apt-fast -y upgrade && \
         libz3-dev \
         pkg-config \
         tzdata \
-        libsecret-1-0 \
-        libsecret-1-dev
+        gnome-keyring
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \
