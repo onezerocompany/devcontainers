@@ -9,11 +9,10 @@ RUN apt-get update -y && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:git-core/ppa && \
     add-apt-repository -y ppa:apt-fast/stable && \
-    apt-get update -y && \
-    apt-get install -y apt-fast
+    apt-get update -y &&
+    # apt-get install -y apt-fast
 
 RUN apt-fast -y upgrade && \
-    apt-fast update -y && \
     apt-fast -y install \
         curl \
         wget \
