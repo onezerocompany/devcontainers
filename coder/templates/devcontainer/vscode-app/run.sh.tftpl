@@ -1,0 +1,72 @@
+#!/usr/bin/env sh
+
+# Determine if vscode-cli is already installed
+BIN_PATH=$(which code)
+
+install_vscode_cli() {
+  arch=$(uname -m)
+  case $arch in
+    x64) arch="x64" ;;
+    x86_64) arch="x64" ;;
+    aarch64) arch="arm64" ;;
+    arm64) arch="arm64" ;;
+    *) echo "Unsupported architecture: $arch"; exit 1 ;;
+  esac
+
+  mkdir -p ${install_dir}
+
+  ARCH=$(uname -m)
+  case "$ARCH" in
+    x86_64) ARCH="x64" ;;
+    aarch64) ARCH="arm64" ;;
+    *)
+      echo "Unsupported architecture"
+      exit 1
+      ;;
+  esac
+
+  HASH=$(curl -fsSL https://update.code.visualstudio.com/api/commits/stable/server-linux-$ARCH-web | cut -d '"' -f 2)
+  output=$(curl -fsSL https://vscode.download.prss.microsoft.com/dbazure/download/stable/$HASH/vscode-server-linux-$ARCH-web.tar.gz | tar -xz -C ${install_dir} --strip-components 1)
+
+  if [ $? -ne 0 ]; then
+    echo "Failed to install vscode-cli: $output"
+    exit 1
+  fi
+
+  CODE_SERVER=${install_dir}/bin/code-server
+}
+
+if [ -z "$${CODE_SERVER}" ]; then
+  echo "vscode-cli not found, installing..."
+  install_vscode_cli
+else
+  echo "vscode-cli is already installed at $${CODE_SERVER}"
+fi
+
+settings_path=~/.vscode-server/data/Machine/settings.json
+generated_settings_path=/vscode-settings/settings.json
+# if generated settings file exists, copy it to the settings path
+if [ -f $generated_settings_path ]; then
+  echo "🔧 Applying custom settings..."
+  cp $generated_settings_path $settings_path
+fi
+
+# read /vscode-settings/extensions.json and install extensions
+# the file is a json array of extension ids
+extensions_path=/vscode-settings/extensions.json
+if [ -f $extensions_path ]; then
+  extensions=$(cat $extensions_path | jq -r '.[]')
+  for extension in $extensions; do
+    echo "📦 Installing extension: $extension"
+    if $${CODE_SERVER} --install-extension $extension --force; then
+      echo "Extension $extension installed successfully"
+    else
+      echo "Failed to install extension $extension"
+    fi
+  done
+fi
+
+echo "👷 Running VS Code Web in the background..."
+echo "Check logs at ${log_path}!"
+
+$${CODE_SERVER} serve-local --port ${port} --host 127.0.0.1 --accept-server-license-terms serve-local --without-connection-token > ${log_path} 2>&1 &

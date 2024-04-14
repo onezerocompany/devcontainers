@@ -34,6 +34,9 @@ function tool () {
   fi
 }
 
+tool "gh"
+tool "git"
+
 tool "docker"
 tool "docker-compose" 
 
