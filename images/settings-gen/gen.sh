@@ -17,13 +17,13 @@ echo "Docker started."
 cat /root/.docker/config.json
 
 echo "Reading configuration..."
-mkdir -p /vscode-settings
-devcontainer read-configuration --workspace-folder /workspace --include-merged-configuration > /vscode-settings/merged-settings.json
+mkdir -p /vscode/settings
+devcontainer read-configuration --workspace-folder /workspace --include-merged-configuration > /vscode/settings/merged-settings.json
 
 # create extensions.json
-jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique' /vscode-settings/merged-settings.json > /vscode-settings/extensions.json
+jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique' /vscode/settings/merged-settings.json > /vscode/settings/extensions.json
 
 # create settings.json
-jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode-settings/merged-settings.json > /vscode-settings/settings.json
+jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode/settings/merged-settings.json > /vscode/settings/settings.json
 
 echo "Settings generated."
