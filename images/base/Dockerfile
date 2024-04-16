@@ -50,8 +50,8 @@ RUN apt-get upgrade -y && \
         libz3-dev \
         pkg-config \
         tzdata \
-        libsecret-1-0 \
-        libsecret-1-dev
+        gnome-keyring \
+        python3-minimal
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \
