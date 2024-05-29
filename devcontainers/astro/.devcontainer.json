@@ -1,0 +1,30 @@
+{
+  "name": "Astro Website Devcontainer",
+  "image": "ghcr.io/onezerocompany/base",
+  "features": {
+    // languages & frameworks
+    "ghcr.io/onezerocompany/devcontainers/features/bun": {},
+    // tools
+    "ghcr.io/onezerocompany/devcontainers/features/firebase": {},
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "workbench.preferredDarkColorTheme": "Default Dark Modern",
+        "workbench.preferredLightColorTheme": "Default Light Modern",
+        "workbench.colorTheme": "Default Dark Modern",
+        "window.autoDetectColorScheme": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "astro-build.astro-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  },
+  "remoteUser": "zero"
+}

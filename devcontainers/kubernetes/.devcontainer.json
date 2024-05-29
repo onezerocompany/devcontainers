@@ -1,0 +1,25 @@
+{
+  "name": "Kubernetes Devcontainer",
+  "image": "ghcr.io/onezerocompany/base:latest",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/bun": {},
+    "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
+    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
+    "ghcr.io/onezerocompany/devcontainers/features/gcloud": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "workbench.preferredDarkColorTheme": "Default Dark Modern",
+        "workbench.preferredLightColorTheme": "Default Light Modern",
+        "workbench.colorTheme": "Default Dark Modern",
+        "window.autoDetectColorScheme": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  },
+  "remoteUser": "zero"
+}
