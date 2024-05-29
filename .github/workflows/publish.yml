@@ -175,6 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [features, base]
     strategy:
+      fail-fast: false
       matrix:
         devcontainer:
           [
