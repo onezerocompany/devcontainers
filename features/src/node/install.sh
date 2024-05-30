@@ -45,7 +45,7 @@ fi
 
 # Install PNPM
 if [ "$INSTALL_PNPM" = "true" ]; then
-  su $USER -c "curl -fsSL https://get.pnpm.io/install.sh | sh -"
+  curl -fsSL https://get.pnpm.io/install.sh | sh -
 fi
 
 # Install global packages
