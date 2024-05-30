@@ -1,23 +1,13 @@
 {
   "name": "Node.js",
-  "description": "Node.js with Yarn and PNPM package managers",
-  "keywords": ["node", "javascript", "npm", "yarn", "pnpm"],
+  "description": "Node.js with NPM",
+  "keywords": ["node", "javascript", "npm"],
   "id": "node",
   "version": "1.0.7",
   "options": {
     "install": {
       "type": "boolean",
       "description": "Install Node.js",
-      "default": true
-    },
-    "yarn": {
-      "type": "boolean",
-      "description": "Install Yarn package manager",
-      "default": true
-    },
-    "pnpm": {
-      "type": "boolean",
-      "description": "Install PNPM package manager",
       "default": true
     },
     "version": {

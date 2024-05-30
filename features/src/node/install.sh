@@ -1,8 +1,6 @@
 #!/bin/bash -e
 
 INSTALL=${INSTALL:-"true"}
-INSTALL_YARN=${YARN:-"false"}
-INSTALL_PNPM=${PNPM:-"false"}
 NODE_VERSION=${VERSION:-"lts"}
 GLOBAL_PACKAGES=${GLOBAL_PACKAGES:-""}
 USER=${USER:-"zero"}
@@ -36,16 +34,6 @@ if [ "$NODE_VERSION" != "none" ]; then
     nvm install $NODE_VERSION --default
     nvm use $NODE_VERSION
   fi
-fi
-
-# Install Yarn
-if [ "$INSTALL_YARN" = "true" ]; then
-  npm install -g yarn
-fi
-
-# Install PNPM
-if [ "$INSTALL_PNPM" = "true" ]; then
-  curl -fsSL https://get.pnpm.io/install.sh | sh -
 fi
 
 # Install global packages
