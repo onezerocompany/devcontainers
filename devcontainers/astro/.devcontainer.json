@@ -5,6 +5,7 @@
     // languages & frameworks
     "ghcr.io/onezerocompany/devcontainers/features/bun": {},
     "ghcr.io/onezerocompany/devcontainers/features/node": {},
+    "ghcr.io/onezerocompany/devcontainers/features/github-cli": {},
     "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
   },
   "customizations": {
