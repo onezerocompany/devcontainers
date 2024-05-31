@@ -3,7 +3,7 @@
   "description": "Dart SDKs",
   "keywords": ["dart"],
   "id": "dart",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "options": {
     "install": {
       "type": "boolean",

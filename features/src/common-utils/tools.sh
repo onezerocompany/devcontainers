@@ -18,7 +18,7 @@ function tool () {
   local version_cmd=${2:-"--version"}
   local extract_version=${3:-"grep -o -m 1 '[0-9]*\.[0-9]*\.[0-9]*'"}
 
-  if command -v $tool &> /dev/null
+  if command -v $tool &> /dev/null;
   then
     local version=$(eval "$tool $version_cmd | $extract_version" | head -n 1) 
     if [ -z "$horizontal" ]; then
@@ -42,9 +42,7 @@ tool "docker-compose"
 
 tool "bun"
 tool "node" 
-tool "npm" 
-tool "yarn" 
-tool "pnpm"
+tool "npm"
 
 tool "dart"
 tool "flutter"

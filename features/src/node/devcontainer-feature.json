@@ -3,7 +3,7 @@
   "description": "Node.js with NPM",
   "keywords": ["node", "javascript", "npm"],
   "id": "node",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "options": {
     "install": {
       "type": "boolean",
