@@ -59,5 +59,14 @@
     "ghcr.io/onezerocompany/devcontainers/features/swift",
     "ghcr.io/onezerocompany/devcontainers/features/terraform",
     "ghcr.io/onezerocompany/devcontainers/features/trivy"
-  ]
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bierner.github-markdown-preview", 
+        "esbenp.prettier-vscode",
+        "unifiedjs.vscode-mdx"
+      ]
+    }
+  }
 }
