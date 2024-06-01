@@ -1,36 +1,4 @@
 {
-  "name": "my-flutter-app",
-  "image": "ghcr.io/onezerocompany/base",
-  "customizations": {
-    "vscode": {
-      "settings": {
-        "terminal.integrated.shell.linux": "/bin/zsh",
-        "workbench.preferredDarkColorTheme": "Default Dark Modern",
-        "workbench.preferredLightColorTheme": "Default Light Modern",
-        "workbench.colorTheme": "Default Dark Modern",
-        "window.autoDetectColorScheme": true,
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-      },
-      "extensions": ["esbenp.prettier-vscode"]
-    }
-  },
-  "remoteUser": "zero",
-  "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/flutter": {},
-    "ghcr.io/onezerocompany/devcontainers/features/node": {},
-    "ghcr.io/onezerocompany/devcontainers/features/bun": {},
-    "ghcr.io/onezerocompany/devcontainers/features/python": {},
-    "ghcr.io/onezerocompany/devcontainers/features/go": {},
-    "ghcr.io/onezerocompany/devcontainers/features/swift": {},
-    "ghcr.io/onezerocompany/devcontainers/features/rust": {},
-    "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
-    "ghcr.io/onezerocompany/devcontainers/features/docker": {},
-    "ghcr.io/onezerocompany/devcontainers/features/firebase": {},
-    "ghcr.io/onezerocompany/devcontainers/features/gcloud": {},
-    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
-    "ghcr.io/onezerocompany/devcontainers/features/trivy": {},
-    "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
-  }
+  "name": "devcontainers",
+  "image": "ghcr.io/onezerocompany/devcontainer/kubernetes:latest"
 }

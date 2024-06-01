@@ -182,7 +182,7 @@ jobs:
             { id: flutter, platforms: "linux/amd64" },
             { id: astro, platforms: "linux/amd64,linux/arm64" },
             { id: minimal, platforms: "linux/amd64,linux/arm64" },
-            { id: kubernetes, platforms: "linux/amd64,linux/arm64" },
+            { id: containers, platforms: "linux/amd64,linux/arm64" },
           ]
 
     steps:

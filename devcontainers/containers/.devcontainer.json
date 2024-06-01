@@ -1,8 +1,9 @@
 {
-  "name": "Kubernetes Devcontainer",
+  "name": "Container Devcontainer",
   "image": "ghcr.io/onezerocompany/base:latest",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/bun": {},
+    "ghcr.io/onezerocompany/devcontainers/features/docker": {},
     "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
     "ghcr.io/onezerocompany/devcontainers/features/gcloud": {},
