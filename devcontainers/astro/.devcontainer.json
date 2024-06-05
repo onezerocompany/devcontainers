@@ -6,6 +6,7 @@
     "ghcr.io/onezerocompany/devcontainers/features/bun": {},
     "ghcr.io/onezerocompany/devcontainers/features/node": {},
     "ghcr.io/onezerocompany/devcontainers/features/github-cli": {},
+    "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
     "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
   },
   "customizations": {
@@ -19,10 +20,7 @@
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode"
       },
-      "extensions": [
-        "astro-build.astro-vscode",
-        "bradlc.vscode-tailwindcss"
-      ]
+      "extensions": ["astro-build.astro-vscode", "bradlc.vscode-tailwindcss"]
     }
   },
   "remoteUser": "zero"

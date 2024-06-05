@@ -13,6 +13,7 @@
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
     "ghcr.io/onezerocompany/devcontainers/features/trivy": {},
     "ghcr.io/onezerocompany/devcontainers/features/github-cli": {},
+    "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
     "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
   },
   "customizations": {
