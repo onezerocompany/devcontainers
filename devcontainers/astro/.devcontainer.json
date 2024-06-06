@@ -2,12 +2,11 @@
   "name": "Astro Website Devcontainer",
   "image": "ghcr.io/onezerocompany/base",
   "features": {
-    // languages & frameworks
-    "ghcr.io/onezerocompany/devcontainers/features/bun": {},
-    "ghcr.io/onezerocompany/devcontainers/features/node": {},
-    "ghcr.io/onezerocompany/devcontainers/features/github-cli": {},
-    "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
+    "ghcr.io/onezerocompany/devcontainers/features/node:1.0.8": {},
+    "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},
+    "ghcr.io/onezerocompany/devcontainers/features/bun:1.1.0": {},
+    "ghcr.io/onezerocompany/devcontainers/features/onepassword:1.1.2": {},
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1.1.7": {}
   },
   "customizations": {
     "vscode": {
@@ -20,7 +19,10 @@
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode"
       },
-      "extensions": ["astro-build.astro-vscode", "bradlc.vscode-tailwindcss"]
+      "extensions": [
+        "astro-build.astro-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
     }
   },
   "remoteUser": "zero"

@@ -2,14 +2,14 @@
   "name": "Container Devcontainer",
   "image": "ghcr.io/onezerocompany/base:latest",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/bun": {},
-    "ghcr.io/onezerocompany/devcontainers/features/docker": {},
-    "ghcr.io/onezerocompany/devcontainers/features/terraform": {},
-    "ghcr.io/onezerocompany/devcontainers/features/kubernetes": {},
-    "ghcr.io/onezerocompany/devcontainers/features/gcloud": {},
-    "ghcr.io/onezerocompany/devcontainers/features/onepassword": {},
-    "ghcr.io/onezerocompany/devcontainers/features/github-cli": {},
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {}
+    "ghcr.io/onezerocompany/devcontainers/features/kubernetes:1.1.1": {},
+    "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},
+    "ghcr.io/onezerocompany/devcontainers/features/bun:1.1.0": {},
+    "ghcr.io/onezerocompany/devcontainers/features/onepassword:1.1.2": {},
+    "ghcr.io/onezerocompany/devcontainers/features/docker:1.4.8": {},
+    "ghcr.io/onezerocompany/devcontainers/features/terraform:1.3.8": {},
+    "ghcr.io/onezerocompany/devcontainers/features/gcloud:1.1.1": {},
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1.1.7": {}
   },
   "customizations": {
     "vscode": {
