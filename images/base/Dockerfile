@@ -51,9 +51,9 @@ RUN apt-get upgrade -y && \
         pkg-config \
         tzdata \
         gnome-keyring \
-        python3-minimal \
-        supervisor \
-        iptables \
+        python3-minimal
+
+RUN apt-get install -y supervisor iptables \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 RUN useradd -m zero && \
