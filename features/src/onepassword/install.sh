@@ -31,7 +31,7 @@ case $ARCH in
     ;;
 esac
 
-latest_version=$(curl -s https://app-updates.agilebits.com/product_history/CLI2 | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -n1)
+latest_version=$(curl -s https://app-updates.agilebits.com/product_history/CLI2 | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+\(-beta\)\?' | grep -v '\-beta' | head -n1)
 
 wget "https://cache.agilebits.com/dist/1P/op2/pkg/$latest_version/op_linux_${ARCH}_$latest_version.zip" -O op.zip
 unzip -d op op.zip
