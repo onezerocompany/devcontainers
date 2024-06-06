@@ -51,7 +51,9 @@ RUN apt-get upgrade -y && \
         pkg-config \
         tzdata \
         gnome-keyring \
-        python3-minimal
+        python3-minimal \
+        supervisor \
+        iptables
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \
