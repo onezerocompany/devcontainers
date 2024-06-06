@@ -53,7 +53,8 @@ RUN apt-get upgrade -y && \
         gnome-keyring \
         python3-minimal \
         supervisor \
-        iptables
+        iptables \
+    && update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 RUN useradd -m zero && \
     echo "zero:zero" | chpasswd && adduser zero sudo && \
