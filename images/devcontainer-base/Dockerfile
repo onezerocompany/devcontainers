@@ -15,3 +15,6 @@ RUN chmod +x /usr/local/bin/vscode-kit
 RUN vscode-kit install
 
 USER zero
+
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["bash"]

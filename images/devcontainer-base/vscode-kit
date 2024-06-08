@@ -110,7 +110,7 @@ setup() {
 
 
 start() {
-  COMMAND="code serve-web --port ${port} --host 0.0.0.0 --accept-server-license-terms --without-connection-token --extensions-dir $EXTENSION_DIR --user-data-dir ~/.vscode-server/data/Machine --server-data-dir /vscode/server-data"
+  COMMAND="code serve-web --port ${port} --host 0.0.0.0 --accept-server-license-terms --without-connection-token --extensions-dir $EXTENSION_DIR --user-data-dir $VSCODE_SERVER_DIR/data/Machine --server-data-dir $VSCODE_SERVER_DIR/server"
   
   # Run a dbus session, which unlocks the gnome-keyring and runs the VS Code Server inside of it
   dbus-run-session -- sh -c "echo $VSCODE_KEYRING_PASS | gnome-keyring-daemon --unlock && $COMMAND > $VSCODE_LOG_PATH 2>&1 &"
