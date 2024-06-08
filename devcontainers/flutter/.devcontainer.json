@@ -1,6 +1,6 @@
 {
   "name": "OneZero Flutter Devcontainer",
-  "image": "ghcr.io/onezerocompany/base",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/trivy:1.0.2": {},
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes:1.1.1": {},

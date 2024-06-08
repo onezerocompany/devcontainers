@@ -1,6 +1,6 @@
 {
   "name": "OneZero Minimal Devcontainer",
-  "image": "ghcr.io/onezerocompany/base",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/node:1.0.8": {},
     "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},

@@ -206,7 +206,7 @@ jobs:
   devcontainers:
     name: Build and Publish Devcontainers
     runs-on: ubuntu-latest
-    needs: [features, base]
+    needs: [features, devcontainer_base]
     strategy:
       fail-fast: false
       matrix:

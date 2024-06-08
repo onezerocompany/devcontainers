@@ -1,6 +1,6 @@
 {
   "name": "Container Devcontainer",
-  "image": "ghcr.io/onezerocompany/base:latest",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/kubernetes:1.1.1": {},
     "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},

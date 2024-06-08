@@ -1,6 +1,6 @@
 {
   "name": "Astro Website Devcontainer",
-  "image": "ghcr.io/onezerocompany/base",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/node:1.0.8": {},
     "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},
@@ -19,10 +19,7 @@
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode"
       },
-      "extensions": [
-        "astro-build.astro-vscode",
-        "bradlc.vscode-tailwindcss"
-      ]
+      "extensions": ["astro-build.astro-vscode", "bradlc.vscode-tailwindcss"]
     }
   },
   "remoteUser": "zero"
