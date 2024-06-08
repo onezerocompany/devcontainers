@@ -72,10 +72,14 @@ if [ "$INSPECT_FUNCTIONS" = "true" ]; then
   COMMAND="$COMMAND --inspect-functions"
 fi
 
+ONLY="functions,firestore,database,hosting,pubsub,storage,eventarc"
 PROJECT_ID=${PROJECT_ID:-"default"}
 if [ "$PROJECT_ID" != "default" ]; then
+  ONLY="$ONLY,auth"
   COMMAND="$COMMAND --project $PROJECT_ID"
 fi
+
+ONLY=${ONLY:-"functions,hosting,ui,auth,dataconnect,firestore,database,storage,pubsub,eventarc"}
 
 echo "Starting emulators: $COMMAND"
 

@@ -71,8 +71,8 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/dind:latest
           push: true
 
-  settings_gen:
-    name: Build and Publish Settings Generator Image
+  devcontainer_base:
+    name: Build and Publish Devcontainer Base Image
     runs-on: ubuntu-latest
 
     steps:
@@ -95,11 +95,11 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./images/settings-gen
+          context: ./images/devcontainer-base
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/settings-gen:buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/settings-gen:buildcache
-          tags: ghcr.io/${{ github.repository_owner }}/settings-gen:latest
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer-base:buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer-base:buildcache
+          tags: ghcr.io/${{ github.repository_owner }}/devcontainer-base:latest
           push: true
 
   firebase_toolkit:
