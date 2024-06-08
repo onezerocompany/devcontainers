@@ -3,7 +3,6 @@
 USER=${USER:-zero}
 INSTALL_DIR=${INSTALL_DIR:-/home/zero/.vscode-install}
 WORKSPACE_DIR=${WORKSPACE_DIR:-/workspaces}
-MANIFEST_PATH=$MANIFEST_DIR/manifest.json
 VSCODE_SERVER_DIR=${VSCODE_SERVER_DIR:-~/.vscode-server}
 EXTENSION_DIR=${EXTENSION_DIR:-~/.vscode-server/extensions}
 VSCODE_PORT=${VSCODE_PORT:-13338}
@@ -74,8 +73,6 @@ install() {
 
 
 setup() {
-  echo "Generating manifest..."
-  mkdir -p $MANIFEST_DIR
 
   # Wait for Docker to start
   wait_for_docker
@@ -92,8 +89,6 @@ setup() {
   if [ $? -ne 0 ]; then
     echo "Failed to generate manifest"
     exit 1
-  else
-    echo "Manifest generated at $MANIFEST_PATH"
   fi
 
   extensions=$($manifest | jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique' | jq -r '.[]')
@@ -106,7 +101,7 @@ setup() {
     fi
   done
 
-  settings=$(manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode/settings/merged-settings.json)
+  settings=$($manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode/settings/merged-settings.json)
   if [ -n "$settings" ]; then
     echo "🔧 Applying settings..."
     echo $settings > $VSCODE_SERVER_DIR/data/Machine/settings.json
@@ -126,5 +121,5 @@ case "$1" in
   install) install ;;
   setup) setup ;;
   start) start ;;
-  *) echo "Usage: vscode-kit {install|setup-extensions|manifest}" ;;
+  *) echo "Usage: vscode-kit {install|setup|start}" ;;
 esac
