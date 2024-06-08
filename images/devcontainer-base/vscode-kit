@@ -91,7 +91,7 @@ setup() {
     exit 1
   fi
 
-  extensions=$($manifest | jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique' | jq -r '.[]')
+  extensions=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique' | jq -r '.[]')
   for extension in $extensions; do
     echo "📦 Installing extension: $extension"
     if code-server --install-extension $extension --extensions-dir $VSCODE_SERVER_DIR/extensions --force > /dev/null; then
@@ -101,7 +101,7 @@ setup() {
     fi
   done
 
-  settings=$($manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode/settings/merged-settings.json)
+  settings=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode/settings/merged-settings.json)
   if [ -n "$settings" ]; then
     echo "🔧 Applying settings..."
     echo $settings > $VSCODE_SERVER_DIR/data/Machine/settings.json
