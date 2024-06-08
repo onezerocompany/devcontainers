@@ -74,6 +74,7 @@ jobs:
   devcontainer_base:
     name: Build and Publish Devcontainer Base Image
     runs-on: ubuntu-latest
+    needs: [dind]
 
     steps:
       - name: Checkout repository
