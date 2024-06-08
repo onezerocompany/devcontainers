@@ -8,10 +8,9 @@ while ! pgrep "dockerd" >/dev/null; do
   sleep 1
 done
 
-echo "Fixing permissions..."
-sudo chown root:docker /var/run/docker.sock
-
-tput cr
-reset -I
+if [ -n "$TERM" ]; then
+  tput cr
+  reset -I
+fi
 
 exec "$@" 

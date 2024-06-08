@@ -71,8 +71,10 @@ chmod +x /usr/local/bin/docker-compose && docker-compose version
 # for users which uses 'docker compose' instead of 'docker-compose'
 ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 
-# create docker group
-groupadd -g 999 docker
+# Create the docker group
+groupadd docker
 
 # add user to docker group
 usermod -aG docker zero
+
+newgrp docker
