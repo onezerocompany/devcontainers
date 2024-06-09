@@ -84,14 +84,10 @@ setup() {
 
   # Generate the manifest
   manifest=$(devcontainer read-configuration --workspace-folder $WORKSPACE_DIR --include-merged-configuration)
-
-  # Check if the manifest is generated
-  if [ $? -ne 0 ]; then
-    echo "Failed to generate manifest"
-    exit 1
-  fi
-
-  extensions=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique' | jq -r '.[]')
+  extensions_json=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique')
+  settings_json=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add')
+  
+  extensions=$(echo $extensions_json | jq -r '.[]')
   for extension in $extensions; do
     echo "📦 Installing extension: $extension"
     if code-server --install-extension $extension --extensions-dir $VSCODE_SERVER_DIR/extensions --force > /dev/null; then
@@ -101,10 +97,9 @@ setup() {
     fi
   done
 
-  settings=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add' /vscode/settings/merged-settings.json)
-  if [ -n "$settings" ]; then
+  if [ -n "$settings_json" ]; then
     echo "🔧 Applying settings..."
-    echo $settings > $VSCODE_SERVER_DIR/data/Machine/settings.json
+    echo $settings_json > $VSCODE_SERVER_DIR/data/Machine/settings.json
   fi
 }
 
