@@ -2,10 +2,10 @@
   "name": "OneZero Minimal Devcontainer",
   "image": "ghcr.io/onezerocompany/devcontainer-base",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/node:1.0.8": {},
-    "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},
-    "ghcr.io/onezerocompany/devcontainers/features/bun:1.1.0": {},
     "ghcr.io/onezerocompany/devcontainers/features/onepassword:1.1.2": {},
+    "ghcr.io/onezerocompany/devcontainers/features/node:1.0.8": {},
+    "ghcr.io/onezerocompany/devcontainers/features/bun:1.1.0": {},
+    "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},
     "ghcr.io/onezerocompany/devcontainers/features/common-utils:1.1.7": {}
   },
   "customizations": {
