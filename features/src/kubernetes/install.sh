@@ -41,6 +41,10 @@ if [[ "$INSTALL_KUBECTL" == "true" ]]; then
   # Install kubectl aliases
   echo "alias k=kubectl" >> /home/$USER/.bashrc
   echo "alias k=kubectl" >> /home/$USER/.zshrc
+
+  # Add namespace command to easily switch between namespaces
+  echo "namespace() { kubectl config set-context --current --namespace=\$1; }" >> /home/$USER/.bashrc
+  echo "alias ns=namespace" >> /home/$USER/.bashrc
 fi
 
 # Install helm
