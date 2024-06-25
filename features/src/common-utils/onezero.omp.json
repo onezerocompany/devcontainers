@@ -1,0 +1,233 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "console_title_template": "{{ .Folder }}",
+  "version": 2,
+  "blocks": [
+    {
+      "alignment": "left",
+      "newline": true,
+      "type": "prompt",
+      "segments": [
+        {
+          "foreground_templates": [
+            "{{if eq .Code 0}}#00897b{{else}}#d32f2f{{end}}"
+          ],
+          "style": "plain",
+          "template": "{{ if eq .Code 0 }}{{ else }}{{ end }}",
+          "type": "status",
+          "properties": {
+            "always_enabled": true
+          }
+        },
+        {
+          "style": "plain",
+          "template": " {{ .FormattedMs }}",
+          "type": "executiontime",
+          "properties": {
+            "style": "austin",
+            "threshold": 2
+          }
+        },
+        {
+          "foreground": "#6d6d6d",
+          "style": "plain",
+          "template": "  {{.Icon}}",
+          "type": "os"
+        },
+        {
+          "foreground": "#6d6d6d",
+          "style": "plain",
+          "type": "command",
+          "properties": {
+            "command": "uname -p",
+            "interpret": false,
+            "shell": "sh"
+          }
+        },
+        {
+          "foreground": "#6d6d6d",
+          "style": "plain",
+          "template": " {{ (div ((sub .PhysicalTotalMemory .PhysicalAvailableMemory)|float64) 1073741824.0) }}/{{ (div .PhysicalTotalMemory 1073741824.0) }}GB={{ round .PhysicalPercentUsed .Precision }}%   {{ round .Load1 .Precision }}%",
+          "type": "sysinfo",
+          "properties": {
+            "precision": 0
+          }
+        }
+      ]
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+      "type": "prompt",
+      "segments": [
+        {
+          "foreground": "#eb34ab",
+          "style": "plain",
+          "template": "{{if .Namespace}}󱃾 {{.Namespace}}{{end}}/{{.Cluster}}  ",
+          "type": "kubectl"
+        },
+        {
+          "foreground": "#224dd9",
+          "style": "plain",
+          "template": " {{.Project}}  ",
+          "type": "gcp"
+        },
+        {
+          "foreground": "#ff8c00",
+          "style": "plain",
+          "template": "󰥧 {{ .Project }}  ",
+          "type": "firebase"
+        },
+        {
+          "foreground": "#06A4CE",
+          "style": "plain",
+          "template": " {{ if .Error }}dart not installed{{ else }}{{ .Full }}{{ end }}  ",
+          "type": "dart"
+        },
+        {
+          "foreground": "#06A4CE",
+          "style": "plain",
+          "template": " {{ if .Error }}flutter not installed{{ else }}{{ .Full }}{{ end }}  ",
+          "type": "flutter"
+        },
+        {
+          "foreground": "#f6553c",
+          "style": "plain",
+          "template": " {{ .Full }}",
+          "type": "swift"
+        }
+      ]
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+      "type": "prompt",
+      "segments": [
+        {
+          "foreground": "#8d8d8d",
+          "style": "plain",
+          "template": "╭─ ",
+          "type": "text"
+        },
+        {
+          "foreground": "#8d8d8d",
+          "style": "plain",
+          "template": " ",
+          "type": "root"
+        },
+        {
+          "foreground": "#8d8d8d",
+          "style": "plain",
+          "template": "{{ .CurrentDate | date .Format }} ",
+          "type": "time",
+          "properties": {
+            "time_format": "15:04"
+          }
+        },
+        {
+          "background": "#363636",
+          "foreground": "#ffffff",
+          "leading_diamond": "",
+          "trailing_diamond": "",
+          "style": "diamond",
+          "template": "{{ .UpstreamIcon }} {{ .RepoName }} ",
+          "type": "git",
+          "properties": {
+            "fetch_upstream_icon": true
+          }
+        },
+        {
+          "background": "#9748eb",
+          "foreground": "#ffffff",
+          "style": "diamond",
+          "template": " {{ .Ref }} ",
+          "trailing_diamond": "",
+          "type": "git",
+          "alias": "Git"
+        },
+        {
+          "background": "#7a0cd5",
+          "foreground": "#ffffff",
+          "style": "diamond",
+          "template": "{{ if gt .Working.Untracked 0 }} ++ {{ .Working.Untracked }} {{ end }}",
+          "trailing_diamond": "",
+          "type": "git",
+          "alias": "Git",
+          "properties": {
+            "fetch_status": true
+          }
+        },
+        {
+          "background": "#48eb53",
+          "foreground": "#ffffff",
+          "style": "diamond",
+          "template": "{{ if gt .Working.Added 0 }} + {{ .Working.Added }} {{ end }}",
+          "trailing_diamond": "",
+          "type": "git",
+          "alias": "Git",
+          "properties": {
+            "fetch_status": true
+          }
+        },
+        {
+          "background": "#0066bf",
+          "foreground": "#ffffff",
+          "style": "diamond",
+          "template": "{{ if gt .Working.Modified 0 }} ~ {{ .Working.Modified }} {{ end }}",
+          "trailing_diamond": "",
+          "type": "git",
+          "alias": "Git",
+          "properties": {
+            "fetch_status": true
+          }
+        },
+        {
+          "background": "#ce1b3f",
+          "style": "diamond",
+          "template": "{{ if gt .Working.Deleted 0 }} - {{ .Working.Deleted }} {{ end }}",
+          "trailing_diamond": "",
+          "type": "git",
+          "alias": "Git",
+          "properties": {
+            "fetch_status": true
+          }
+        },
+        {
+          "foreground": "#dcdcdc",
+          "style": "plain",
+          "template": "  {{ .Path }} ",
+          "type": "path",
+          "properties": {
+            "folder_separator_icon": "/",
+            "style": "agnoster_full",
+            "mapped_locations_enabled": true,
+            "mapped_locations": {
+              "{{ .Segments.Git.Dir }}": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+      "type": "prompt",
+      "segments": [
+        {
+          "foreground": "#8d8d8d",
+          "style": "plain",
+          "template": "╰─ ",
+          "type": "status",
+          "properties": {
+            "always_enabled": true
+          }
+        }
+      ]
+    }
+  ],
+  "transient_prompt": {
+    "background": "transparent",
+    "foreground": "#b5b5b5",
+    "template": "{{ now | date \"15:04:05\" }} > "
+  }
+}

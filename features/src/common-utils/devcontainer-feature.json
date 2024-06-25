@@ -3,7 +3,7 @@
   "description": "Common utilities for OneZero projects",
   "keywords": ["common", "utilities", "utils"],
   "id": "common-utils",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "options": {
     "auto_cd": {
       "type": "boolean",
@@ -66,7 +66,10 @@
         "bierner.github-markdown-preview",
         "esbenp.prettier-vscode",
         "unifiedjs.vscode-mdx"
-      ]
+      ],
+      "settings": {
+        "terminal.integrated.fontFamily": "MesloLGM Nerd Font"
+      }
     }
   }
 }

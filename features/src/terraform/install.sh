@@ -428,6 +428,21 @@ if [ "${INSTALL_TF_SUMMARIZE}" = "true" ]; then
     echo "tf-summarize installed successfully."
 fi
 
+# add alias for terraform (tf) to zsh and bash profile of 'zero' user
+USER=${USER:-"zero"}
+ZSHRC="$(su $USER -c 'echo $HOME')/.zshrc"
+BASHRC="$(su $USER -c 'echo $HOME')/.bashrc"
+
+if [ -f $ZSHRC ]; then
+    echo "Adding terraform alias to zshrc"
+    echo "alias tf='terraform'" >> $ZSHRC
+fi
+
+if [ -f $BASHRC ]; then
+    echo "Adding terraform alias to bashrc"
+    echo "alias tf='terraform'" >> $BASHRC
+fi
+
 rm -rf /tmp/tf-downloads ${GNUPGHOME}
 
 echo "Done!"

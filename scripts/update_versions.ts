@@ -51,4 +51,6 @@ for (const devcontainer of devcontainers) {
     `../devcontainers/${devcontainer}/.devcontainer.json`,
     JSON.stringify(devcontainerJson, null, 2)
   );
+
+  console.log(`Updated ${devcontainer}`);
 }

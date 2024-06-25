@@ -64,5 +64,17 @@ MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then
   $(dirname $0)/motd_gen.sh > /etc/motd
   chmod 644 /etc/motd
-  echo "cat -p /etc/motd" >> $ZSHRC
+fi
+
+# Install oh my posh
+OMYPOSH=${OMYPOSH:-"false"}
+if [ "$OMYPOSH" = "true" ]; then
+  curl -s https://ohmyposh.dev/install.sh | bash -s
+  # Install meslo font
+  oh-my-posh font install meslo
+  # Install onezero theme
+  mkdir -p ~/.config/posh
+  cp $(dirname $0)/onezero.omp.json ~/.config/posh/onezero.omp.json
+  # add oh my posh to zshrc if available
+  echo "eval \"\$(oh-my-posh --init --shell zsh --config ~/.config/posh/onezero.omp.json)\"" >> $ZSHRC
 fi
