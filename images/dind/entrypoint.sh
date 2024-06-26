@@ -8,6 +8,7 @@ while ! pgrep "dockerd" >/dev/null; do
 done
 
 # Make zero the owner of the docker socket
+sudo chown zero:zero /usr/local/bin/docker-compose
 sudo chown zero:zero /var/run/docker.sock
 
 if [ -n "$TERM" ]; then

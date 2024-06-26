@@ -70,7 +70,7 @@ fi
 # Install oh my posh
 OHMYPOSH=${OMYPOSH:-"false"}
 if [ "$OHMYPOSH" = "true" ]; then
-  sudo curl -s https://ohmyposh.dev/install.sh | bash -s
+  curl -s https://ohmyposh.dev/install.sh | sudo bash -s
   # Install meslo font
   sudo oh-my-posh font install meslo
   # Install onezero theme
