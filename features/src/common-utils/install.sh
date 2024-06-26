@@ -63,7 +63,7 @@ fi
 # motd
 MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then
-  $(dirname $0)/motd_gen.sh > /etc/motd
+  $(dirname $0)/motd_gen.sh > /etc/motd || true
   chmod 644 /etc/motd
 fi
 
@@ -77,5 +77,5 @@ if [ "$OHMYPOSH" = "true" ]; then
   mkdir -p $USER_HOME/.config/posh
   cp $(dirname $0)/onezero.omp.json $USER_HOME/.config/posh/onezero.omp.json
   # add oh my posh to zshrc if available
-  echo "eval \"\$(oh-my-posh --init --shell zsh --config $USER_HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
+  echo "eval \"\$(oh-my-posh --init --shell zsh --config $HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
 fi
