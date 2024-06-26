@@ -68,10 +68,7 @@ RUN \
     echo "autoload -Uz compinit" >> /home/zero/.zshrc && \ 
     echo "compinit" >> /home/zero/.zshrc
 
-RUN chown zero:zero /home/zero/.zsh/prompt.sh && \
-    echo "" >> /home/zero/.zshrc && \
-    rm /home/zero/.zsh/prompt.sh && \
-    echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
+RUN echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
     chown zero:zero /home/zero/.zshrc
 
 WORKDIR /home/zero
