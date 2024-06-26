@@ -6,7 +6,7 @@
     "ghcr.io/onezerocompany/devcontainers/features/node:1.0.8": {},
     "ghcr.io/onezerocompany/devcontainers/features/bun:1.1.0": {},
     "ghcr.io/onezerocompany/devcontainers/features/github-cli:1.0.1": {},
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1.2.1": {}
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1.2.2": {}
   },
   "customizations": {
     "vscode": {
