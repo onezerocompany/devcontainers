@@ -73,8 +73,8 @@ if [ "$OHMYPOSH" = "true" ]; then
   # Install meslo font
   oh-my-posh font install meslo
   # Install onezero theme
-  mkdir -p ~/.config/posh
-  cp $(dirname $0)/onezero.omp.json ~/.config/posh/onezero.omp.json
+  mkdir -p $HOME/.config/posh
+  cp $(dirname $0)/onezero.omp.json $HOME/.config/posh/onezero.omp.json
   # add oh my posh to zshrc if available
-  echo "eval \"\$(oh-my-posh --init --shell zsh --config ~/.config/posh/onezero.omp.json)\"" >> $ZSHRC
+  echo "eval \"\$(oh-my-posh --init --shell zsh --config $HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
 fi
