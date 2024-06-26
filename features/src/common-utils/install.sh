@@ -2,7 +2,7 @@
 
 USER=${USER:-"zero"}
 ZSHRC="$(su $USER -c 'echo $HOME')/.zshrc"
-HOME="$(su $USER -c 'echo $HOME')"
+USER_HOME="$(su $USER -c 'echo $HOME')"
 
 apt-get update
 
@@ -74,8 +74,8 @@ if [ "$OHMYPOSH" = "true" ]; then
   # Install meslo font
   sudo oh-my-posh font install meslo
   # Install onezero theme
-  mkdir -p $HOME/.config/posh
-  cp $(dirname $0)/onezero.omp.json $HOME/.config/posh/onezero.omp.json
+  mkdir -p $USER_HOME/.config/posh
+  cp $(dirname $0)/onezero.omp.json $USER_HOME/.config/posh/onezero.omp.json
   # add oh my posh to zshrc if available
-  echo "eval \"\$(oh-my-posh --init --shell zsh --config $HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
+  echo "eval \"\$(oh-my-posh --init --shell zsh --config $USER_HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
 fi

@@ -67,6 +67,9 @@ docker buildx version
 curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
 chmod +x /usr/local/bin/docker-compose && docker-compose version
 
+# Make sure zero is allowed to run docker-compose
+chown zero:zero /usr/local/bin/docker-compose
+
 # Create a symlink to the docker binary in /usr/local/lib/docker/cli-plugins
 # for users which uses 'docker compose' instead of 'docker-compose'
 ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
