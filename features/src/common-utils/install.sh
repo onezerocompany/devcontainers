@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 USER=${USER:-"zero"}
-USER_HOME="$(su $USER -c 'echo $HOME')"
+USER_HOME="/home/$USER"
 ZSHRC="$USER_HOME/.zshrc"
 
 echo "Installing common utils"
