@@ -1,8 +1,12 @@
 #!/bin/bash -e
 
 USER=${USER:-"zero"}
-ZSHRC="$(su $USER -c 'echo $HOME')/.zshrc"
 USER_HOME="$(su $USER -c 'echo $HOME')"
+ZSHRC="$USER_HOME/.zshrc"
+
+echo "Installing common utils"
+echo "USER: $USER"
+echo "USER_HOME: $USER_HOME"
 
 apt-get update
 
@@ -76,5 +80,5 @@ if [ "$OHMYPOSH" = "true" ]; then
   mkdir -p $USER_HOME/.config/posh
   cp $(dirname $0)/onezero.omp.json $USER_HOME/.config/posh/onezero.omp.json
   # add oh my posh to zshrc if available
-  echo "eval \"\$(oh-my-posh --init --shell zsh --config $HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
+  echo "eval \"\$(oh-my-posh --init --shell zsh --config $USER_HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
 fi

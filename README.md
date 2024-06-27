@@ -37,7 +37,9 @@ Includes the latest versions of the following tools:
 - github-cli
 - common-utils
 
-#### Astro.js Development
+---
+
+### Astro.js Development
 
 `ghcr.io/onezerocompany/devcontainer/astro`
 
@@ -45,7 +47,9 @@ Includes the latest versions of the following tools:
 
 Includes the latest versions of the following tools:
 
-#### Container Development
+---
+
+### Container Development
 
 `ghcr.io/onezerocompany/devcontainer/containers`
 
