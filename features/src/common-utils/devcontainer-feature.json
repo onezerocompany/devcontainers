@@ -73,7 +73,19 @@
         "unifiedjs.vscode-mdx"
       ],
       "settings": {
-        "terminal.integrated.fontFamily": "MesloLGM Nerd Font"
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "terminal.integrated.fontFamily": "MesloLGM Nerd Font",
+        "workbench.preferredDarkColorTheme": "Default Dark Modern",
+        "workbench.preferredLightColorTheme": "Default Light Modern",
+        "workbench.colorTheme": "Default Dark Modern",
+        "window.autoDetectColorScheme": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "git.terminalAuthentication": false,
+        "git.useIntegratedAskPass": false,
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+        "git.alwaysSignOff": true
       }
     }
   }

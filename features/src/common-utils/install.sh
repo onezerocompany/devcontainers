@@ -56,6 +56,7 @@ fi
 # tools
 TOOLS=${TOOLS:-"false"}
 if [ "$TOOLS" = "true" ]; then
+  echo "Installing tools command"
   cp $(dirname $0)/tools.sh /usr/local/bin/tools
   chmod +x /usr/local/bin/tools
 fi
@@ -70,9 +71,7 @@ fi
 # Install oh my posh
 OHMYPOSH=${OHMYPOSH:-"false"}
 if [ "$OHMYPOSH" = "true" ]; then
-  curl -s https://ohmyposh.dev/install.sh | sudo bash -s
-  # Install meslo font
-  sudo oh-my-posh font install meslo
+  curl -s https://ohmyposh.dev/install.sh | bash -s
   # Install onezero theme
   mkdir -p $USER_HOME/.config/posh
   cp $(dirname $0)/onezero.omp.json $USER_HOME/.config/posh/onezero.omp.json

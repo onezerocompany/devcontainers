@@ -16,11 +16,7 @@
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "GitHub.vscode-pull-request-github"
-      ],
-      "settings": {
-        "git.terminalAuthentication": false,
-        "git.useIntegratedAskPass": false
-      }
+      ]
     }
   }
 }
