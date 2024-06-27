@@ -68,7 +68,7 @@ if [ "$MOTD" = "true" ]; then
 fi
 
 # Install oh my posh
-OHMYPOSH=${OMYPOSH:-"false"}
+OHMYPOSH=${OHMYPOSH:-"false"}
 if [ "$OHMYPOSH" = "true" ]; then
   curl -s https://ohmyposh.dev/install.sh | sudo bash -s
   # Install meslo font
