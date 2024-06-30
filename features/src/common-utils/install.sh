@@ -78,6 +78,8 @@ if [ "$OHMYPOSH" = "true" ]; then
   curl -s https://ohmyposh.dev/install.sh | bash -s
   # Install onezero theme
   mkdir -p $USER_HOME/.config/posh
+  # make sure config folder is owner by zero
+  chown -R $USER:$USER $USER_HOME/.config
   cp $(dirname $0)/onezero.omp.json $USER_HOME/.config/posh/onezero.omp.json
   # add oh my posh to zshrc if available
   echo "eval \"\$(oh-my-posh --init --shell zsh --config $USER_HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
