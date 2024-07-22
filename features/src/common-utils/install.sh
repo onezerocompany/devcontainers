@@ -68,6 +68,7 @@ fi
 # motd
 MOTD=${MOTD:-"false"}
 if [ "$MOTD" = "true" ]; then
+  echo "Installing motd"
   $(dirname $0)/motd_gen.sh > /etc/motd || true
   chmod 644 /etc/motd
 fi
