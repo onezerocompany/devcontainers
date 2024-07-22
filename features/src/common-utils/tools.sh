@@ -38,7 +38,6 @@ tool "gh"
 tool "git"
 
 tool "docker"
-tool "docker-compose" 
 
 tool "bun"
 tool "node" 
