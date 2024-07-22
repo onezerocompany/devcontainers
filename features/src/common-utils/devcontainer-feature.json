@@ -3,7 +3,7 @@
   "description": "Common utilities for OneZero projects",
   "keywords": ["common", "utilities", "utils"],
   "id": "common-utils",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "options": {
     "auto_cd": {
       "type": "boolean",

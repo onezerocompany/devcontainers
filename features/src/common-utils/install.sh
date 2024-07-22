@@ -76,7 +76,7 @@ fi
 # Install oh my posh
 OHMYPOSH=${OHMYPOSH:-"false"}
 if [ "$OHMYPOSH" = "true" ]; then
-  curl -s https://ohmyposh.dev/install.sh | bash -s
+  su $USER -c "curl -s https://ohmyposh.dev/install.sh | bash -s"
   # Install onezero theme
   mkdir -p $USER_HOME/.config/posh
   # make sure config folder is owner by zero
