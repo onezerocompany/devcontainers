@@ -242,7 +242,6 @@ jobs:
         with:
           subFolder: devcontainers/${{ matrix.devcontainer.id }}
           imageName: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer.id }}
-          cacheFrom: ghcr.io/${{ github.repository_owner }}/devcontainer/${{ matrix.devcontainer.id }}
           push: filter
           refFilterForPush: refs/heads/main
           platform: ${{ matrix.devcontainer.platforms }}
