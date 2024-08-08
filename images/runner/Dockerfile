@@ -2,10 +2,10 @@ FROM ghcr.io/onezerocompany/base as build
 
 ARG TARGETOS
 ARG TARGETARCH
-ARG RUNNER_VERSION=2.316.1
-ARG RUNNER_CONTAINER_HOOKS_VERSION=0.6.0
-ARG DOCKER_VERSION=25.0.4
-ARG BUILDX_VERSION=0.13.1
+ARG RUNNER_VERSION=2.319.0
+ARG RUNNER_CONTAINER_HOOKS_VERSION=0.6.1
+ARG DOCKER_VERSION=27.1.1
+ARG BUILDX_VERSION=0.16.2
 
 USER root
 
@@ -53,5 +53,27 @@ COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
 
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
+
+# Install node.js lts
+RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs
+
+# Install gh cli
+RUN sudo mkdir -p -m 755 /etc/apt/keyrings \
+    && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+    && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && sudo apt update \
+    && sudo apt install gh -y
+
+# Install terraform
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | \
+    gpg --dearmor | \
+    sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+    https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+    sudo tee /etc/apt/sources.list.d/hashicorp.list \
+    && sudo apt update \
+    && sudo apt-get install terraform
 
 USER runner
