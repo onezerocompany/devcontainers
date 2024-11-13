@@ -2,7 +2,6 @@ FROM ghcr.io/onezerocompany/base as build
 
 ARG TARGETOS
 ARG TARGETARCH
-ARG RUNNER_VERSION=2.319.1
 ARG RUNNER_CONTAINER_HOOKS_VERSION=0.6.1
 ARG DOCKER_VERSION=27.1.1
 ARG BUILDX_VERSION=0.16.2
@@ -10,9 +9,14 @@ ARG BUILDX_VERSION=0.16.2
 USER root
 
 WORKDIR /actions-runner
+
+# Fetch the latest runner version
+COPY update-runner.sh /actions-runner/update-runner.sh
+RUN chmod +x /actions-runner/update-runner.sh && /actions-runner/update-runner.sh
+
 RUN export RUNNER_ARCH=${TARGETARCH} \
     && if [ "$RUNNER_ARCH" = "amd64" ]; then export RUNNER_ARCH=x64 ; fi \
-    && curl -f -L -o runner.tar.gz https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-${TARGETOS}-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz \
+    && curl -f -L -o runner.tar.gz https://github.com/actions/runner/releases/download/v$(cat /actions-runner/latest-runner-version)/actions-runner-${TARGETOS}-${RUNNER_ARCH}-$(cat /actions-runner/latest-runner-version).tar.gz \
     && tar xzf ./runner.tar.gz \
     && rm runner.tar.gz
 
