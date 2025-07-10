@@ -1,0 +1,20 @@
+{
+  "id": "onezero-dind",
+  "version": "1.0.0",
+  "name": "OneZero DIND Devcontainer",
+  "description": "A development container with Docker-in-Docker support and mise for managing tools",
+  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/onezero-dind",
+  "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+  "platforms": [
+    "Any"
+  ],
+  "publisher": "OneZero Company",
+  "keywords": [
+    "docker",
+    "dind",
+    "docker-in-docker",
+    "mise",
+    "polyglot",
+    "development"
+  ]
+}

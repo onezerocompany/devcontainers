@@ -1,0 +1,20 @@
+{
+  "id": "onezero",
+  "version": "1.0.0",
+  "name": "OneZero Unified Devcontainer",
+  "description": "A comprehensive development container with mise for managing programming languages and tools",
+  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/onezero",
+  "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+  "platforms": [
+    "Any"
+  ],
+  "publisher": "OneZero Company",
+  "keywords": [
+    "mise",
+    "polyglot",
+    "node",
+    "python",
+    "bun",
+    "development"
+  ]
+}
