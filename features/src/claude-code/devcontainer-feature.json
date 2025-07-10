@@ -1,7 +1,7 @@
 {
-  "id": "claude-code-sandbox",
+  "id": "claude-code",
   "version": "1.0.0",
-  "name": "Claude Code Sandbox",
+  "name": "Claude Code",
   "description": "Sets up a sandboxed environment for Claude Code with persistent state and network restrictions",
   "options": {
     "enableFirewall": {
@@ -43,7 +43,7 @@
       "type": "bind"
     }
   ],
-  "postStartCommand": "/usr/local/share/claude-code-sandbox/init-firewall.sh",
+  "postStartCommand": "/usr/local/share/claude-code/init-firewall.sh",
   "capAdd": ["NET_ADMIN"],
   "customizations": {
     "vscode": {

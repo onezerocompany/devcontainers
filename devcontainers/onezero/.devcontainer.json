@@ -6,7 +6,7 @@
       "version": "latest",
       "enableMiseTrust": true
     },
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1": {}
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
   },
   "remoteUser": "zero",
   "postCreateCommand": "mise install",

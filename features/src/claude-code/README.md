@@ -1,4 +1,4 @@
-# Claude Code Sandbox
+# Claude Code
 
 Sets up a sandboxed environment for Claude Code with persistent state and network restrictions.
 
@@ -6,12 +6,14 @@ Sets up a sandboxed environment for Claude Code with persistent state and networ
 
 This DevContainer feature provides:
 
-1. **Persistent Volume Mounts** - Maintains Claude Code state across container rebuilds:
+1. **Claude Code CLI** - Automatically installs the `claude-code` command-line interface via npm
+
+2. **Persistent Volume Mounts** - Maintains Claude Code state across container rebuilds:
    - `~/.claude` - Authentication and session data
    - `~/.anthropic` - API configurations
    - `~/.config/claude-code` - User settings
 
-2. **Network Firewall** - Restricts outbound connections to only essential services:
+3. **Network Firewall** - Restricts outbound connections to only essential services:
    - Anthropic services (claude.ai, anthropic.com)
    - Package managers (npm, bun, deno, pip, etc.)
    - Development tools (GitHub, Linear, JSR)
@@ -24,7 +26,7 @@ Add this feature to your `devcontainer.json`:
 ```json
 {
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/claude-code-sandbox": {}
+    "ghcr.io/onezerocompany/devcontainers/features/claude-code": {}
   }
 }
 ```
@@ -43,7 +45,7 @@ Add this feature to your `devcontainer.json`:
 ```json
 {
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/claude-code-sandbox": {
+    "ghcr.io/onezerocompany/devcontainers/features/claude-code": {
       "enableFirewall": true,
       "additionalAllowedDomains": "custom-api.example.com,another-service.com",
       "persistentVolumes": true,
@@ -84,7 +86,7 @@ When the firewall is enabled, only connections to these domains are allowed:
 
 ### Firewall not working
 - Check if the container has `NET_ADMIN` capability
-- Verify the firewall script ran: check `/usr/local/share/claude-code-sandbox/init-firewall.sh`
+- Verify the firewall script ran: check `/usr/local/share/claude-code/init-firewall.sh`
 - Look for firewall logs in the container output
 
 ### Volume mounts not persisting

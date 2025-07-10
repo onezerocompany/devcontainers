@@ -51,13 +51,13 @@ if [ "${ENABLE_FIREWALL}" = "true" ]; then
 fi
 
 # Create directory for scripts
-mkdir -p /usr/local/share/claude-code-sandbox
+mkdir -p /usr/local/share/claude-code
 
 # Create the firewall initialization script
 if [ "${ENABLE_FIREWALL}" = "true" ]; then
     echo "Setting up firewall initialization script..."
     
-    cat > /usr/local/share/claude-code-sandbox/init-firewall.sh << 'EOF'
+    cat > /usr/local/share/claude-code/init-firewall.sh << 'EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -241,18 +241,18 @@ else
 fi
 EOF
 
-    chmod +x /usr/local/share/claude-code-sandbox/init-firewall.sh
+    chmod +x /usr/local/share/claude-code/init-firewall.sh
     
     # Add sudoers entry for the user to run firewall script
     if [ "${USERNAME}" != "root" ]; then
-        echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/local/share/claude-code-sandbox/init-firewall.sh" > /etc/sudoers.d/claude-code-sandbox
-        echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/sbin/iptables, /usr/sbin/ip6tables, /usr/sbin/ipset" >> /etc/sudoers.d/claude-code-sandbox
-        chmod 0440 /etc/sudoers.d/claude-code-sandbox
+        echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/local/share/claude-code/init-firewall.sh" > /etc/sudoers.d/claude-code
+        echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/sbin/iptables, /usr/sbin/ip6tables, /usr/sbin/ipset" >> /etc/sudoers.d/claude-code
+        chmod 0440 /etc/sudoers.d/claude-code
     fi
     
     # Pass environment variables to the script
     if [ -n "${ADDITIONAL_ALLOWED_DOMAINS}" ]; then
-        echo "export ADDITIONAL_ALLOWED_DOMAINS=\"${ADDITIONAL_ALLOWED_DOMAINS}\"" >> /etc/profile.d/claude-code-sandbox.sh
+        echo "export ADDITIONAL_ALLOWED_DOMAINS=\"${ADDITIONAL_ALLOWED_DOMAINS}\"" >> /etc/profile.d/claude-code.sh
     fi
 fi
 
@@ -273,4 +273,27 @@ if [ "${PERSISTENT_VOLUMES}" = "true" ] && [ "${USERNAME}" != "root" ]; then
     chown -R ${USERNAME}:${USERNAME} "${USER_HOME}/.config/claude-code"
 fi
 
-echo "Claude Code sandbox feature installation complete!"
+# Install claude-code CLI via npm if npm is available
+echo "Installing claude-code CLI..."
+if command -v npm &> /dev/null; then
+    # Install globally as root, then ensure correct permissions
+    npm install -g claude-code
+    
+    # Get the global npm prefix
+    NPM_PREFIX=$(npm config get prefix)
+    
+    # If not running as root user, ensure the user has access
+    if [ "${USERNAME}" != "root" ]; then
+        # Ensure the user owns their npm directory
+        if [ -d "${USER_HOME}/.npm" ]; then
+            chown -R ${USERNAME}:${USERNAME} "${USER_HOME}/.npm"
+        fi
+    fi
+    
+    echo "Claude Code CLI installed successfully"
+else
+    echo "Warning: npm not found. Claude Code CLI not installed."
+    echo "To install claude-code later, run: npm install -g claude-code"
+fi
+
+echo "Claude Code feature installation complete!"

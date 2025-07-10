@@ -34,7 +34,7 @@ Use the OneZero devcontainer in your project:
 - **docker** - Docker-in-Docker support for container development
 - **kubernetes** - Kubernetes tools and configurations
 - **flutter** - Flutter SDK with Android/iOS development support
-- **claude-code-sandbox** - Special sandbox environment for Claude Code
+- **claude-code** - Claude Code CLI with sandboxed environment and persistent state
 
 ## Tool Management with mise
 
