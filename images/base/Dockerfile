@@ -56,31 +56,37 @@ RUN apt-get upgrade -y && \
 RUN apt-get install -y supervisor iptables \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy
 
-RUN useradd -m zero && \
-    echo "zero:zero" | chpasswd && adduser zero sudo && \
-    echo "zero ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+# Allow customizing the username at build time
+ARG USERNAME=zero
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Create user with configurable name
+RUN groupadd --gid $USER_GID $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+    echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
 RUN chsh -s /bin/zsh && \
-    chsh -s /bin/zsh zero && \
-    chown -R zero:zero /home/zero
+    chsh -s /bin/zsh $USERNAME && \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 RUN \
-    echo "autoload -Uz compinit" >> /home/zero/.zshrc && \ 
-    echo "compinit" >> /home/zero/.zshrc
+    echo "autoload -Uz compinit" >> /home/$USERNAME/.zshrc && \ 
+    echo "compinit" >> /home/$USERNAME/.zshrc
 
-RUN echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
-    chown zero:zero /home/zero/.zshrc
+RUN echo "alias apt-get='apt-fast'" >> /home/$USERNAME/.zshrc && \
+    chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
 
-WORKDIR /home/zero
-USER zero
+WORKDIR /home/$USERNAME
+USER $USERNAME
 
-# Install mise as zero user
+# Install mise as non-root user
 RUN curl -fsSL https://mise.run | sh
 
-# Set up mise environment variables for caching
-ENV MISE_CACHE_DIR=/home/zero/.cache/mise
-ENV MISE_DATA_DIR=/home/zero/.local/share/mise
-ENV PATH="/home/zero/.local/bin:${PATH}"
+# Set up mise environment variables for caching - using ENV expansion at runtime
+ENV MISE_CACHE_DIR=$HOME/.cache/mise
+ENV MISE_DATA_DIR=$HOME/.local/share/mise
+ENV PATH="$HOME/.local/bin:${PATH}"
 
 # Add mise activation to shell configs
 RUN echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \

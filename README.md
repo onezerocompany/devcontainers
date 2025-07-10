@@ -68,9 +68,6 @@ experimental = true
 trusted_config_paths = ["/workspaces"]
 ```
 
-## Migration from Old DevContainers
-
-If you were using one of our specialized devcontainers (minimal, astro, containers, flutter), please refer to the [migration guide](devcontainers/archived/README.md).
 
 ## Available Docker Images
 
