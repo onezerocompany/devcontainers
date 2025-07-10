@@ -79,8 +79,8 @@ A comprehensive development container with mise for managing all your tools.
 **Features:**
 - mise for polyglot tool management
 - Common shell utilities (zoxide, eza, bat, starship)
-- Pre-configured with essential development tools
-- Support for multiple programming languages
+- Pre-configured with Node.js, Bun, and GitHub CLI
+- Support for adding any programming language or tool via mise
 
 **Usage:**
 ```bash
@@ -142,10 +142,6 @@ All images support both `linux/amd64` and `linux/arm64` architectures.
 - Pre-configured with runner dependencies
 - Auto-updates runner version
 
-#### `ghcr.io/onezerocompany/firebase-toolkit`
-- Standalone Firebase development tools
-- Firebase CLI and emulators
-- Node.js LTS included
 
 ## 🔧 DevContainer Features
 
@@ -241,7 +237,9 @@ Instead of installing fixed tool versions through features, we use [mise](https:
 
 ### Configuration
 
-Create a `.mise.toml` file in your project root:
+The templates come with minimal tools pre-configured (Node.js, Bun, GitHub CLI). You can add any tools you need by creating a `.mise.toml` file in your project root.
+
+**Example `.mise.toml` showing available tools:**
 
 ```toml
 [tools]
@@ -441,8 +439,7 @@ docker-compose = "latest"
     ├── dind/              # Docker-in-Docker
     ├── devcontainer-base/ # Main devcontainer
     ├── devcontainer-dind/ # DevContainer with Docker
-    ├── runner/            # GitHub Actions runner
-    └── firebase-toolkit/  # Firebase tools
+    └── runner/            # GitHub Actions runner
 ```
 
 ### Build Dependencies
@@ -453,7 +450,6 @@ graph TD
     A --> C[devcontainer-base]
     B --> D[devcontainer-dind]
     A --> E[runner]
-    F[firebase-toolkit]
 ```
 
 ### Publishing
