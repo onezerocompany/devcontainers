@@ -73,16 +73,18 @@ if [ "$MOTD" = "true" ]; then
   chmod 644 /etc/motd
 fi
 
-# Install oh my posh
-OHMYPOSH=${OHMYPOSH:-"false"}
-if [ "$OHMYPOSH" = "true" ]; then
-  su $USER -c "curl -s https://ohmyposh.dev/install.sh | bash -s"
-  # Install onezero theme
-  mkdir -p $USER_HOME/.config/posh
-  # make sure config folder is owner by zero
+# Install starship
+STARSHIP=${STARSHIP:-"false"}
+if [ "$STARSHIP" = "true" ]; then
+  # Install starship using official script
+  curl -sS https://starship.rs/install.sh | sh -s -- --yes
+  # Create config directory
+  mkdir -p $USER_HOME/.config
+  # make sure config folder is owned by user
   chown -R $USER:$USER $USER_HOME/.config
   chmod -R 755 $USER_HOME/.config
-  cp $(dirname $0)/onezero.omp.json $USER_HOME/.config/posh/onezero.omp.json
-  # add oh my posh to zshrc if available
-  echo "eval \"\$(oh-my-posh --init --shell zsh --config $USER_HOME/.config/posh/onezero.omp.json)\"" >> $ZSHRC
+  # Copy our custom starship config
+  cp $(dirname $0)/starship.toml $USER_HOME/.config/starship.toml
+  # add starship to zshrc if available
+  echo "eval \"\$(starship init zsh)\"" >> $ZSHRC
 fi

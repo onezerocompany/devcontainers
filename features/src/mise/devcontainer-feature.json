@@ -1,0 +1,41 @@
+{
+  "name": "mise",
+  "description": "mise - dev tools, env vars, task runner",
+  "keywords": ["mise", "runtime", "version-manager", "asdf"],
+  "id": "mise",
+  "version": "1.0.0",
+  "options": {
+    "install": {
+      "type": "boolean",
+      "description": "Install mise",
+      "default": true
+    },
+    "version": {
+      "type": "string",
+      "description": "mise version",
+      "default": "latest",
+      "proposals": ["latest"]
+    },
+    "user": {
+      "type": "string",
+      "description": "User to run mise as",
+      "default": "zero",
+      "proposals": ["zero", "root", "vscode"]
+    },
+    "autoTrustWorkspace": {
+      "type": "boolean",
+      "description": "Automatically trust mise config files in /workspaces/* (opt-in for security)",
+      "default": false
+    },
+    "trustedPaths": {
+      "type": "string",
+      "description": "Additional paths to auto-trust (comma-separated)",
+      "default": ""
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["hverlin.mise-vscode"]
+    }
+  }
+}

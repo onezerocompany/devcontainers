@@ -1,0 +1,53 @@
+{
+  "id": "claude-code-sandbox",
+  "version": "1.0.0",
+  "name": "Claude Code Sandbox",
+  "description": "Sets up a sandboxed environment for Claude Code with persistent state and network restrictions",
+  "options": {
+    "enableFirewall": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable network firewall restrictions to limit outbound connections"
+    },
+    "additionalAllowedDomains": {
+      "type": "string",
+      "default": "",
+      "description": "Comma-separated list of additional domains to allow through the firewall"
+    },
+    "persistentVolumes": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mount persistent volumes for Claude Code state"
+    },
+    "user": {
+      "type": "string",
+      "default": "zero",
+      "description": "User to configure Claude Code for",
+      "proposals": ["zero", "vscode", "node", "root"]
+    }
+  },
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.claude",
+      "target": "/home/${containerEnv:USER}/.claude",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.anthropic",
+      "target": "/home/${containerEnv:USER}/.anthropic",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.config/claude-code",
+      "target": "/home/${containerEnv:USER}/.config/claude-code",
+      "type": "bind"
+    }
+  ],
+  "postStartCommand": "/usr/local/share/claude-code-sandbox/init-firewall.sh",
+  "capAdd": ["NET_ADMIN"],
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}

@@ -1,0 +1,229 @@
+# OneZero DevContainers Starship Configuration
+# Inspired by Luca's personal config with additions for development tools
+
+add_newline = true
+format = """
+$status$time$cmd_duration
+[$os$hostname$memory_usage](dimmed)
+$kubernetes$gcloud$aws$azure
+$docker$container
+$git_branch$git_status
+$nodejs$python$go$rust$dart$flutter$java$kotlin$swift$ruby
+$directory
+$username$character"""
+
+# Status indicator
+[status]
+disabled = false
+format = "[$symbol]($style)"
+symbol = "✗ "
+success_symbol = ""
+style = "fg:red"
+
+# Time
+[time]
+disabled = false
+format = "[$time]($style) "
+style = "fg:dimmed"
+time_format = "%T"
+
+# Command duration
+[cmd_duration]
+format = "took [$duration]($style) "
+min_time = 2_000
+style = "fg:yellow"
+
+# OS
+[os]
+disabled = false
+format = "[$symbol]($style)"
+style = "fg:dimmed"
+
+[os.symbols]
+Alpine = " "
+Amazon = " "
+Android = " "
+Arch = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Linux = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+Redox = " "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Windows = " "
+
+# Hostname
+[hostname]
+format = "[$hostname]($style) "
+style = "fg:dimmed"
+ssh_only = false
+
+# Memory usage
+[memory_usage]
+disabled = false
+format = "[$symbol$ram_pct]($style) "
+symbol = " "
+style = "fg:dimmed"
+threshold = 50
+
+# Container indicator
+[container]
+format = "[$symbol]($style)"
+symbol = " "
+style = "fg:yellow dimmed"
+
+# Kubernetes
+[kubernetes]
+disabled = false
+format = "[$symbol$context( \\($namespace\\))]($style) "
+symbol = "☸ "
+style = "fg:blue"
+
+# Google Cloud
+[gcloud]
+disabled = false
+format = "[$symbol$project]($style) "
+symbol = "☁️ "
+style = "fg:blue"
+
+# AWS
+[aws]
+disabled = false
+format = "[$symbol$profile(\\($region\\))]($style) "
+symbol = " "
+style = "fg:orange"
+
+# Azure
+[azure]
+disabled = false
+format = "[$symbol($subscription)]($style) "
+symbol = " "
+style = "fg:blue"
+
+# Docker
+[docker_context]
+format = "[$symbol$context]($style) "
+symbol = " "
+style = "fg:blue"
+
+# Git branch
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+style = "fg:purple"
+
+# Git status
+[git_status]
+format = "([$all_status$ahead_behind]($style) )"
+style = "fg:red"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = ""
+untracked = "?${count}"
+stashed = "$${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+# Programming languages
+[nodejs]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:green"
+detect_extensions = ["js", "mjs", "cjs", "ts", "mts", "cts"]
+
+[python]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:yellow"
+
+[go]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:cyan"
+
+[rust]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:orange"
+
+[dart]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:blue"
+
+[flutter]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:blue"
+detect_files = ["pubspec.yaml", "pubspec.yml"]
+
+[java]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:red"
+
+[kotlin]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:purple"
+
+[swift]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:orange"
+
+[ruby]
+format = "[$symbol($version )]($style)"
+symbol = " "
+style = "fg:red"
+
+# Directory
+[directory]
+format = "[$path]($style)[$read_only]($read_only_style) "
+style = "fg:cyan bold"
+read_only = " "
+read_only_style = "fg:red"
+truncation_length = 3
+truncate_to_repo = true
+
+# Username
+[username]
+format = "[$user]($style) "
+show_always = true
+style_user = "fg:yellow"
+style_root = "fg:red bold"
+
+# Character (prompt symbol)
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"

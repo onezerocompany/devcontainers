@@ -36,6 +36,7 @@ function tool () {
 
 tool "gh"
 tool "git"
+tool "starship"
 
 tool "docker"
 

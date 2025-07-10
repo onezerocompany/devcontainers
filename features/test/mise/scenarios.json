@@ -1,0 +1,10 @@
+{
+    "auto-trust": {
+        "features": {
+            "mise": {
+                "autoTrustWorkspace": true,
+                "trustedPaths": "/tmp/test-trust,/home/zero/projects"
+            }
+        }
+    }
+}
