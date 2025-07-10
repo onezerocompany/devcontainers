@@ -1,5 +1,5 @@
 {
-  "name": "OneZero DIND Devcontainer",
+  "name": "OneZero DinD Devcontainer (Docker in Docker)",
   "image": "ghcr.io/onezerocompany/devcontainer-dind",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/docker:1": {
