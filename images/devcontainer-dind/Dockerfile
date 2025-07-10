@@ -1,4 +1,4 @@
-FROM ghcr.io/onezerocompany/base
+FROM ghcr.io/onezerocompany/dind
 
 USER root
 
@@ -16,4 +16,5 @@ RUN vscode-kit install
 
 USER zero
 
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["bash"]

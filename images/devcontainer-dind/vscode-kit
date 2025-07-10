@@ -1,0 +1,124 @@
+#!/bin/bash
+
+if [ -f ~/.bashrc ]; then
+  source ~/.bashrc
+fi
+
+USER=${USER:-zero}
+INSTALL_DIR=${INSTALL_DIR:-/home/zero/.vscode-install}
+WORKSPACE_DIR=${WORKSPACE_DIR:-/workspaces}
+VSCODE_SERVER_DIR=${VSCODE_SERVER_DIR:-~/.vscode-server}
+EXTENSION_DIR=${EXTENSION_DIR:-~/.vscode-server/extensions}
+VSCODE_PORT=${VSCODE_PORT:-13338}
+VSCODE_KEYRING_PASS=${VSCODE_KEYRING_PASS:-"vscode-keyring-pass"}
+VSCODE_LOG_PATH=${VSCODE_LOG_PATH:-/tmp/vscode-server.log}
+
+detect_arch() {
+  case "$(uname -m)" in
+    x86_64) echo "x64" ;;
+    armv8*) echo "arm64" ;;
+    aarch64) echo "arm64" ;;
+    arm64) echo "arm64" ;;
+    *) echo "unsupported" ;;
+  esac
+}
+
+arch=$(detect_arch)
+if [ "$arch" == "unsupported" ]; then
+  echo "Unsupported architecture"
+  exit 1
+fi
+
+wait_for_docker() {
+  echo "Waiting for Docker to start..."
+  while [ ! -e /var/run/docker.sock ]; do
+    sleep 1
+  done
+  echo "Docker started."
+}
+
+install() {
+  echo "Installing vscode and vscode-web tools for $arch..."
+
+  mkdir -p $INSTALL_DIR/code
+
+  # Install code command
+  curl -fsSL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-$arch" | tar -xz -C $INSTALL_DIR/code
+
+  if [ $? -ne 0 ]; then
+    echo "Failed to install vscode-cli"
+    exit 1
+  else
+    echo "vscode-cli installed at $INSTALL_DIR/code"
+  fi
+
+  # Add to zsh and bash path
+  echo "export PATH=\$PATH:$INSTALL_DIR/code" >> /home/$USER/.zshrc
+  echo "export PATH=\$PATH:$INSTALL_DIR/code" >> /home/$USER/.bashrc
+
+  mkdir -p $INSTALL_DIR/vscode-server
+
+  # Install code-server
+  local hash=$(curl -fsSL https://update.code.visualstudio.com/api/commits/stable/server-linux-$arch-web | cut -d '"' -f 2)
+  curl -fsSL https://vscode.download.prss.microsoft.com/dbazure/download/stable/$hash/vscode-server-linux-$arch-web.tar.gz | tar -xz -C $INSTALL_DIR/vscode-server --strip-components 1
+
+  if [ $? -ne 0 ]; then
+    echo "Failed to install vscode-server"
+    exit 1
+  else
+    echo "vscode-server installed at $INSTALL_DIR/vscode-server"
+  fi
+
+  # Add to zsh and bash path
+  echo "export PATH=\$PATH:$INSTALL_DIR/vscode-server/bin" >> /home/$USER/.zshrc
+  echo "export PATH=\$PATH:$INSTALL_DIR/vscode-server/bin" >> /home/$USER/.bashrc
+
+}
+
+
+setup() {
+
+  # Wait for Docker to start
+  wait_for_docker
+
+  # Wait for workspace to be mounted
+  while [ ! -d $WORKSPACE_DIR ]; do
+    sleep 1
+  done
+
+  # Generate the manifest
+  manifest=$(devcontainer read-configuration --workspace-folder $WORKSPACE_DIR --include-merged-configuration)
+  extensions_json=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].extensions] | map(select(. != null)) | add | unique')
+  settings_json=$(echo $manifest | jq '[.mergedConfiguration.customizations.vscode[].settings] | map(select(. != null)) | add')
+  
+  extensions=$(echo $extensions_json | jq -r '.[]')
+  for extension in $extensions; do
+    echo "📦 Installing extension: $extension"
+    if $INSTALL_DIR/vscode-server/bin/code-server --install-extension $extension --extensions-dir $VSCODE_SERVER_DIR/extensions --force > /dev/null; then
+      echo "Extension $extension installed successfully"
+    else
+      echo "Failed to install extension $extension"
+    fi
+  done
+
+  if [ -n "$settings_json" ]; then
+    echo "🔧 Applying settings..."
+    echo $settings_json > $VSCODE_SERVER_DIR/data/Machine/settings.json
+  fi
+}
+
+
+start() {
+  COMMAND="$INSTALL_DIR/code/code serve-web --port ${VSCODE_PORT} --host 0.0.0.0 --accept-server-license-terms --without-connection-token --extensions-dir $EXTENSION_DIR --user-data-dir $VSCODE_SERVER_DIR/data/Machine --server-data-dir $VSCODE_SERVER_DIR/server"
+  
+  # Run a dbus session, which unlocks the gnome-keyring and runs the VS Code Server inside of it
+  dbus-run-session -- sh -c "echo $VSCODE_KEYRING_PASS | gnome-keyring-daemon --unlock && $COMMAND > $VSCODE_LOG_PATH 2>&1 &"
+}
+
+# Check the command line arguments
+case "$1" in
+  install) install ;;
+  setup) setup ;;
+  start) start ;;
+  *) echo "Usage: vscode-kit {install|setup|start}" ;;
+esac

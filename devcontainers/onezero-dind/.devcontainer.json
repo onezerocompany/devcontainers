@@ -1,6 +1,6 @@
 {
   "name": "OneZero DIND Devcontainer",
-  "image": "ghcr.io/onezerocompany/dind",
+  "image": "ghcr.io/onezerocompany/devcontainer-dind",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/docker:1": {
       "install": true,
