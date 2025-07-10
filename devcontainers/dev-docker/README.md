@@ -1,11 +1,11 @@
-# OneZero DIND Devcontainer
+# Dev:Docker Devcontainer
 
-A development container optimized for OneZero projects that require Docker support. This container provides full Docker-in-Docker capabilities along with the standard OneZero development tools.
+A development container optimized for projects that require Docker support. This container provides full Docker-in-Docker capabilities along with standard development tools.
 
 ## Features
 
 ### Base Image
-- **Image**: `ghcr.io/onezerocompany/dind`
+- **Image**: `ghcr.io/onezerocompany/base:dev-docker`
 - Provides Docker-in-Docker functionality with a full Docker daemon running inside the container
 
 ### Included Features
@@ -53,4 +53,4 @@ Use this devcontainer when you need:
 - Docker Compose for multi-container applications
 - Container-based testing environments
 
-For projects that don't require Docker support, use the standard `onezero` devcontainer instead.
+For projects that don't require Docker support, use the standard `dev` devcontainer instead.

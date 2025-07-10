@@ -1,9 +1,9 @@
 {
-  "id": "base",
+  "id": "dev",
   "version": "1.0.0",
-  "name": "Base Dev Container",
-  "description": "A base development container with common utilities",
-  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/base",
+  "name": "Development Container",
+  "description": "A comprehensive development container with mise for managing all your tools",
+  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/dev",
   "publisher": "OneZero Company",
   "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
   "options": {

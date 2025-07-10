@@ -1,4 +1,4 @@
-# OneZero DevContainers
+# DevContainers
 
 A comprehensive collection of development containers, features, and templates that use [mise](https://mise.jdx.dev/) for managing programming languages and development tools.
 
@@ -19,7 +19,7 @@ A comprehensive collection of development containers, features, and templates th
 
 This repository provides:
 
-1. **DevContainer Templates** - Pre-configured development environments (OneZero and OneZero-DIND)
+1. **DevContainer Templates** - Pre-configured development environments (dev and dev:docker)
 2. **Docker Images** - Base images for various development scenarios
 3. **DevContainer Features** - Modular components for installing and configuring development tools
 4. **Tool Management** - Unified tool version management using mise
@@ -35,10 +35,10 @@ Since our templates are published to GitHub Container Registry (not the Microsof
 npm install -g @devcontainers/cli
 
 # Apply the standard template
-devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
+devcontainer templates apply -t ghcr.io/onezerocompany/dev
 
 # OR apply the Docker-in-Docker template
-devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero-dind
+devcontainer templates apply -t ghcr.io/onezerocompany/dev-docker
 ```
 
 ### Option 2: Copy Template Configuration
@@ -47,8 +47,8 @@ You can directly copy the template configuration to your project:
 
 1. Create a `.devcontainer` directory in your project root
 2. Copy the template's `devcontainer.json` from this repository:
-   - For standard: `/devcontainers/onezero/.devcontainer.json`
-   - For DIND: `/devcontainers/onezero-dind/.devcontainer.json`
+   - For standard: `/devcontainers/dev/.devcontainer.json`
+   - For DIND: `/devcontainers/dev-docker/.devcontainer.json`
 3. (Optional) Copy the `.mise.toml` file for tool configuration
 
 ### Option 3: Manual Configuration
@@ -58,7 +58,7 @@ Create a `.devcontainer/devcontainer.json` file in your project:
 ```json
 {
   "name": "My Dev Environment",
-  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "version": "latest",
@@ -73,19 +73,19 @@ Create a `.devcontainer/devcontainer.json` file in your project:
 
 ## 📦 DevContainer Templates
 
-Our templates are published to GitHub Container Registry under the namespace `onezerocompany/devcontainer`. They're not available in the VS Code template picker, but can be used through the DevContainer CLI or manual configuration.
+Our templates are published to GitHub Container Registry under the namespace `onezerocompany`. They're not available in the VS Code template picker, but can be used through the DevContainer CLI or manual configuration.
 
 ### Template Publishing Details
 
 - **Registry**: GitHub Container Registry (`ghcr.io`)
-- **Namespace**: `onezerocompany/devcontainer`
+- **Namespace**: `onezerocompany`
 - **Publishing**: Automated via GitHub Actions (on push to main and daily at 3 AM UTC)
 
-### OneZero Unified Devcontainer
+### Dev
 
 A comprehensive development container with mise for managing all your tools.
 
-**Template ID:** `ghcr.io/onezerocompany/devcontainer/onezero`
+**Template ID:** `ghcr.io/onezerocompany/dev`
 
 **Features:**
 - mise for polyglot tool management
@@ -98,14 +98,14 @@ A comprehensive development container with mise for managing all your tools.
 
 1. **DevContainer CLI:**
    ```bash
-   devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
+   devcontainer templates apply -t ghcr.io/onezerocompany/dev
    ```
 
 2. **Direct Configuration:**
    ```json
    {
-     "name": "OneZero Devcontainer",
-     "image": "ghcr.io/onezerocompany/devcontainer-base",
+     "name": "Dev Container",
+     "image": "ghcr.io/onezerocompany/base:dev",
      "features": {
        "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
          "version": "latest",
@@ -121,14 +121,14 @@ A comprehensive development container with mise for managing all your tools.
    }
    ```
 
-### OneZero DIND Devcontainer
+### Dev-Docker
 
 Development container with Docker-in-Docker support for container development workflows.
 
-**Template ID:** `ghcr.io/onezerocompany/devcontainer/onezero-dind`
+**Template ID:** `ghcr.io/onezerocompany/dev-docker`
 
 **Features:**
-- Everything from OneZero Unified
+- Everything from Dev template
 - Docker-in-Docker support
 - Docker Compose
 - Container development tools
@@ -137,14 +137,14 @@ Development container with Docker-in-Docker support for container development wo
 
 1. **DevContainer CLI:**
    ```bash
-   devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero-dind
+   devcontainer templates apply -t ghcr.io/onezerocompany/dev-docker
    ```
 
 2. **Direct Configuration:**
    ```json
    {
-     "name": "OneZero DIND Devcontainer",
-     "image": "ghcr.io/onezerocompany/devcontainer-dind",
+     "name": "Dev:Docker",
+     "image": "ghcr.io/onezerocompany/base:dev-docker",
      "features": {
        "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
          "version": "latest",
@@ -178,13 +178,13 @@ The DevContainer CLI enables powerful automation scenarios:
 ```bash
 # Apply template to a new project
 mkdir my-new-project && cd my-new-project
-devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
+devcontainer templates apply -t ghcr.io/onezerocompany/dev
 
 # Use in CI/CD pipeline
 - name: Setup DevContainer
   run: |
     npm install -g @devcontainers/cli
-    devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero --workspace-folder .
+    devcontainer templates apply -t ghcr.io/onezerocompany/dev --workspace-folder .
     
 # Build and run devcontainer in CI
 - name: Build DevContainer
@@ -201,7 +201,7 @@ While the templates aren't searchable in the Codespaces UI, you can still use th
 ```json
 {
   "name": "My Codespace",
-  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {},
     "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
@@ -221,21 +221,21 @@ All images support both `linux/amd64` and `linux/arm64` architectures.
 - User "zero" with sudo access
 - Clean base for other images
 
-#### `ghcr.io/onezerocompany/dind`
+#### `ghcr.io/onezerocompany/base:docker`
 - Extends base image
 - Docker-in-Docker capability
 - Docker Compose included
 - Ideal for container development
 
-#### `ghcr.io/onezerocompany/devcontainer-base`
+#### `ghcr.io/onezerocompany/base:dev`
 - Primary devcontainer image
 - Extends base image
 - Includes development essentials
 - Ready for mise and features
 
-#### `ghcr.io/onezerocompany/devcontainer-dind`
+#### `ghcr.io/onezerocompany/base:dev-docker`
 - DevContainer with Docker support
-- Extends dind image
+- Extends base:docker image
 - Full container development environment
 
 ### Specialized Images
@@ -416,7 +416,7 @@ mise plugins list
 ```json
 {
   "name": "Node.js Project",
-  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
@@ -441,7 +441,7 @@ pnpm = "latest"
 ```json
 {
   "name": "Python Data Science",
-  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
@@ -475,7 +475,7 @@ ruff = "latest"
 ```json
 {
   "name": "Full-Stack Development",
-  "image": "ghcr.io/onezerocompany/devcontainer-dind",
+  "image": "ghcr.io/onezerocompany/base:dev-docker",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
@@ -507,7 +507,7 @@ docker-compose = "latest"
 ```json
 {
   "name": "Claude Code Development",
-  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
@@ -532,16 +532,16 @@ docker-compose = "latest"
 │   ├── pr-validation.yml    # PR checks and tests
 │   └── publish.yml          # Build and publish pipeline
 ├── devcontainers/           # Pre-configured templates
-│   ├── onezero/            # Standard template
-│   └── onezero-dind/       # Docker-in-Docker template
+│   ├── dev/                # Standard template
+│   └── dev-docker/         # Docker-in-Docker template
 ├── features/               # DevContainer features
 │   ├── src/               # Feature definitions
 │   └── test/              # Feature tests
 └── images/                # Docker images
     ├── base/              # Foundation image
-    ├── dind/              # Docker-in-Docker
-    ├── devcontainer-base/ # Main devcontainer
-    ├── devcontainer-dind/ # DevContainer with Docker
+    ├── base-docker/       # Docker-in-Docker
+    ├── base-dev/          # Main devcontainer
+    ├── base-dev-docker/   # DevContainer with Docker
     └── runner/            # GitHub Actions runner
 ```
 
@@ -549,9 +549,9 @@ docker-compose = "latest"
 
 ```mermaid
 graph TD
-    A[base] --> B[dind]
-    A --> C[devcontainer-base]
-    B --> D[devcontainer-dind]
+    A[base] --> B[base:docker]
+    A --> C[base:dev]
+    B --> D[base:dev-docker]
     A --> E[runner]
 ```
 
@@ -561,7 +561,7 @@ All components are automatically published via GitHub Actions:
 - **Trigger**: Push to main, daily at 3 AM UTC, or manual
 - **Images**: Published to `ghcr.io/onezerocompany/[image-name]`
 - **Features**: Published to `onezerocompany/devcontainers/features`
-- **Templates**: Published to `onezerocompany/devcontainer`
+- **Templates**: Published as `ghcr.io/onezerocompany/dev` and `ghcr.io/onezerocompany/dev-docker`
 
 ## 🤝 Contributing
 

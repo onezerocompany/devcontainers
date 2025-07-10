@@ -1,6 +1,6 @@
 {
-  "name": "OneZero Devcontainer",
-  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "name": "Development Container",
+  "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "version": "latest",

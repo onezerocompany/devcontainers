@@ -1,9 +1,9 @@
 {
-  "id": "dind",
+  "id": "dev-docker",
   "version": "1.0.0",
-  "name": "Docker in Docker Dev Container",
-  "description": "A development container with Docker-in-Docker support",
-  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/dind",
+  "name": "Development Container with Docker",
+  "description": "Development container with Docker-in-Docker support for container development workflows",
+  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/dev-docker",
   "publisher": "OneZero Company",
   "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
   "options": {

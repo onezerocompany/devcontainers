@@ -1,4 +1,4 @@
-FROM ghcr.io/onezerocompany/dind
+FROM ghcr.io/onezerocompany/base:docker
 
 USER root
 

@@ -1,6 +1,6 @@
 {
-  "name": "OneZero DinD Devcontainer (Docker in Docker)",
-  "image": "ghcr.io/onezerocompany/devcontainer-dind",
+  "name": "Development Container with Docker",
+  "image": "ghcr.io/onezerocompany/base:dev-docker",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/docker:1": {
       "install": true,

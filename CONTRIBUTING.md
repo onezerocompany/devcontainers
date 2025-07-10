@@ -83,11 +83,12 @@ cd features/test/[feature-name]
 
 ```bash
 # Build base image
-docker build -t devcontainer-base ./images/base
+docker build -t base ./images/base
 
 # Build dependent images
-docker build -t devcontainer-dind ./images/dind
-docker build -t devcontainer-base ./images/devcontainer-base
+docker build -t base:docker ./images/base-docker
+docker build -t base:dev ./images/base-dev
+docker build -t base:dev-docker ./images/base-dev-docker
 ```
 
 ### Commit Messages
