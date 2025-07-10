@@ -32,9 +32,7 @@ Use the OneZero devcontainer in your project:
 ### Special Purpose Features
 
 - **docker** - Docker-in-Docker support for container development
-- **kubernetes** - Kubernetes tools and configurations
-- **flutter** - Flutter SDK with Android/iOS development support
-- **claude-code** - Claude Code CLI with sandboxed environment and persistent state
+- **sandbox** - Claude Code CLI with sandboxed environment and persistent state
 
 ## Tool Management with mise
 
@@ -62,6 +60,7 @@ gcloud = "latest"
 firebase = "latest"
 trivy = "latest"
 1password-cli = "latest"
+# Add flutter if needed: flutter = "latest"
 
 [settings]
 experimental = true

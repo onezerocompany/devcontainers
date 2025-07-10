@@ -7,8 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a DevContainers repository that provides:
 - Base Docker images for development environments
 - DevContainer features (modular components for installing development tools)
-- Pre-configured devcontainers for specific technology stacks (Flutter, Astro, Minimal, Containers)
-- Templates for creating new projects
+- Pre-configured devcontainers (OneZero and OneZero-DIND)
 
 The project publishes to GitHub Container Registry (ghcr.io) and follows the DevContainers specification.
 
@@ -42,7 +41,6 @@ Publishing is automated via GitHub Actions on:
 The workflow publishes:
 1. Docker images to `ghcr.io/onezerocompany/[image-name]`
 2. DevContainer features to `onezerocompany/devcontainers/features`
-3. Templates to `onezerocompany/devcontainers/templates`
 
 ## Architecture
 
@@ -52,7 +50,6 @@ The workflow publishes:
 - `/features/test/` - Feature tests
 - `/images/` - Docker image definitions
 - `/devcontainers/` - Pre-configured devcontainer setups
-- `/templates/` - Project templates
 
 ### Image Build Order
 1. `base` - Foundation image
@@ -75,6 +72,5 @@ Features are modular components installed via shell scripts:
 ## Important Notes
 
 - Multi-platform builds: Most images support `linux/amd64` and `linux/arm64`
-- Flutter devcontainer is currently `linux/amd64` only
 - Features expect a user named "zero" by default (configurable via options)
 - VS Code extensions are automatically installed based on feature configurations

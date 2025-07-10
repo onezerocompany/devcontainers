@@ -43,11 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DevContainer features:
   - common-utils: Essential shell utilities
   - docker: Docker-in-Docker support
-  - kubernetes: Kubernetes development tools
-  - flutter: Flutter SDK support
   - mise: Polyglot runtime manager
-  - firebase: Firebase CLI
-  - github-cli: GitHub CLI
-  - claude-code: Claude Code CLI integration
+  - sandbox: Claude Code CLI integration
+  - (Note: kubernetes, flutter, firebase, and github-cli features were later archived in favor of mise-based installation)
 - Automated publishing workflow
 - Basic test infrastructure

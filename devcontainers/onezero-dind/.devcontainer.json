@@ -1,0 +1,30 @@
+{
+  "name": "OneZero DIND Devcontainer",
+  "image": "ghcr.io/onezerocompany/dind",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/docker:1": {
+      "install": true,
+      "version": "latest",
+      "moby": true,
+      "installDockerBuildx": true
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
+      "version": "latest",
+      "enableMiseTrust": true
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
+  },
+  "remoteUser": "zero",
+  "postCreateCommand": "mise install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "runArgs": ["--privileged"],
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ]
+}
