@@ -9,8 +9,8 @@ RUN apt-get update -y && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:git-core/ppa && \
     add-apt-repository -y ppa:apt-fast/stable && \
-    apt-get update -y
-    # apt-get install -y apt-fast
+    apt-get update -y && \
+    apt-get install -y apt-fast
 
 RUN apt-get upgrade -y && \
     apt-get install -y \
@@ -73,6 +73,22 @@ RUN echo "alias apt-get='apt-fast'" >> /home/zero/.zshrc && \
 
 WORKDIR /home/zero
 USER zero
+
+# Install mise as zero user
+RUN curl -fsSL https://mise.run | sh
+
+# Set up mise environment variables for caching
+ENV MISE_CACHE_DIR=/home/zero/.cache/mise
+ENV MISE_DATA_DIR=/home/zero/.local/share/mise
+ENV PATH="/home/zero/.local/bin:${PATH}"
+
+# Add mise activation to shell configs
+RUN echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
+    echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+
+# Create mise cache directories
+RUN mkdir -p ~/.cache/mise && \
+    mkdir -p ~/.local/share/mise
 
 RUN touch ~/.sudo_as_admin_successful
 
