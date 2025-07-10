@@ -26,29 +26,32 @@ This repository provides:
 
 ## 🚀 Quick Start
 
-### Option 1: Use a DevContainer Template (Recommended)
+### Option 1: Use DevContainer CLI (Recommended)
 
-The easiest way to get started is using our pre-configured templates:
+Since our templates are published to GitHub Container Registry (not the Microsoft marketplace), use the DevContainer CLI to apply them:
 
-#### Using VS Code Command Palette
+```bash
+# Install the DevContainer CLI if you haven't already
+npm install -g @devcontainers/cli
 
-1. Open VS Code
-2. Press `F1` and run "Dev Containers: Add Dev Container Configuration Files..."
-3. Select "Add configuration to workspace"
-4. Search for "onezerocompany"
-5. Choose either:
-   - **OneZero Unified Devcontainer** - Standard development environment
-   - **OneZero DIND Devcontainer** - With Docker-in-Docker support
+# Apply the standard template
+devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
 
-#### Using GitHub Codespaces
+# OR apply the Docker-in-Docker template
+devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero-dind
+```
 
-1. Create a new repository or open an existing one
-2. Click the green "Code" button → "Codespaces" tab
-3. Click the gear icon → "New with options..."
-4. Under "Dev container configuration", search for "onezerocompany"
-5. Select your preferred template
+### Option 2: Copy Template Configuration
 
-### Option 2: Manual Configuration
+You can directly copy the template configuration to your project:
+
+1. Create a `.devcontainer` directory in your project root
+2. Copy the template's `devcontainer.json` from this repository:
+   - For standard: `/devcontainers/onezero/.devcontainer.json`
+   - For DIND: `/devcontainers/onezero-dind/.devcontainer.json`
+3. (Optional) Copy the `.mise.toml` file for tool configuration
+
+### Option 3: Manual Configuration
 
 Create a `.devcontainer/devcontainer.json` file in your project:
 
@@ -70,6 +73,14 @@ Create a `.devcontainer/devcontainer.json` file in your project:
 
 ## 📦 DevContainer Templates
 
+Our templates are published to GitHub Container Registry under the namespace `onezerocompany/devcontainer`. They're not available in the VS Code template picker, but can be used through the DevContainer CLI or manual configuration.
+
+### Template Publishing Details
+
+- **Registry**: GitHub Container Registry (`ghcr.io`)
+- **Namespace**: `onezerocompany/devcontainer`
+- **Publishing**: Automated via GitHub Actions (on push to main and daily at 3 AM UTC)
+
 ### OneZero Unified Devcontainer
 
 A comprehensive development container with mise for managing all your tools.
@@ -81,12 +92,34 @@ A comprehensive development container with mise for managing all your tools.
 - Common shell utilities (zoxide, eza, bat, starship)
 - Pre-configured with Node.js, Bun, and GitHub CLI
 - Support for adding any programming language or tool via mise
+- VS Code extensions: EditorConfig, GitLens, GitHub Pull Requests, Docker, Makefile Tools
 
-**Usage:**
-```bash
-# Install template using devcontainer CLI
-devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
-```
+**Usage Methods:**
+
+1. **DevContainer CLI:**
+   ```bash
+   devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
+   ```
+
+2. **Direct Configuration:**
+   ```json
+   {
+     "name": "OneZero Devcontainer",
+     "image": "ghcr.io/onezerocompany/devcontainer-base",
+     "features": {
+       "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
+         "version": "latest",
+         "enableMiseTrust": true
+       },
+       "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {},
+       "ghcr.io/onezerocompany/devcontainers/features/sandbox:1": {
+         "enableFirewall": true
+       }
+     },
+     "remoteUser": "zero",
+     "postCreateCommand": "mise install"
+   }
+   ```
 
 ### OneZero DIND Devcontainer
 
@@ -100,10 +133,80 @@ Development container with Docker-in-Docker support for container development wo
 - Docker Compose
 - Container development tools
 
-**Usage:**
+**Usage Methods:**
+
+1. **DevContainer CLI:**
+   ```bash
+   devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero-dind
+   ```
+
+2. **Direct Configuration:**
+   ```json
+   {
+     "name": "OneZero DIND Devcontainer",
+     "image": "ghcr.io/onezerocompany/devcontainer-dind",
+     "features": {
+       "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
+         "version": "latest",
+         "enableMiseTrust": true
+       },
+       "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {},
+       "ghcr.io/onezerocompany/devcontainers/features/sandbox:1": {
+         "enableFirewall": true
+       }
+     },
+     "remoteUser": "zero",
+     "postCreateCommand": "mise install",
+     "runArgs": ["--privileged"],
+     "overrideCommand": false
+   }
+   ```
+
+### Alternative Usage Patterns
+
+Since these templates aren't in Microsoft's marketplace, users typically:
+
+1. **Use Published Docker Images Directly**: Reference our pre-built images with your own feature combinations
+2. **Fork and Customize**: Fork this repository to create your own customized templates
+3. **Reference Features Individually**: Pick and choose specific features in your devcontainer configuration
+4. **CI/CD Integration**: Use the DevContainer CLI to programmatically apply templates in automated workflows
+
+### Programmatic Template Usage
+
+The DevContainer CLI enables powerful automation scenarios:
+
 ```bash
-# Install template using devcontainer CLI
-devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero-dind
+# Apply template to a new project
+mkdir my-new-project && cd my-new-project
+devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero
+
+# Use in CI/CD pipeline
+- name: Setup DevContainer
+  run: |
+    npm install -g @devcontainers/cli
+    devcontainer templates apply -t ghcr.io/onezerocompany/devcontainer/onezero --workspace-folder .
+    
+# Build and run devcontainer in CI
+- name: Build DevContainer
+  run: devcontainer build --workspace-folder .
+
+- name: Run Tests in DevContainer
+  run: devcontainer exec --workspace-folder . npm test
+```
+
+### GitHub Codespaces Configuration
+
+While the templates aren't searchable in the Codespaces UI, you can still use them by creating a `.devcontainer/devcontainer.json` file in your repository that references our images and features:
+
+```json
+{
+  "name": "My Codespace",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/mise:1": {},
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
+  }
+}
 ```
 
 ## 🐳 Docker Images
