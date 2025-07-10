@@ -1,67 +1,89 @@
 # OneZero DevContainers
 
-### Basic Development
+A unified development container setup that uses [mise](https://mise.jdx.dev/) for managing programming languages and development tools.
 
-`ghcr.io/onezerocompany/devcontainer/minimal`
+## Quick Start
 
-> This container is a minimal development environment usually used for starting a new project or working on a simple project.
+Use the OneZero devcontainer in your project:
 
-Includes the latest versions of the following tools:
+```json
+{
+  "name": "OneZero Devcontainer",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
+      "version": "latest",
+      "enableMiseTrust": true
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1": {}
+  },
+  "remoteUser": "zero",
+  "postCreateCommand": "mise install"
+}
+```
 
-- onepassword
-- node
-- bun
-- github-cli
-- common-utils
+## Available Features
 
----
+### Core Features
 
-### Flutter Development
+- **mise** - Polyglot runtime manager for managing all development tools
+- **common-utils** - Essential shell utilities (zoxide, eza, bat, starship, etc.)
 
-`ghcr.io/onezerocompany/devcontainer/flutter`
+### Special Purpose Features
 
-> This container is a development environment for Flutter & Dart projects. It also contains all the tool for managing and developing Firebase related functions, rules and configuration.
+- **docker** - Docker-in-Docker support for container development
+- **kubernetes** - Kubernetes tools and configurations
+- **flutter** - Flutter SDK with Android/iOS development support
+- **claude-code-sandbox** - Special sandbox environment for Claude Code
 
-Includes the latest versions of the following tools:
+## Tool Management with mise
 
-- onepassword
-- terraform
-- node
-- kubernetes
-- gcloud
-- flutter
-- docker
-- firebase
-- trivy
-- bun
-- github-cli
-- common-utils
+Instead of installing fixed versions of tools through devcontainer features, we now use mise to manage tool versions. This provides:
 
----
+- Easy version switching without rebuilding containers
+- Project-specific tool versions via `.mise.toml`
+- Consistent tool management across all projects
 
-### Astro.js Development
+### Example .mise.toml
 
-`ghcr.io/onezerocompany/devcontainer/astro`
+```toml
+[tools]
+# Programming languages
+node = "lts"
+python = "3.12"
+go = "latest"
+rust = "stable"
 
-> This container is a development environment for Astro.js projects.
+# Development tools
+github-cli = "latest"
+kubectl = "latest"
+helm = "latest"
+gcloud = "latest"
+firebase = "latest"
+trivy = "latest"
+1password-cli = "latest"
 
-Includes the latest versions of the following tools:
+[settings]
+experimental = true
+trusted_config_paths = ["/workspaces"]
+```
 
----
+## Migration from Old DevContainers
 
-### Container Development
+If you were using one of our specialized devcontainers (minimal, astro, containers, flutter), please refer to the [migration guide](devcontainers/archived/README.md).
 
-`ghcr.io/onezerocompany/devcontainer/containers`
+## Available Docker Images
 
-> This container is a development environment for building and testing Docker containers.
+- `ghcr.io/onezerocompany/base` - Base Ubuntu image
+- `ghcr.io/onezerocompany/dind` - Docker-in-Docker image
+- `ghcr.io/onezerocompany/devcontainer-base` - DevContainer foundation image
+- `ghcr.io/onezerocompany/runner` - GitHub Actions runner
+- `ghcr.io/onezerocompany/firebase-toolkit` - Firebase tools
 
-Includes the latest versions of the following tools:
-onepassword
+## Contributing
 
-- terraform
-- kubernetes
-- gcloud
-- docker
-- bun
-- github-cli
-- common-utils
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

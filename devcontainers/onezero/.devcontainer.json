@@ -1,0 +1,20 @@
+{
+  "name": "OneZero Devcontainer",
+  "image": "ghcr.io/onezerocompany/devcontainer-base",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
+      "version": "latest",
+      "enableMiseTrust": true
+    },
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils:1": {}
+  },
+  "remoteUser": "zero",
+  "postCreateCommand": "mise install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}

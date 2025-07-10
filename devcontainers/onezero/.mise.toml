@@ -1,0 +1,15 @@
+# OneZero Default Development Environment
+# This file configures the default tools for the OneZero devcontainer
+# You can override these in your project's .mise.toml file
+
+[tools]
+# Core languages and runtimes
+node = "latest"
+bun = "latest"
+
+# Infrastructure and CLI tools
+github-cli = "latest" # GitHub CLI (gh)
+
+[settings]
+experimental = true
+trusted_config_paths = ["/workspaces"]
