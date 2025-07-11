@@ -1,10 +1,9 @@
 FROM ubuntu:22.04
 
-ENV \
-    ASPNETCORE_URLS=http://+:80 \
-    DOTNET_RUNNING_IN_CONTAINER=true
-
+ENV ASPNETCORE_URLS=http://+:80
+ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update -y && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:git-core/ppa && \
@@ -79,6 +78,7 @@ RUN echo "alias apt-get='apt-fast'" >> /home/$USERNAME/.zshrc && \
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
+ENV HOME=/home/$USERNAME
 
 # Install mise as non-root user
 RUN curl -fsSL https://mise.run | sh

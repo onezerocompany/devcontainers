@@ -1,4 +1,4 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer/containers"
+  "image": "ghcr.io/onezerocompany/devcontainers/dev"
 }
