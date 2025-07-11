@@ -5,7 +5,7 @@ A development container optimized for projects that require Docker support. This
 ## Features
 
 ### Base Image
-- **Image**: `ghcr.io/onezerocompany/base:dev-docker`
+- **Image**: `ghcr.io/onezerocompany/devcontainer:dind`
 - Provides Docker-in-Docker functionality with a full Docker daemon running inside the container
 
 ### Included Features
