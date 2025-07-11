@@ -149,7 +149,7 @@ jobs:
           {
             "name": "Integrated Test",
             "image": "__IMAGE__",
-            "postCreateCommand": "bash -c 'cd /workspaces/*/features/src/mise && USER=$(whoami) INSTALL=true VERSION=latest AUTO_TRUST_WORKSPACE=true ./install.sh && source ~/.zshrc && mise --version'"
+            "postCreateCommand": "bash -c 'cd /workspaces/*/features/src/mise && USER=$(whoami) INSTALL=true VERSION=latest AUTO_TRUST_WORKSPACE=true ./install.sh'"
           }
           EOF
           
@@ -161,8 +161,8 @@ jobs:
           
           # Test mise is available
           devcontainer exec --workspace-folder . --config .test-integrated/devcontainer.json \
-            bash -c "source ~/.zshrc && mise --version && mise doctor"
+            bash -c "export PATH=\$HOME/.local/bin:\$PATH && mise --version && mise doctor"
           
           # Copy mise config and test installation
           devcontainer exec --workspace-folder . --config .test-integrated/devcontainer.json \
-            bash -c "cp mise.toml /tmp/ && cd /tmp && source ~/.zshrc && mise install && mise list"
+            bash -c "cp mise.toml /tmp/ && cd /tmp && export PATH=\$HOME/.local/bin:\$PATH && mise install && mise list"
