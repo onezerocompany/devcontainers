@@ -1,0 +1,160 @@
+name: Test Devcontainers
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-devcontainer-startup:
+    name: Test Devcontainer Startup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Build and test main devcontainer
+        run: |
+          echo "Testing main devcontainer at .devcontainer/devcontainer.json"
+          devcontainer build --workspace-folder .
+          
+          # Run a simple command to verify container starts
+          devcontainer exec --workspace-folder . bash -c "echo 'Container started successfully'"
+          
+          # Check basic environment
+          devcontainer exec --workspace-folder . bash -c "whoami && pwd"
+
+  test-mise-feature:
+    name: Test Mise Feature
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scenario:
+          - name: "Basic Installation"
+            options: '{"mise": {"install": true}}'
+          - name: "With Auto-Trust"
+            options: '{"mise": {"install": true, "autoTrustWorkspace": true, "trustedPaths": "/tmp/test,/home/zero/projects"}}'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Create test devcontainer.json
+        run: |
+          mkdir -p .test-devcontainer
+          cat > .test-devcontainer/devcontainer.json << EOF
+          {
+            "name": "Mise Test - ${{ matrix.scenario.name }}",
+            "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+            "features": {
+              "./features/src/mise": ${{ matrix.scenario.options }}
+            },
+            "postCreateCommand": "zsh -c 'source ~/.zshrc && mise --version'"
+          }
+          EOF
+
+      - name: Build test container
+        run: |
+          devcontainer build --workspace-folder . --config .test-devcontainer/devcontainer.json
+
+      - name: Test mise installation
+        run: |
+          # Check mise is installed
+          devcontainer exec --workspace-folder . --config .test-devcontainer/devcontainer.json \
+            zsh -c "source ~/.zshrc && mise --version"
+          
+          # Run mise doctor
+          devcontainer exec --workspace-folder . --config .test-devcontainer/devcontainer.json \
+            zsh -c "source ~/.zshrc && mise doctor"
+
+      - name: Test mise with project config
+        run: |
+          # Copy mise.toml to test workspace
+          devcontainer exec --workspace-folder . --config .test-devcontainer/devcontainer.json \
+            bash -c "cp mise.toml /tmp/test-mise.toml"
+          
+          # Test mise can read and use config
+          devcontainer exec --workspace-folder . --config .test-devcontainer/devcontainer.json \
+            zsh -c "source ~/.zshrc && cd /tmp && cp test-mise.toml mise.toml && mise install"
+
+      - name: Test auto-trust (if enabled)
+        if: contains(matrix.scenario.options, 'autoTrustWorkspace')
+        run: |
+          # Check MISE_TRUSTED_CONFIG_PATHS is set correctly
+          devcontainer exec --workspace-folder . --config .test-devcontainer/devcontainer.json \
+            zsh -c 'source ~/.zshrc && echo "MISE_TRUSTED_CONFIG_PATHS=$MISE_TRUSTED_CONFIG_PATHS"'
+          
+          # Verify workspace path is trusted
+          devcontainer exec --workspace-folder . --config .test-devcontainer/devcontainer.json \
+            zsh -c 'source ~/.zshrc && echo $MISE_TRUSTED_CONFIG_PATHS | grep -q "/workspaces"'
+
+  test-integrated-devcontainer:
+    name: Test Integrated Devcontainer with Mise
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Create test devcontainer with mise feature
+        run: |
+          mkdir -p .test-integrated
+          cat > .test-integrated/devcontainer.json << EOF
+          {
+            "name": "Integrated Test",
+            "image": "ghcr.io/onezerocompany/devcontainers/dev",
+            "features": {
+              "./features/src/mise": {
+                "install": true,
+                "autoTrustWorkspace": true
+              }
+            }
+          }
+          EOF
+          
+          # Also create a test mise config
+          cat > .test-integrated/mise.toml << EOF
+          [tools]
+          "github-cli" = "latest"
+          EOF
+
+      - name: Build integrated container
+        run: |
+          devcontainer build --workspace-folder . --config .test-integrated/devcontainer.json
+
+      - name: Test mise in integrated environment
+        run: |
+          # Copy mise config into container workspace
+          devcontainer exec --workspace-folder . --config .test-integrated/devcontainer.json \
+            bash -c "mkdir -p /workspaces/test && cp .test-integrated/mise.toml /workspaces/test/"
+          
+          # Test mise can install tools from config
+          devcontainer exec --workspace-folder . --config .test-integrated/devcontainer.json \
+            zsh -c "source ~/.zshrc && cd /workspaces/test && mise install && gh --version"
+
+  test-feature-scenarios:
+    name: Test Feature Scenarios
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Run mise feature tests
+        run: |
+          cd features
+          npm install
+          npm test -- --filter mise
