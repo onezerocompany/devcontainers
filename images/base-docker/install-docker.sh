@@ -18,21 +18,31 @@ function get_latest_docker_version() {
 }
 
 function get_latest_buildx_version() {
+  # Fallback to a known good version if we can't fetch the latest
   curl -sSL "https://api.github.com/repos/docker/buildx/releases/latest" | \
-    jq -r '.tag_name' | \
-    cut -d 'v' -f 2
+    grep -o '"tag_name": "v[^"]*"' | \
+    grep -o 'v[0-9.]*' | \
+    cut -d 'v' -f 2 || echo "0.11.2"
 }
 
 function get_latest_compose_version() {
+  # Fallback to a known good version if we can't fetch the latest
   curl -sSL "https://api.github.com/repos/docker/compose/releases/latest" | \
-    jq -r '.tag_name' | \
-    cut -d 'v' -f 2
+    grep -o '"tag_name": "v[^"]*"' | \
+    grep -o 'v[0-9.]*' | \
+    cut -d 'v' -f 2 || echo "2.23.0"
 }
 
 DOCKER_CHANNEL='stable'
 DOCKER_VERSION="${DOCKER_VERSION:-$(get_latest_docker_version)}"
 BUILDX_VERSION="${BUILDX_VERSION:-$(get_latest_buildx_version)}"
 DOCKER_COMPOSE_VERSION="${DOCKER_COMPOSE_VERSION:-$(get_latest_compose_version)}"
+
+# Ensure buildx version is not empty or null
+if [ -z "${BUILDX_VERSION}" ] || [ "${BUILDX_VERSION}" = "null" ]; then
+  echo "Warning: Could not determine buildx version, using fallback"
+  BUILDX_VERSION="0.11.2"
+fi
 
 echo "Docker version: ${DOCKER_VERSION}"
 echo "Buildx version: ${BUILDX_VERSION}"
@@ -64,7 +74,7 @@ docker --version
 docker buildx version
 
 
-curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+curl -L "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
 chmod +x /usr/local/bin/docker-compose && docker-compose version
 
 # Make sure zero is allowed to run docker-compose

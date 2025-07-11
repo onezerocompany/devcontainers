@@ -36,7 +36,7 @@ jobs:
           context: ./images/base
           platforms: linux/amd64,linux/arm64
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache,mode=max
           tags: ghcr.io/${{ github.repository_owner }}/base:latest
           push: true
 
@@ -68,7 +68,7 @@ jobs:
           context: ./images/base-docker
           platforms: linux/amd64,linux/arm64
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:docker-buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:docker-buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:docker-buildcache,mode=max
           tags: ghcr.io/${{ github.repository_owner }}/base:docker
           push: true
 
@@ -100,7 +100,7 @@ jobs:
           context: ./images/base-dev
           platforms: linux/amd64,linux/arm64
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dev-buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dev-buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dev-buildcache,mode=max
           tags: ghcr.io/${{ github.repository_owner }}/base:dev
           push: true
 
@@ -132,7 +132,7 @@ jobs:
           context: ./images/base-dev-docker
           platforms: linux/amd64,linux/arm64
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dev-docker-buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dev-docker-buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dev-docker-buildcache,mode=max
           tags: ghcr.io/${{ github.repository_owner }}/base:dev-docker
           push: true
 
@@ -164,7 +164,7 @@ jobs:
           context: ./images/runner
           platforms: linux/amd64,linux/arm64
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:buildcache,mode=max
           tags: ghcr.io/${{ github.repository_owner }}/runner:latest
           push: true
 
