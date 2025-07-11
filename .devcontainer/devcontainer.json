@@ -1,6 +1,6 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:base",
+  "image": "ghcr.io/onezerocompany/devcontainers/dev",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/common-utils": {},
     "ghcr.io/onezerocompany/devcontainers/features/mise": {}
