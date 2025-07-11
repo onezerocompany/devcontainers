@@ -149,7 +149,7 @@ jobs:
           {
             "name": "Integrated Test",
             "image": "$IMAGE",
-            "postCreateCommand": "bash -c 'cd /workspaces/*/features/src/mise && USER=\\$(whoami) INSTALL=true VERSION=latest AUTO_TRUST_WORKSPACE=true ./install.sh && source ~/.zshrc && mise --version'"
+            "postCreateCommand": "bash -c 'cd /workspaces/*/features/src/mise && USER=$(whoami) INSTALL=true VERSION=latest AUTO_TRUST_WORKSPACE=true ./install.sh && source ~/.zshrc && mise --version'"
           }
           EOF
           
