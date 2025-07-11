@@ -1,6 +1,6 @@
 {
   "id": "dev",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "name": "Development Container",
   "description": "A comprehensive development container with mise for managing all your tools",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/dev",

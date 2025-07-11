@@ -1,6 +1,6 @@
 {
   "id": "sandbox",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "name": "Sandbox",
   "description": "Sets up a sandboxed environment with network firewall restrictions",
   "options": {

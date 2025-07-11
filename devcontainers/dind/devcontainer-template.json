@@ -1,6 +1,6 @@
 {
   "id": "dev-docker",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "name": "Development Container with Docker",
   "description": "Development container with Docker-in-Docker support for container development workflows",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/dev-docker",
