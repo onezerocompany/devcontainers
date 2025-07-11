@@ -202,8 +202,9 @@ jobs:
       - name: Build and test main devcontainer
         run: |
           echo "Testing main devcontainer at .devcontainer/devcontainer.json"
-          # Wait a moment for registry to propagate
-          sleep 10
+          # Wait for registry to fully propagate the updated features
+          echo "Waiting 30 seconds for registry propagation..."
+          sleep 30
           
           # Test with actual devcontainer.json
           devcontainer up --workspace-folder .
