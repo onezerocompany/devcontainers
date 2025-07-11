@@ -201,6 +201,6 @@ jobs:
           publish-templates: "true"
           base-path-to-templates: "./devcontainers"
           disable-repo-tagging: "true"
-          templates-namespace: "onezerocompany"
+          templates-namespace: "onezerocompany/devcontainers"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
