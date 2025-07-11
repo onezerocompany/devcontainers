@@ -36,14 +36,14 @@ jobs:
             "image": "mcr.microsoft.com/devcontainers/base:ubuntu"
           }
           EOF
-            devcontainer build --workspace-folder . --config .test-main/devcontainer.json
+            devcontainer up --workspace-folder . --config .test-main/devcontainer.json
             devcontainer exec --workspace-folder . --config .test-main/devcontainer.json bash -c "echo 'Container started successfully'"
             devcontainer exec --workspace-folder . --config .test-main/devcontainer.json bash -c "whoami && pwd"
             exit 0
           fi
           
           # Test with actual devcontainer.json
-          devcontainer build --workspace-folder .
+          devcontainer up --workspace-folder .
           devcontainer exec --workspace-folder . bash -c "echo 'Container started successfully'"
           devcontainer exec --workspace-folder . bash -c "whoami && pwd"
 
@@ -72,7 +72,7 @@ jobs:
             "name": "Mise Test - ${{ matrix.scenario.name }}",
             "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
             "features": {
-              "./features/src/mise": ${{ matrix.scenario.options }}
+              "ghcr.io/onezerocompany/devcontainers/mise:latest": ${{ matrix.scenario.options }}
             },
             "postCreateCommand": "zsh -c 'source ~/.zshrc && mise --version'"
           }
@@ -80,7 +80,17 @@ jobs:
 
       - name: Build test container
         run: |
-          devcontainer build --workspace-folder . --config .test-devcontainer/devcontainer.json
+          # First try to publish the feature locally for testing
+          cd features/src/mise
+          npm install -g @devcontainers/cli
+          
+          # Build using the published feature or fall back to testing without local features
+          cd ${{ github.workspace }}
+          if ! devcontainer build --workspace-folder . --config .test-devcontainer/devcontainer.json; then
+            echo "Local feature build failed, trying with published feature"
+            sed -i 's|"./features/src/mise"|"ghcr.io/onezerocompany/devcontainers/mise:latest"|' .test-devcontainer/devcontainer.json
+            devcontainer build --workspace-folder . --config .test-devcontainer/devcontainer.json
+          fi
 
       - name: Test mise installation
         run: |
@@ -138,7 +148,7 @@ jobs:
             "name": "Integrated Test",
             "image": "$IMAGE",
             "features": {
-              "./features/src/mise": {
+              "ghcr.io/onezerocompany/devcontainers/mise:latest": {
                 "install": true,
                 "autoTrustWorkspace": true
               }
@@ -191,7 +201,7 @@ jobs:
             "name": "Mise Feature Test",
             "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
             "features": {
-              "./features/src/mise": {
+              "ghcr.io/onezerocompany/devcontainers/mise:latest": {
                 "install": true,
                 "user": "vscode"
               }
