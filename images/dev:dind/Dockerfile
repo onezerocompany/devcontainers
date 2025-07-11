@@ -1,4 +1,4 @@
-FROM ghcr.io/onezerocompany/dev-base
+FROM dev-base
 
 USER root
 

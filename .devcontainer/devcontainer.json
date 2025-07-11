@@ -1,4 +1,16 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainers/dev"
+  "image": "ghcr.io/onezerocompany/devcontainer:base",
+  "features": {
+    "ghcr.io/onezerocompany/devcontainers/features/common-utils": {},
+    "ghcr.io/onezerocompany/devcontainers/features/mise": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode-remote.remote-containers"
+      ]
+    }
+  },
+  "postCreateCommand": "mise --version && echo 'DevContainer setup complete!'"
 }

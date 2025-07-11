@@ -51,6 +51,7 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.image.tag }}:buildcache,mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image.tag }}:latest
+            ${{ matrix.image.name == 'dev:base' && format('ghcr.io/{0}/devcontainers/dev:latest', github.repository_owner) || '' }}
             ${{ matrix.image.name == 'dev:base' && format('ghcr.io/{0}/dev:base', github.repository_owner) || '' }}
             ${{ matrix.image.name == 'dev:base' && format('ghcr.io/{0}/dev-base', github.repository_owner) || '' }}
             ${{ matrix.image.name == 'dev:base' && format('ghcr.io/{0}/base', github.repository_owner) || '' }}
