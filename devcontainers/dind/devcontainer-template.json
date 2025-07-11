@@ -6,17 +6,6 @@
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/devcontainers/dind",
   "publisher": "OneZero Company",
   "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
-  "options": {
-    "imageVariant": {
-      "type": "string",
-      "description": "Ubuntu version (use ubuntu-22.04 or ubuntu-20.04 on local arm64/Apple Silicon)",
-      "default": "ubuntu-22.04",
-      "proposals": [
-        "ubuntu-22.04",
-        "ubuntu-20.04"
-      ]
-    }
-  },
   "platforms": [
     "Any"
   ]
