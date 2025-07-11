@@ -145,13 +145,16 @@ jobs:
           fi
           
           # Create devcontainer that installs mise manually
-          cat > .test-integrated/devcontainer.json << EOF
+          cat > .test-integrated/devcontainer.json << 'EOF'
           {
             "name": "Integrated Test",
-            "image": "$IMAGE",
+            "image": "__IMAGE__",
             "postCreateCommand": "bash -c 'cd /workspaces/*/features/src/mise && USER=$(whoami) INSTALL=true VERSION=latest AUTO_TRUST_WORKSPACE=true ./install.sh && source ~/.zshrc && mise --version'"
           }
           EOF
+          
+          # Replace the IMAGE placeholder
+          sed -i "s|__IMAGE__|$IMAGE|" .test-integrated/devcontainer.json
           
           # Build and start container
           devcontainer up --workspace-folder . --config .test-integrated/devcontainer.json
