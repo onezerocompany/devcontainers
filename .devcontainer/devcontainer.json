@@ -1,7 +1,7 @@
 {
   "name": "devcontainers",
   "image": "ghcr.io/onezerocompany/devcontainer:dind",
-  "postCreateCommand": ".devcontainer/post-create.sh",
+  "postCreateCommand": "/usr/local/bin/devcontainer-post-create",
   "customizations": {
     "vscode": {
       "settings": {
