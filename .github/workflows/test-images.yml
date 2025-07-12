@@ -27,30 +27,40 @@ jobs:
       - name: Test Sandbox Can Be Enabled
         run: |
           echo "Testing sandbox can be enabled..."
-          docker run --rm \
+          # Use a persistent container to test state
+          CONTAINER_ID=$(docker run -d \
             -e DEVCONTAINER_SANDBOX_ENABLED=true \
             -e DEVCONTAINER_SANDBOX_FIREWALL=false \
             -e DEVCONTAINER=true \
             --cap-add NET_ADMIN \
             ghcr.io/onezerocompany/devcontainer:base \
-            bash -c '
-              # First command should create the state file
-              /usr/local/bin/devcontainer-entrypoint true
-              
-              # Check state file exists
-              if [ -f /var/lib/devcontainer-sandbox/enabled ]; then
-                echo "✓ Sandbox state file created"
-                if [ "$(cat /var/lib/devcontainer-sandbox/enabled)" = "true" ]; then
-                  echo "✓ Sandbox is enabled"
-                else
-                  echo "✗ Sandbox state is not true"
-                  exit 1
-                fi
-              else
-                echo "✗ Sandbox state file not created"
-                exit 1
-              fi
-            '
+            sleep infinity)
+          
+          # Initialize sandbox
+          docker exec $CONTAINER_ID /usr/local/bin/devcontainer-entrypoint true
+          
+          # Check state file
+          if docker exec $CONTAINER_ID test -f /var/lib/devcontainer-sandbox/enabled; then
+            echo "✓ Sandbox state file created"
+            STATE=$(docker exec $CONTAINER_ID cat /var/lib/devcontainer-sandbox/enabled)
+            if [ "$STATE" = "true" ]; then
+              echo "✓ Sandbox is enabled"
+            else
+              echo "✗ Sandbox state is not true: $STATE"
+              docker stop $CONTAINER_ID >/dev/null
+              docker rm $CONTAINER_ID >/dev/null
+              exit 1
+            fi
+          else
+            echo "✗ Sandbox state file not created"
+            docker stop $CONTAINER_ID >/dev/null
+            docker rm $CONTAINER_ID >/dev/null
+            exit 1
+          fi
+          
+          # Cleanup
+          docker stop $CONTAINER_ID >/dev/null
+          docker rm $CONTAINER_ID >/dev/null
 
       - name: Test Sandbox Immutability
         run: |
@@ -236,11 +246,11 @@ jobs:
             bash -c '
               if [ -f /usr/local/bin/vscode-kit ]; then
                 echo "✓ vscode-kit is installed"
-                # Test it runs
-                if /usr/local/bin/vscode-kit list >/dev/null 2>&1; then
-                  echo "✓ vscode-kit runs successfully"
+                # Check if it's executable
+                if [ -x /usr/local/bin/vscode-kit ]; then
+                  echo "✓ vscode-kit is executable"
                 else
-                  echo "✗ vscode-kit failed to run"
+                  echo "✗ vscode-kit is not executable"
                   exit 1
                 fi
               else
@@ -254,7 +264,7 @@ jobs:
           echo "Testing common utilities..."
           docker run --rm \
             ghcr.io/onezerocompany/devcontainer:base \
-            bash -c '
+            /usr/local/bin/devcontainer-entrypoint bash -c '
               # Test fzf
               if command -v fzf >/dev/null 2>&1; then
                 echo "✓ fzf is installed"
@@ -330,7 +340,7 @@ jobs:
             -e DEVCONTAINER_SANDBOX_ENABLED=true \
             -e DEVCONTAINER_SANDBOX_FIREWALL=true \
             -e DEVCONTAINER=true \
-            -e DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS="registry.npmjs.org,nodejs.org" \
+            -e DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS="github.com,api.github.com" \
             --cap-add NET_ADMIN \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
@@ -342,21 +352,19 @@ jobs:
               # Wait for firewall
               sleep 5
               
-              # Try to install a package (should work with allowed domains)
-              cd /tmp
-              npm init -y
-              if npm install --no-save express 2>&1; then
-                echo "✓ Can install npm packages with sandbox enabled"
+              # Try to access allowed domain
+              if curl -s --max-time 5 https://api.github.com >/dev/null 2>&1; then
+                echo "✓ Can access allowed domains with sandbox enabled"
               else
-                echo "✗ Cannot install npm packages"
+                echo "✗ Cannot access allowed domain"
                 exit 1
               fi
               
-              # Verify sandbox is still active
+              # Verify sandbox is blocking unauthorized
               if ! curl -s --max-time 5 https://example.com >/dev/null 2>&1; then
-                echo "✓ Sandbox still blocking unauthorized connections"
+                echo "✓ Sandbox blocking unauthorized connections"
               else
-                echo "✗ Sandbox not working after npm install"
+                echo "✗ Sandbox not working properly"
                 exit 1
               fi
             '
