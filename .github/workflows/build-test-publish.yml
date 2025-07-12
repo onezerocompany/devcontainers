@@ -502,7 +502,7 @@ jobs:
                 # Check actual output first
                 OUTPUT=$(/usr/local/bin/tools 2>&1 || true)
                 echo "Tools output: $OUTPUT"
-                if echo "$OUTPUT" | grep -qi "development\|tools\|available"; then
+                if echo "$OUTPUT" | grep -qE "git|node|npm|starship"; then
                   echo "✓ tools command works"
                 else
                   echo "✗ tools command not working properly"
@@ -795,7 +795,7 @@ jobs:
                 if echo "$OUTPUT" | grep -q "Sandbox mode is enabled"; then
                   echo "✓ Sandbox protection persists despite symlink (recreated from env)"
                 else
-                  echo "⚠️  Symlink affected sandbox state - checking if it's still immutable"
+                  echo "⚠️  Symlink affected sandbox state - checking if it is still immutable"
                   # Even if state changed, it should be immutable
                   export DEVCONTAINER_SANDBOX_ENABLED=false
                   OUTPUT2=$(/usr/local/bin/devcontainer-entrypoint echo "test2" 2>&1)
