@@ -152,6 +152,20 @@ jobs:
 
 
 
+  # Call comprehensive test workflow
+  test-images:
+    name: Run Image Tests
+    needs: [layer3-images]
+    uses: ./.github/workflows/test-images.yml
+    secrets: inherit
+
+  # Call security test workflow
+  test-sandbox-security:
+    name: Run Sandbox Security Tests
+    needs: [layer3-images]
+    uses: ./.github/workflows/test-sandbox-security.yml
+    secrets: inherit
+
   # Test jobs that run after publishing
   test-devcontainer-startup:
     name: Test Devcontainer Startup

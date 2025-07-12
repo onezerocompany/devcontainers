@@ -1,0 +1,433 @@
+name: Test Images
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'images/**'
+      - '.github/workflows/test-images.yml'
+
+jobs:
+  test-sandbox-integration:
+    name: Test Sandbox Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test Sandbox Disabled by Default
+        run: |
+          echo "Testing sandbox disabled by default..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c 'if [ -f /var/lib/devcontainer-sandbox/enabled ]; then exit 1; else echo "✓ Sandbox is disabled by default"; fi'
+
+      - name: Test Sandbox Can Be Enabled
+        run: |
+          echo "Testing sandbox can be enabled..."
+          docker run --rm \
+            -e DEVCONTAINER_SANDBOX_ENABLED=true \
+            -e DEVCONTAINER_SANDBOX_FIREWALL=false \
+            -e DEVCONTAINER=true \
+            --cap-add NET_ADMIN \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              # First command should create the state file
+              /usr/local/bin/devcontainer-entrypoint true
+              
+              # Check state file exists
+              if [ -f /var/lib/devcontainer-sandbox/enabled ]; then
+                echo "✓ Sandbox state file created"
+                if [ "$(cat /var/lib/devcontainer-sandbox/enabled)" = "true" ]; then
+                  echo "✓ Sandbox is enabled"
+                else
+                  echo "✗ Sandbox state is not true"
+                  exit 1
+                fi
+              else
+                echo "✗ Sandbox state file not created"
+                exit 1
+              fi
+            '
+
+      - name: Test Sandbox Immutability
+        run: |
+          echo "Testing sandbox cannot be disabled once enabled..."
+          docker run --rm \
+            -e DEVCONTAINER_SANDBOX_ENABLED=true \
+            -e DEVCONTAINER_SANDBOX_FIREWALL=false \
+            -e DEVCONTAINER=true \
+            --cap-add NET_ADMIN \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              # Enable sandbox
+              /usr/local/bin/devcontainer-entrypoint true
+              
+              # Try to disable by changing env var
+              export DEVCONTAINER_SANDBOX_ENABLED=false
+              
+              # Run entrypoint again
+              OUTPUT=$(/usr/local/bin/devcontainer-entrypoint echo "test" 2>&1)
+              
+              if echo "$OUTPUT" | grep -q "Sandbox mode is enabled (immutable)"; then
+                echo "✓ Sandbox remains enabled despite env var change"
+              else
+                echo "✗ Sandbox was disabled!"
+                echo "Output: $OUTPUT"
+                exit 1
+              fi
+              
+              # Try to modify state file directly (should fail)
+              if echo "false" > /var/lib/devcontainer-sandbox/enabled 2>/dev/null; then
+                echo "✗ Was able to modify state file!"
+                exit 1
+              else
+                echo "✓ Cannot modify state file"
+              fi
+            '
+
+      - name: Test Firewall Functionality
+        run: |
+          echo "Testing firewall blocks unauthorized connections..."
+          docker run --rm \
+            -e DEVCONTAINER_SANDBOX_ENABLED=true \
+            -e DEVCONTAINER_SANDBOX_FIREWALL=true \
+            -e DEVCONTAINER=true \
+            -e DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS="api.github.com" \
+            --cap-add NET_ADMIN \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              # Initialize sandbox with firewall
+              /usr/local/bin/devcontainer-entrypoint true
+              
+              # Wait for firewall to initialize
+              sleep 5
+              
+              # Test allowed connection
+              if curl -s --max-time 5 https://api.github.com > /dev/null 2>&1; then
+                echo "✓ Can reach allowed domain (GitHub API)"
+              else
+                echo "✗ Cannot reach allowed domain"
+                exit 1
+              fi
+              
+              # Test blocked connection
+              if curl -s --max-time 5 https://example.com > /dev/null 2>&1; then
+                echo "✗ Firewall not blocking unauthorized connections"
+                exit 1
+              else
+                echo "✓ Firewall blocks unauthorized connections"
+              fi
+            '
+
+  test-docker-integration:
+    name: Test Docker Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test Docker CLI Installation
+        run: |
+          echo "Testing Docker CLI is installed..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c '
+              if docker --version; then
+                echo "✓ Docker CLI is installed"
+              else
+                echo "✗ Docker CLI not found"
+                exit 1
+              fi
+            '
+
+      - name: Test Docker Compose
+        run: |
+          echo "Testing Docker Compose installation..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c '
+              # Test docker compose v2
+              if docker compose version; then
+                echo "✓ Docker Compose v2 is installed"
+              else
+                echo "✗ Docker Compose v2 not found"
+                exit 1
+              fi
+              
+              # Test docker-compose v1 compatibility
+              if docker-compose --version; then
+                echo "✓ docker-compose v1 compatibility is available"
+              else
+                echo "✗ docker-compose v1 compatibility not found"
+                exit 1
+              fi
+            '
+
+      - name: Test Docker Buildx
+        run: |
+          echo "Testing Docker Buildx..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c '
+              if docker buildx version; then
+                echo "✓ Docker Buildx is installed"
+              else
+                echo "✗ Docker Buildx not found"
+                exit 1
+              fi
+            '
+
+      - name: Test Docker Socket Access
+        run: |
+          echo "Testing Docker socket access..."
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker-host.sock \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c '
+              # Check if docker-init.sh exists
+              if [ -f /usr/local/share/docker-init.sh ]; then
+                echo "✓ docker-init.sh exists"
+              else
+                echo "✗ docker-init.sh not found"
+                exit 1
+              fi
+              
+              # Run docker-init.sh
+              /usr/local/share/docker-init.sh echo "init complete"
+              
+              # Test docker access
+              if docker ps >/dev/null 2>&1; then
+                echo "✓ Can access Docker daemon"
+              else
+                echo "✗ Cannot access Docker daemon"
+                exit 1
+              fi
+            '
+
+      - name: Test User Permissions
+        run: |
+          echo "Testing user is in docker group..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c '
+              if groups | grep -q docker; then
+                echo "✓ User is in docker group"
+              else
+                echo "✗ User is not in docker group"
+                exit 1
+              fi
+            '
+
+  test-base-image-features:
+    name: Test Base Image Features
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test VS Code Extensions
+        run: |
+          echo "Testing VS Code extensions..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              if [ -f /usr/local/bin/vscode-kit ]; then
+                echo "✓ vscode-kit is installed"
+                # Test it runs
+                if /usr/local/bin/vscode-kit list >/dev/null 2>&1; then
+                  echo "✓ vscode-kit runs successfully"
+                else
+                  echo "✗ vscode-kit failed to run"
+                  exit 1
+                fi
+              else
+                echo "✗ vscode-kit not found"
+                exit 1
+              fi
+            '
+
+      - name: Test Common Utilities
+        run: |
+          echo "Testing common utilities..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              # Test fzf
+              if command -v fzf >/dev/null 2>&1; then
+                echo "✓ fzf is installed"
+              else
+                echo "✗ fzf not found"
+                exit 1
+              fi
+              
+              # Test bat
+              if command -v batcat >/dev/null 2>&1; then
+                echo "✓ bat is installed"
+              else
+                echo "✗ bat not found"
+                exit 1
+              fi
+              
+              # Test eza
+              if command -v eza >/dev/null 2>&1; then
+                echo "✓ eza is installed"
+              else
+                echo "✗ eza not found"
+                exit 1
+              fi
+              
+              # Test starship
+              if command -v starship >/dev/null 2>&1; then
+                echo "✓ starship is installed"
+              else
+                echo "✗ starship not found"
+                exit 1
+              fi
+              
+              # Test zoxide
+              if [ -f "$HOME/.local/bin/zoxide" ]; then
+                echo "✓ zoxide is installed"
+              else
+                echo "✗ zoxide not found"
+                exit 1
+              fi
+            '
+
+      - name: Test Tools Command
+        run: |
+          echo "Testing tools command..."
+          docker run --rm \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              if [ -f /usr/local/bin/tools ]; then
+                echo "✓ tools command exists"
+                if /usr/local/bin/tools 2>&1 | grep -q "Development Tools"; then
+                  echo "✓ tools command works"
+                else
+                  echo "✗ tools command not working properly"
+                  exit 1
+                fi
+              else
+                echo "✗ tools command not found"
+                exit 1
+              fi
+            '
+
+  test-real-world-scenarios:
+    name: Test Real-World Scenarios
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test Development Workflow with Sandbox
+        run: |
+          echo "Testing development workflow with sandbox enabled..."
+          docker run --rm \
+            -e DEVCONTAINER_SANDBOX_ENABLED=true \
+            -e DEVCONTAINER_SANDBOX_FIREWALL=true \
+            -e DEVCONTAINER=true \
+            -e DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS="registry.npmjs.org,nodejs.org" \
+            --cap-add NET_ADMIN \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ghcr.io/onezerocompany/devcontainer:base \
+            bash -c '
+              # Initialize sandbox
+              /usr/local/bin/devcontainer-entrypoint true
+              
+              # Wait for firewall
+              sleep 5
+              
+              # Try to install a package (should work with allowed domains)
+              cd /tmp
+              npm init -y
+              if npm install --no-save express 2>&1; then
+                echo "✓ Can install npm packages with sandbox enabled"
+              else
+                echo "✗ Cannot install npm packages"
+                exit 1
+              fi
+              
+              # Verify sandbox is still active
+              if ! curl -s --max-time 5 https://example.com >/dev/null 2>&1; then
+                echo "✓ Sandbox still blocking unauthorized connections"
+              else
+                echo "✗ Sandbox not working after npm install"
+                exit 1
+              fi
+            '
+
+      - name: Test Docker Development Workflow
+        run: |
+          echo "Testing Docker development workflow..."
+          # Create a simple Dockerfile
+          cat > /tmp/test-dockerfile << 'EOF'
+          FROM alpine:latest
+          RUN echo "Hello from test container"
+          CMD ["echo", "Container is running"]
+          EOF
+          
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker-host.sock \
+            -v /tmp/test-dockerfile:/tmp/Dockerfile \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c '
+              cd /tmp
+              
+              # Build a test image
+              if docker build -t test-image . >/dev/null 2>&1; then
+                echo "✓ Can build Docker images"
+              else
+                echo "✗ Cannot build Docker images"
+                exit 1
+              fi
+              
+              # Run the test container
+              OUTPUT=$(docker run --rm test-image 2>&1)
+              if [ "$OUTPUT" = "Container is running" ]; then
+                echo "✓ Can run Docker containers"
+              else
+                echo "✗ Cannot run Docker containers properly"
+                echo "Output: $OUTPUT"
+                exit 1
+              fi
+              
+              # Clean up
+              docker rmi test-image >/dev/null 2>&1
+            '
+
+      - name: Test Container Persistence
+        run: |
+          echo "Testing sandbox state persistence across commands..."
+          CONTAINER_ID=$(docker run -d \
+            -e DEVCONTAINER_SANDBOX_ENABLED=true \
+            -e DEVCONTAINER_SANDBOX_FIREWALL=false \
+            -e DEVCONTAINER=true \
+            --cap-add NET_ADMIN \
+            ghcr.io/onezerocompany/devcontainer:base \
+            sleep infinity)
+          
+          # Initialize sandbox
+          docker exec $CONTAINER_ID /usr/local/bin/devcontainer-entrypoint true
+          
+          # Check state
+          docker exec $CONTAINER_ID cat /var/lib/devcontainer-sandbox/enabled
+          
+          # Try to change env and run new command
+          docker exec -e DEVCONTAINER_SANDBOX_ENABLED=false $CONTAINER_ID bash -c '
+            OUTPUT=$(/usr/local/bin/devcontainer-entrypoint echo "test" 2>&1)
+            if echo "$OUTPUT" | grep -q "Sandbox mode is enabled (immutable)"; then
+              echo "✓ Sandbox persists across exec sessions"
+            else
+              echo "✗ Sandbox state not persisting"
+              exit 1
+            fi
+          '
+          
+          # Cleanup
+          docker stop $CONTAINER_ID >/dev/null
+          docker rm $CONTAINER_ID >/dev/null
