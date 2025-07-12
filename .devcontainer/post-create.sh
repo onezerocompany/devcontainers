@@ -6,15 +6,19 @@ echo "🚀 Setting up development environment..."
 # Trust and install mise tools
 if command -v mise &> /dev/null; then
     echo "📦 Installing development tools with mise..."
-    mise trust --all 2>/dev/null || true
-    mise install --yes 2>/dev/null || true
+    # Suppress TERM warnings by setting a minimal TERM if not set
+    if [ -z "$TERM" ]; then
+        export TERM=dumb
+    fi
+    mise trust --all 2>&1 || true
+    mise install --yes 2>&1 || true
     echo "✅ Development tools installed"
 else
     echo "⚠️  mise not found, skipping tool installation"
 fi
 
-# Clear the terminal for a clean start (only if TERM is set)
-if [ -n "$TERM" ]; then
+# Clear the terminal for a clean start (only if TERM is properly set)
+if [ -n "$TERM" ] && [ "$TERM" != "dumb" ]; then
     clear
 fi
 
