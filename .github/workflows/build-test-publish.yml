@@ -231,7 +231,7 @@ jobs:
   test-sandbox-integration:
     name: Test Sandbox Integration
     runs-on: ubuntu-latest
-    needs: [build-devcontainer-dind]
+    needs: [build-devcontainer-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -470,7 +470,7 @@ jobs:
   test-base-image-features:
     name: Test Base Image Features
     runs-on: ubuntu-latest
-    needs: [build-devcontainer-dind]
+    needs: [build-devcontainer-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -570,7 +570,7 @@ jobs:
   test-real-world-scenarios:
     name: Test Real-World Scenarios
     runs-on: ubuntu-latest
-    needs: [build-devcontainer-dind]
+    needs: [build-devcontainer-base, build-devcontainer-dind]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -689,7 +689,7 @@ jobs:
   test-sandbox-attack-vectors:
     name: Test Sandbox Attack Vectors
     runs-on: ubuntu-latest
-    needs: [build-devcontainer-dind]
+    needs: [build-devcontainer-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -869,7 +869,7 @@ jobs:
   test-sandbox-edge-cases:
     name: Test Sandbox Edge Cases
     runs-on: ubuntu-latest
-    needs: [build-devcontainer-dind]
+    needs: [build-devcontainer-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -1004,7 +1004,7 @@ jobs:
   test-performance:
     name: Test Performance Impact
     runs-on: ubuntu-latest
-    needs: [build-devcontainer-dind]
+    needs: [build-devcontainer-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
