@@ -32,15 +32,15 @@ jobs:
               
               echo "Attempting various tampering methods..."
               
-              # Try to remove state file (Note: with sudo this IS possible, but state is checked on each run)
+              # Try to remove state file (Note: with sudo this IS possible, but state gets recreated)
               if sudo rm -f /var/lib/devcontainer-sandbox/enabled 2>/dev/null; then
                 echo "⚠️  Could remove state file with sudo (expected - we need sudo for init)"
                 # But the protection is that it gets recreated on next run
                 OUTPUT=$(/usr/local/bin/devcontainer-entrypoint echo "test" 2>&1)
-                if echo "$OUTPUT" | grep -q "Sandbox mode is disabled"; then
-                  echo "✓ Sandbox properly disabled after state file removal"
+                if echo "$OUTPUT" | grep -q "Sandbox mode is enabled"; then
+                  echo "✓ Sandbox state recreated from environment variable"
                 else
-                  echo "✗ Unexpected behavior after state file removal"
+                  echo "✗ Sandbox not recreated after state file removal"
                   exit 1
                 fi
               else
