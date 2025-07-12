@@ -12,7 +12,7 @@ initialize_sandbox_state() {
     # Only root can create this directory and file
     if [ ! -d "$SANDBOX_STATE_DIR" ]; then
         sudo mkdir -p "$SANDBOX_STATE_DIR"
-        sudo chmod 700 "$SANDBOX_STATE_DIR"
+        sudo chmod 755 "$SANDBOX_STATE_DIR"  # Allow everyone to read the directory
     fi
     
     # Write the initial state based on environment variable
@@ -20,15 +20,15 @@ initialize_sandbox_state() {
     if [ ! -f "$SANDBOX_STATE_FILE" ]; then
         if [ "${DEVCONTAINER_SANDBOX_ENABLED}" = "true" ]; then
             echo "true" | sudo tee "$SANDBOX_STATE_FILE" > /dev/null
-            sudo chmod 400 "$SANDBOX_STATE_FILE"  # Read-only, owned by root
+            sudo chmod 444 "$SANDBOX_STATE_FILE"  # Read-only for everyone, owned by root
             
             # Also save firewall and domains config
             echo "${DEVCONTAINER_SANDBOX_FIREWALL:-false}" | sudo tee "${SANDBOX_STATE_DIR}/firewall" > /dev/null
             echo "${DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS:-}" | sudo tee "${SANDBOX_STATE_DIR}/domains" > /dev/null
-            sudo chmod 400 "${SANDBOX_STATE_DIR}/firewall" "${SANDBOX_STATE_DIR}/domains"
+            sudo chmod 444 "${SANDBOX_STATE_DIR}/firewall" "${SANDBOX_STATE_DIR}/domains"
         else
             echo "false" | sudo tee "$SANDBOX_STATE_FILE" > /dev/null
-            sudo chmod 400 "$SANDBOX_STATE_FILE"
+            sudo chmod 444 "$SANDBOX_STATE_FILE"
         fi
     fi
 }

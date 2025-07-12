@@ -98,9 +98,9 @@ RUN chown root:root /usr/local/share/sandbox/init-firewall.sh && \
     chmod 755 /usr/local/share/sandbox/init-firewall.sh && \
     # Add sudo permissions for the wrapper to create state directory
     echo "zero ALL=(ALL) NOPASSWD: /bin/mkdir -p /var/lib/devcontainer-sandbox" >> /etc/sudoers.d/sandbox && \
-    echo "zero ALL=(ALL) NOPASSWD: /bin/chmod 700 /var/lib/devcontainer-sandbox" >> /etc/sudoers.d/sandbox && \
+    echo "zero ALL=(ALL) NOPASSWD: /bin/chmod 755 /var/lib/devcontainer-sandbox" >> /etc/sudoers.d/sandbox && \
     echo "zero ALL=(ALL) NOPASSWD: /usr/bin/tee /var/lib/devcontainer-sandbox/*" >> /etc/sudoers.d/sandbox && \
-    echo "zero ALL=(ALL) NOPASSWD: /bin/chmod 400 /var/lib/devcontainer-sandbox/*" >> /etc/sudoers.d/sandbox && \
+    echo "zero ALL=(ALL) NOPASSWD: /bin/chmod 444 /var/lib/devcontainer-sandbox/*" >> /etc/sudoers.d/sandbox && \
     echo "zero ALL=(ALL) NOPASSWD: /sbin/iptables -L OUTPUT -n" >> /etc/sudoers.d/sandbox
 
 # Switch back to zero for runtime

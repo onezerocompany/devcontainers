@@ -47,6 +47,14 @@ jobs:
                 echo "✓ Cannot remove state file even with sudo"
               fi
               
+              # Try to write to state file as user (should fail)
+              if echo "false" > /var/lib/devcontainer-sandbox/enabled 2>/dev/null; then
+                echo "✗ SECURITY ISSUE: Could write to state file as user!"
+                exit 1
+              else
+                echo "✓ Cannot write to state file as user"
+              fi
+              
               # Try to modify permissions
               if sudo chmod 666 /var/lib/devcontainer-sandbox/enabled 2>/dev/null; then
                 echo "⚠️  Could change state file permissions with sudo (expected)"
