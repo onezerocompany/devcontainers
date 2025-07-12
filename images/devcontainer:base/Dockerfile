@@ -36,9 +36,11 @@ RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
 COPY build-context/tools.sh /usr/local/bin/tools
 COPY build-context/starship.toml /etc/skel/.config/starship.toml
 COPY build-context/motd_gen.sh /tmp/motd_gen.sh
+COPY build-context/post-create.sh /usr/local/bin/devcontainer-post-create
 
 # Set up tools command and motd
 RUN chmod +x /usr/local/bin/tools && \
+    chmod +x /usr/local/bin/devcontainer-post-create && \
     /tmp/motd_gen.sh > /etc/motd && \
     chmod 644 /etc/motd && \
     rm /tmp/motd_gen.sh
