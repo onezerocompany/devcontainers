@@ -49,7 +49,10 @@ initialize_sandbox_state
 SANDBOX_ENABLED=$(read_sandbox_state)
 
 if [ "$SANDBOX_ENABLED" = "true" ]; then
-    echo "Sandbox mode is enabled (immutable)"
+    # Only show messages if not in an interactive shell or if explicitly requested
+    if [ -t 0 ] && [ -z "$DEVCONTAINER_QUIET" ]; then
+        echo "Sandbox mode is enabled (immutable)" >&2
+    fi
     
     # Check if we're in a devcontainer environment
     if [ -n "${DEVCONTAINER}" ] || [ -n "${CODESPACES}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
@@ -59,7 +62,10 @@ if [ "$SANDBOX_ENABLED" = "true" ]; then
         if [ "$FIREWALL_ENABLED" = "true" ]; then
             # Check if firewall is already initialized
             if ! sudo iptables -L OUTPUT -n | grep -q "policy DROP" 2>/dev/null; then
-                echo "Initializing sandbox firewall..."
+                # Only show messages if not in an interactive shell
+                if [ -t 0 ] && [ -z "$DEVCONTAINER_QUIET" ]; then
+                    echo "Initializing sandbox firewall..." >&2
+                fi
                 
                 # Read allowed domains from immutable state
                 ALLOWED_DOMAINS=$(cat "${SANDBOX_STATE_DIR}/domains" 2>/dev/null || echo "")
@@ -70,12 +76,17 @@ if [ "$SANDBOX_ENABLED" = "true" ]; then
                 # Run firewall initialization
                 sudo /usr/local/share/sandbox/init-firewall.sh || echo "Warning: Firewall initialization failed"
             else
-                echo "Firewall already initialized"
+                if [ -t 0 ] && [ -z "$DEVCONTAINER_QUIET" ]; then
+                    echo "Firewall already initialized" >&2
+                fi
             fi
         fi
     fi
 else
-    echo "Sandbox mode is disabled"
+    # Only show messages if not in an interactive shell
+    if [ -t 0 ] && [ -z "$DEVCONTAINER_QUIET" ]; then
+        echo "Sandbox mode is disabled" >&2
+    fi
 fi
 
 # Execute the original command

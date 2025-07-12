@@ -54,8 +54,10 @@ RUN mkdir -p /home/zero/.config && \
 
 # Configure shell - append to existing .zshrc instead of overwriting
 RUN echo "" >> ~/.zshrc && \
-    echo "# Display MOTD" >> ~/.zshrc && \
-    echo "if [ -f /etc/motd ]; then cat /etc/motd; fi" >> ~/.zshrc && \
+    echo "# Display MOTD only in interactive shells with proper terminal" >> ~/.zshrc && \
+    echo "if [[ -o interactive ]] && [[ -t 0 ]] && [[ \"\$TERM\" != \"dumb\" ]]; then" >> ~/.zshrc && \
+    echo "    if [ -f /etc/motd ]; then cat /etc/motd; fi" >> ~/.zshrc && \
+    echo "fi" >> ~/.zshrc && \
     echo "" >> ~/.zshrc && \
     echo "# Common utilities configuration" >> ~/.zshrc && \
     echo "setopt auto_cd" >> ~/.zshrc && \
