@@ -151,30 +151,12 @@ jobs:
           push: true
 
 
-  devcontainers:
-    name: Publish Pre-built Devcontainers
-    runs-on: ubuntu-latest
-    needs: [layer2-images, layer3-images]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: "Publish Devcontainers"
-        uses: devcontainers/action@v1
-        with:
-          publish-templates: "true"
-          base-path-to-templates: "./devcontainers"
-          disable-repo-tagging: "true"
-          templates-namespace: "onezerocompany/devcontainers"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Test jobs that run after publishing
   test-devcontainer-startup:
     name: Test Devcontainer Startup
     runs-on: ubuntu-latest
-    needs: [devcontainers]
+    needs: [layer3-images]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
