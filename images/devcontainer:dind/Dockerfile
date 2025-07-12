@@ -29,7 +29,9 @@ RUN bash /tmp/docker-feature/install.sh && \
     rm -rf /tmp/docker-feature
 
 COPY vscode-kit /usr/local/bin/vscode-kit
-RUN chmod +x /usr/local/bin/vscode-kit
+COPY build-context/post-create.sh /usr/local/bin/devcontainer-post-create
+RUN chmod +x /usr/local/bin/vscode-kit && \
+    chmod +x /usr/local/bin/devcontainer-post-create
 
 RUN vscode-kit install
 
