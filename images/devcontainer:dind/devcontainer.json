@@ -11,7 +11,16 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": ["ms-azuretools.vscode-docker"]
+      "extensions": ["ms-azuretools.vscode-docker"],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh",
+            "args": ["-l"]
+          }
+        }
+      }
     }
   },
   "mounts": [
@@ -22,5 +31,5 @@
     }
   ],
   "remoteUser": "zero",
-  "postCreateCommand": "docker --version"
+  "postCreateCommand": ".devcontainer/post-create.sh"
 }

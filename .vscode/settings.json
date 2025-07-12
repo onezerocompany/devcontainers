@@ -3,5 +3,12 @@
   "debug.javascript.defaultRuntimeExecutable": {
     "pwa-node": "/Users/luca/.local/share/mise/shims/node"
   },
-  "bun.runtime": "/Users/luca/.local/share/mise/shims/bun"
+  "bun.runtime": "/Users/luca/.local/share/mise/shims/bun",
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.profiles.linux": {
+    "zsh": {
+      "path": "/bin/zsh",
+      "args": ["-l"]
+    }
+  }
 }

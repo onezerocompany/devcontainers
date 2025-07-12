@@ -51,7 +51,10 @@ RUN mkdir -p /home/zero/.config && \
     cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml
 
 # Configure shell
-RUN echo "# Common utilities configuration" >> ~/.zshrc && \
+RUN echo "# Display MOTD" >> ~/.zshrc && \
+    echo "if [ -f /etc/motd ]; then cat /etc/motd; fi" >> ~/.zshrc && \
+    echo "" >> ~/.zshrc && \
+    echo "# Common utilities configuration" >> ~/.zshrc && \
     echo "setopt auto_cd" >> ~/.zshrc && \
     echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.zshrc && \
     echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> ~/.zshrc && \
@@ -108,4 +111,4 @@ USER zero
 
 # Use the wrapper as entrypoint
 ENTRYPOINT ["/usr/local/bin/devcontainer-entrypoint"]
-CMD ["bash"]
+CMD ["zsh", "-l"]

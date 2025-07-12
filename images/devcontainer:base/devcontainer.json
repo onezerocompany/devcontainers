@@ -1,6 +1,6 @@
 {
-  "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:dind",
+  "name": "OneZero DevContainer",
+  "image": "ghcr.io/onezerocompany/devcontainer:base",
   "postCreateCommand": ".devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
@@ -11,13 +11,8 @@
             "path": "/bin/zsh",
             "args": ["-l"]
           }
-        },
-        "workbench.action.terminal.focus": true
-      },
-      "extensions": []
-    },
-    "codespaces": {
-      "openFiles": []
+        }
+      }
     }
   },
   "remoteUser": "zero"
