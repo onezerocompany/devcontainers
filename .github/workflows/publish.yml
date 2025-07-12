@@ -150,28 +150,11 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.tag }}:${{ matrix.image.tag-suffix }}
           push: true
 
-  features:
-    name: Build and Publish Features
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: "Publish Features"
-        uses: devcontainers/action@v1
-        with:
-          publish-features: "true"
-          base-path-to-features: "./features/src"
-          disable-repo-tagging: "true"
-          features-namespace: "onezerocompany/devcontainers/features"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   devcontainers:
     name: Publish Pre-built Devcontainers
     runs-on: ubuntu-latest
-    needs: [layer2-images, layer3-images, features]
+    needs: [layer2-images, layer3-images]
 
     steps:
       - name: Checkout repository
@@ -210,82 +193,5 @@ jobs:
           devcontainer up --workspace-folder .
           devcontainer exec --workspace-folder . bash -c "echo 'Container started successfully'"
           devcontainer exec --workspace-folder . bash -c "whoami && pwd"
-          devcontainer exec --workspace-folder . bash -c "mise --version"
+          devcontainer exec --workspace-folder . bash -c "echo 'Devcontainer test complete'"
 
-  test-mise-install:
-    name: Test Mise Installation Script
-    runs-on: ubuntu-latest
-    needs: [features]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Test mise install script directly
-        run: |
-          # Create a test container
-          docker run -d --name mise-test \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            --user root \
-            mcr.microsoft.com/devcontainers/base:ubuntu \
-            sleep infinity
-          
-          # Install dependencies
-          docker exec mise-test bash -c "apt-get update && apt-get install -y curl zsh sudo"
-          
-          # Create test user
-          docker exec mise-test bash -c "useradd -m -s /usr/bin/zsh testuser && echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-          
-          # Run the mise install script
-          docker exec mise-test bash -c "cd features/src/mise && USER=testuser INSTALL=true VERSION=latest ./install.sh"
-          
-          # Test mise is installed
-          docker exec mise-test su testuser -c "source ~/.zshrc && mise --version"
-          
-          # Test mise doctor
-          docker exec mise-test su testuser -c "source ~/.zshrc && mise doctor"
-          
-          # Cleanup
-          docker stop mise-test && docker rm mise-test
-
-  test-mise-with-config:
-    name: Test Mise with Config File
-    runs-on: ubuntu-latest
-    needs: [features]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Test mise with project config
-        run: |
-          # Create a test container
-          docker run -d --name mise-config-test \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            --user root \
-            mcr.microsoft.com/devcontainers/base:ubuntu \
-            sleep infinity
-          
-          # Install dependencies
-          docker exec mise-config-test bash -c "apt-get update && apt-get install -y curl zsh sudo git"
-          
-          # Create test user
-          docker exec mise-config-test bash -c "useradd -m -s /usr/bin/zsh testuser && echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-          
-          # Run the mise install script with auto-trust
-          docker exec mise-config-test bash -c "cd features/src/mise && USER=testuser INSTALL=true VERSION=latest AUTO_TRUST_WORKSPACE=true TRUSTED_PATHS=/workspace ./install.sh"
-          
-          # Copy mise.toml to workspace
-          docker exec mise-config-test su testuser -c "cp /workspace/mise.toml /tmp/mise.toml"
-          
-          # Test mise can install tools
-          docker exec mise-config-test su testuser -c "cd /tmp && source ~/.zshrc && mise install"
-          
-          # Verify github-cli was installed
-          docker exec mise-config-test su testuser -c "cd /tmp && source ~/.zshrc && mise list"
-          
-          # Test auto-trust is working
-          docker exec mise-config-test su testuser -c "source ~/.zshrc && echo \$MISE_TRUSTED_CONFIG_PATHS | grep -q '/workspace'"
-          
-          # Cleanup
-          docker stop mise-config-test && docker rm mise-config-test
