@@ -1,0 +1,26 @@
+{
+  "name": "Docker-in-Docker",
+  "image": "ghcr.io/onezerocompany/devcontainer:dind",
+  "features": {
+    "docker": {
+      "version": "latest",
+      "moby": true,
+      "dockerDashComposeVersion": "v2",
+      "installDockerBuildx": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-azuretools.vscode-docker"]
+    }
+  },
+  "mounts": [
+    {
+      "source": "/var/run/docker.sock",
+      "target": "/var/run/docker-host.sock",
+      "type": "bind"
+    }
+  ],
+  "remoteUser": "zero",
+  "postCreateCommand": "docker --version"
+}

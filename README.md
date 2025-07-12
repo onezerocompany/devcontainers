@@ -63,8 +63,7 @@ Create a `.devcontainer/devcontainer.json` file in your project:
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "version": "latest",
       "enableMiseTrust": true
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
+    }
   },
   "remoteUser": "zero",
   "postCreateCommand": "mise install"
@@ -110,12 +109,13 @@ A comprehensive development container with mise for managing all your tools.
        "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
          "version": "latest",
          "enableMiseTrust": true
-       },
-       "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {},
-       "ghcr.io/onezerocompany/devcontainers/features/sandbox:1": {
-         "enableFirewall": true
        }
      },
+     "containerEnv": {
+       "DEVCONTAINER_SANDBOX_ENABLED": "true",
+       "DEVCONTAINER_SANDBOX_FIREWALL": "true"
+     },
+     "capAdd": ["NET_ADMIN"],
      "remoteUser": "zero",
      "postCreateCommand": "mise install"
    }
@@ -149,12 +149,13 @@ Development container with Docker-in-Docker support for container development wo
        "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
          "version": "latest",
          "enableMiseTrust": true
-       },
-       "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {},
-       "ghcr.io/onezerocompany/devcontainers/features/sandbox:1": {
-         "enableFirewall": true
        }
      },
+     "containerEnv": {
+       "DEVCONTAINER_SANDBOX_ENABLED": "true",
+       "DEVCONTAINER_SANDBOX_FIREWALL": "true"
+     },
+     "capAdd": ["NET_ADMIN"],
      "remoteUser": "zero",
      "postCreateCommand": "mise install",
      "runArgs": ["--privileged"],
@@ -203,8 +204,7 @@ While the templates aren't searchable in the Codespaces UI, you can still use th
   "name": "My Codespace",
   "image": "ghcr.io/onezerocompany/base:dev",
   "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/mise:1": {},
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
+    "ghcr.io/onezerocompany/devcontainers/features/mise:1": {}
   }
 }
 ```
@@ -270,62 +270,35 @@ Polyglot runtime manager for all your development tools.
 }
 ```
 
-#### common-utils (`ghcr.io/onezerocompany/devcontainers/features/common-utils`)
-
-Essential shell utilities and productivity tools.
-
-**Includes:**
-- **zoxide** - Smarter cd command
-- **eza** - Modern ls replacement
-- **bat** - cat with syntax highlighting
-- **starship** - Cross-shell prompt
-- **fd** - Fast file finder
-- **ripgrep** - Fast grep
-- **fzf** - Fuzzy finder
-- **delta** - Better git diffs
-- **duf** - Disk usage utility
-- **ncdu** - NCurses disk usage
-- **procs** - Modern ps
-- **broot** - File explorer
-- **yq** - YAML processor
-- **httpie** - HTTP client
-- **lazygit** - Git UI
-- **tmux** - Terminal multiplexer
-
-**Example:**
-```json
-"features": {
-  "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
-}
-```
 
 ### Special Purpose Features
 
-#### docker (`ghcr.io/onezerocompany/devcontainers/features/docker`)
+#### docker (Integrated into dind devcontainer)
 
-Docker-in-Docker support for container development.
+Docker-in-Docker support is now integrated directly into the `devcontainer:dind` image. Use the dind devcontainer image for Docker support instead of the standalone feature.
 
-**Options:**
-- `version` - Docker version
-- `dockerDashComposeVersion` - Docker Compose version
+**Note:** The docker feature (`ghcr.io/onezerocompany/devcontainers/features/docker`) has been deprecated and integrated into the dind devcontainer image.
 
-#### sandbox (`ghcr.io/onezerocompany/devcontainers/features/sandbox`)
+#### sandbox (Integrated into base devcontainer)
 
-Claude Code CLI with sandboxed environment.
+Sandbox functionality is now integrated directly into the `devcontainer:base` image and can be enabled/disabled at runtime without rebuilding the image.
 
-**Options:**
-- `enableFirewall` - Enable firewall rules (default: true)
-- `allowedDomains` - Comma-separated list of allowed domains
+**Note:** The sandbox feature (`ghcr.io/onezerocompany/devcontainers/features/sandbox`) has been deprecated and integrated into the base devcontainer image.
 
-**Example:**
+**Runtime Configuration:**
 ```json
-"features": {
-  "ghcr.io/onezerocompany/devcontainers/features/sandbox:1": {
-    "enableFirewall": true,
-    "allowedDomains": "api.github.com,registry.npmjs.org"
-  }
+{
+  "image": "ghcr.io/onezerocompany/devcontainer:base",
+  "containerEnv": {
+    "DEVCONTAINER_SANDBOX_ENABLED": "true",
+    "DEVCONTAINER_SANDBOX_FIREWALL": "true",
+    "DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS": "example.com,myapi.com"
+  },
+  "capAdd": ["NET_ADMIN"]
 }
 ```
+
+**Security:** The sandbox configuration is immutable from inside the container - it can only be set at container creation time.
 
 ## 🛠️ Tool Management with mise
 
@@ -420,8 +393,7 @@ mise plugins list
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
+    }
   },
   "remoteUser": "zero",
   "postCreateCommand": "mise install && npm install"
@@ -445,8 +417,7 @@ pnpm = "latest"
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {}
+    }
   },
   "remoteUser": "zero",
   "postCreateCommand": "mise install && pip install -r requirements.txt",
@@ -475,13 +446,11 @@ ruff = "latest"
 ```json
 {
   "name": "Full-Stack Development",
-  "image": "ghcr.io/onezerocompany/base:dev-docker",
+  "image": "ghcr.io/onezerocompany/devcontainer:dind",
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {},
-    "ghcr.io/onezerocompany/devcontainers/features/docker:1": {}
+    }
   },
   "remoteUser": "zero",
   "postCreateCommand": "mise install",
@@ -511,12 +480,13 @@ docker-compose = "latest"
   "features": {
     "ghcr.io/onezerocompany/devcontainers/features/mise:1": {
       "enableMiseTrust": true
-    },
-    "ghcr.io/onezerocompany/devcontainers/features/common-utils:2.0.0": {},
-    "ghcr.io/onezerocompany/devcontainers/features/sandbox:1": {
-      "enableFirewall": true
     }
   },
+  "containerEnv": {
+    "DEVCONTAINER_SANDBOX_ENABLED": "true",
+    "DEVCONTAINER_SANDBOX_FIREWALL": "true"
+  },
+  "capAdd": ["NET_ADMIN"],
   "remoteUser": "zero",
   "postCreateCommand": "mise install"
 }

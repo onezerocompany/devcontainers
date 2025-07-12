@@ -30,6 +30,10 @@ These features have been archived because they can now be managed more effective
 - **trivy**: Use `mise use trivy@<version>` instead
 - **onepassword**: Use `mise use 1password-cli@<version>` instead
 
+### Integrated Features
+- **docker**: Now integrated into the `devcontainer:dind` image
+- **sandbox**: Now integrated into the `devcontainer:base` image with runtime configuration
+
 ## Migration Guide
 
 If you were using any of these features, update your `.devcontainer.json`:
