@@ -13,8 +13,10 @@ else
     echo "⚠️  mise not found, skipping tool installation"
 fi
 
-# Clear the terminal for a clean start
-clear
+# Clear the terminal for a clean start (only if TERM is set)
+if [ -n "$TERM" ]; then
+    clear
+fi
 
 # The MOTD will be displayed when the shell starts
 echo "✨ DevContainer is ready!"
