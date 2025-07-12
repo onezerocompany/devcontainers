@@ -1,10 +1,4 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:dind",
-  "customizations": {
-    "vscode": {
-      "extensions": ["ms-vscode-remote.remote-containers"]
-    }
-  },
-  "postCreateCommand": "echo 'DevContainer setup complete!'"
+  "image": "ghcr.io/onezerocompany/devcontainer:dind"
 }

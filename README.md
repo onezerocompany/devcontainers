@@ -221,21 +221,21 @@ All images support both `linux/amd64` and `linux/arm64` architectures.
 - User "zero" with sudo access
 - Clean base for other images
 
-#### `ghcr.io/onezerocompany/base:docker`
+#### `ghcr.io/onezerocompany/dind`
 - Extends base image
 - Docker-in-Docker capability
 - Docker Compose included
 - Ideal for container development
 
-#### `ghcr.io/onezerocompany/base:dev`
+#### `ghcr.io/onezerocompany/devcontainer:base`
 - Primary devcontainer image
 - Extends base image
 - Includes development essentials
 - Ready for mise and features
 
-#### `ghcr.io/onezerocompany/base:dev-docker`
+#### `ghcr.io/onezerocompany/devcontainer:dind`
 - DevContainer with Docker support
-- Extends base:docker image
+- Extends dind image
 - Full container development environment
 
 ### Specialized Images
@@ -519,9 +519,9 @@ docker-compose = "latest"
 
 ```mermaid
 graph TD
-    A[base] --> B[base:docker]
-    A --> C[base:dev]
-    B --> D[base:dev-docker]
+    A[base] --> B[dind]
+    A --> C[devcontainer:base]
+    B --> D[devcontainer:dind]
     A --> E[runner]
 ```
 

@@ -86,9 +86,10 @@ cd features/test/[feature-name]
 docker build -t base ./images/base
 
 # Build dependent images
-docker build -t base:docker ./images/base-docker
-docker build -t base:dev ./images/base-dev
-docker build -t base:dev-docker ./images/base-dev-docker
+docker build -t dind ./images/dind
+docker build -t devcontainer:base ./images/devcontainer:base
+docker build -t devcontainer:dind ./images/devcontainer:dind
+docker build -t runner ./images/runner
 ```
 
 ### Commit Messages
