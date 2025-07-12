@@ -50,13 +50,18 @@ USER zero
 RUN mkdir -p /home/zero/.config && \
     cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml
 
-# Configure shell
-RUN echo "# Display MOTD" >> ~/.zshrc && \
+# Configure shell - append to existing .zshrc instead of overwriting
+RUN echo "" >> ~/.zshrc && \
+    echo "# Display MOTD" >> ~/.zshrc && \
     echo "if [ -f /etc/motd ]; then cat /etc/motd; fi" >> ~/.zshrc && \
     echo "" >> ~/.zshrc && \
     echo "# Common utilities configuration" >> ~/.zshrc && \
     echo "setopt auto_cd" >> ~/.zshrc && \
     echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.zshrc && \
+    echo "" >> ~/.zshrc && \
+    echo "# Activate mise for tool management" >> ~/.zshrc && \
+    echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
+    echo "" >> ~/.zshrc && \
     echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> ~/.zshrc && \
     echo "alias cat=\"batcat\"" >> ~/.zshrc && \
     echo "alias ls=\"eza\"" >> ~/.zshrc && \
