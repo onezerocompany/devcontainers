@@ -88,6 +88,10 @@ ENV MISE_CACHE_DIR=$HOME/.cache/mise
 ENV MISE_DATA_DIR=$HOME/.local/share/mise
 ENV PATH="$HOME/.local/bin:${PATH}"
 
+# Configure mise to auto-trust config files
+ENV MISE_TRUSTED_CONFIG_PATHS="/"
+ENV MISE_YES=1
+
 # Add mise activation to shell configs
 RUN echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
     echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc

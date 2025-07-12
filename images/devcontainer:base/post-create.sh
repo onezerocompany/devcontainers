@@ -3,15 +3,23 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
-# Trust and install mise tools
+# Install mise tools in the workspace
 if command -v mise &> /dev/null; then
     echo "📦 Installing development tools with mise..."
     # Suppress TERM warnings by setting a minimal TERM if not set
     if [ -z "$TERM" ]; then
         export TERM=dumb
     fi
-    mise trust --all 2>&1 || true
-    mise install --yes 2>&1 || true
+    
+    # Change to workspace directory and run mise install
+    if [ -n "$WORKSPACE_FOLDER" ]; then
+        cd "$WORKSPACE_FOLDER"
+    elif [ -n "$PWD" ]; then
+        cd "$PWD"
+    fi
+    
+    # Run mise install (trust is automatic with MISE_TRUSTED_CONFIG_PATHS="/")
+    mise install 2>&1 || true
     echo "✅ Development tools installed"
 else
     echo "⚠️  mise not found, skipping tool installation"

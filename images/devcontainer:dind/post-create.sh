@@ -3,11 +3,23 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
-# Trust and install mise tools
+# Install mise tools in the workspace
 if command -v mise &> /dev/null; then
     echo "📦 Installing development tools with mise..."
-    mise trust --all 2>/dev/null || true
-    mise install --yes 2>/dev/null || true
+    # Suppress TERM warnings by setting a minimal TERM if not set
+    if [ -z "$TERM" ]; then
+        export TERM=dumb
+    fi
+    
+    # Change to workspace directory and run mise install
+    if [ -n "$WORKSPACE_FOLDER" ]; then
+        cd "$WORKSPACE_FOLDER"
+    elif [ -n "$PWD" ]; then
+        cd "$PWD"
+    fi
+    
+    # Run mise install (trust is automatic with MISE_TRUSTED_CONFIG_PATHS="/")
+    mise install 2>&1 || true
     echo "✅ Development tools installed"
 else
     echo "⚠️  mise not found, skipping tool installation"
@@ -22,8 +34,10 @@ else
     echo "⚠️  Docker not found"
 fi
 
-# Clear the terminal for a clean start
-clear
+# Clear the terminal for a clean start (only if TERM is properly set)
+if [ -n "$TERM" ] && [ "$TERM" != "dumb" ]; then
+    clear
+fi
 
 # The MOTD will be displayed when the shell starts
 echo "✨ DevContainer with Docker-in-Docker is ready!"
