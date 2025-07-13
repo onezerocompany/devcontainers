@@ -136,8 +136,6 @@ RUN echo "" >> ~/.zshrc && \
     echo "alias tools=\"mise ls\"" >> ~/.zshrc && \
     echo "eval \"\$(starship init zsh)\"" >> ~/.zshrc
 
-# Zoxide is now installed via mise in the base image
-
 # Use docker-init.sh as the entrypoint to handle socket forwarding
 ENTRYPOINT ["/usr/local/share/docker-init.sh"]
 CMD ["bash"]

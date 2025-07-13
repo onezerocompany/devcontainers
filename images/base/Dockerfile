@@ -138,4 +138,4 @@ USER $USERNAME
 
 # Set Docker-specific entrypoint
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["bash"]
+CMD ["/bin/zsh"]

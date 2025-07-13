@@ -1,0 +1,188 @@
+name: Developer Experience Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  quick-validation:
+    name: Quick Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Container Starts
+        run: |
+          docker run --rm ghcr.io/onezerocompany/devcontainer:latest echo "Container works!"
+          
+      - name: Basic Tools Work
+        run: |
+          docker run --rm ghcr.io/onezerocompany/devcontainer:latest bash -c "
+            git --version &&
+            node --version &&
+            npm --version &&
+            mise --version
+          "
+
+  developer-workflows:
+    name: Developer Workflows
+    runs-on: ubuntu-latest
+    needs: quick-validation
+    strategy:
+      matrix:
+        workflow:
+          - name: "Node.js Development"
+            test: |
+              # Create a simple Node.js project
+              cat > package.json << 'EOF'
+              {
+                "name": "test-app",
+                "scripts": {
+                  "start": "node index.js",
+                  "test": "node test.js"
+                }
+              }
+              EOF
+              
+              echo 'console.log("Hello from DevContainer!");' > index.js
+              echo 'console.log("Tests pass!"); process.exit(0);' > test.js
+              
+              # Developer workflow
+              npm install
+              npm test
+              npm start
+              
+          - name: "Git Workflow"
+            test: |
+              git config --global user.email "test@example.com"
+              git config --global user.name "Test User"
+              git init
+              echo "# Test Project" > README.md
+              git add README.md
+              git commit -m "Initial commit"
+              git log --oneline
+              
+          - name: "Tool Management"
+            test: |
+              # Mise should manage tools
+              mise list
+              mise --version
+              
+              # Tools should be available
+              node --version
+              starship --version
+              fzf --version
+              
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Run ${{ matrix.workflow.name }}
+        run: |
+          docker run --rm \
+            -v $PWD:/workspace \
+            -w /workspace \
+            ghcr.io/onezerocompany/devcontainer:latest \
+            bash -c "${{ matrix.workflow.test }}"
+
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+    needs: quick-validation
+    steps:
+      - name: Measure Startup Time
+        run: |
+          echo "Measuring container startup time..."
+          
+          # Measure cold start
+          START=$(date +%s%N)
+          docker run --rm ghcr.io/onezerocompany/devcontainer:latest echo "ready"
+          END=$(date +%s%N)
+          COLD_MS=$(( ($END - $START) / 1000000 ))
+          echo "Cold start: ${COLD_MS}ms"
+          
+          # Measure warm start
+          START=$(date +%s%N)
+          docker run --rm ghcr.io/onezerocompany/devcontainer:latest echo "ready"
+          END=$(date +%s%N)
+          WARM_MS=$(( ($END - $START) / 1000000 ))
+          echo "Warm start: ${WARM_MS}ms"
+          
+          # Fail if too slow
+          if [ $COLD_MS -gt 10000 ]; then
+            echo "❌ Cold start too slow (>10s)"
+            exit 1
+          fi
+          
+          echo "✅ Performance acceptable"
+
+  real-world-project:
+    name: Real World Project Test
+    runs-on: ubuntu-latest
+    needs: developer-workflows
+    steps:
+      - name: Test with Express.js Project
+        run: |
+          # Create a real Express.js project structure
+          mkdir -p test-project
+          cd test-project
+          
+          cat > package.json << 'EOF'
+          {
+            "name": "express-test",
+            "version": "1.0.0",
+            "scripts": {
+              "start": "node app.js",
+              "test": "echo 'All tests passed!' && exit 0"
+            },
+            "dependencies": {
+              "express": "^4.18.0"
+            }
+          }
+          EOF
+          
+          cat > app.js << 'EOF'
+          const express = require('express');
+          const app = express();
+          app.get('/', (req, res) => res.send('Hello from DevContainer!'));
+          console.log('Express app created successfully!');
+          EOF
+          
+          # Run in devcontainer
+          docker run --rm \
+            -v $PWD:/workspace \
+            -w /workspace \
+            ghcr.io/onezerocompany/devcontainer:latest \
+            bash -c "
+              npm install &&
+              npm test &&
+              node -e 'require(\"./app.js\")'
+            "
+
+  docker-in-docker:
+    name: Docker-in-Docker Workflows
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Test Docker Development
+        run: |
+          docker run --rm \
+            --privileged \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            ghcr.io/onezerocompany/devcontainer:dind \
+            bash -c "
+              # Docker should work
+              docker --version &&
+              docker compose version &&
+              
+              # Can build images
+              echo 'FROM alpine' > Dockerfile &&
+              docker build -t test:latest . &&
+              
+              # Can run containers
+              docker run --rm test:latest echo 'Docker works!'
+            "
