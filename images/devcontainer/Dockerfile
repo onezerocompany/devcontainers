@@ -81,7 +81,7 @@ RUN echo "" >> ~/.zshrc && \
     echo "alias ls=\"eza\"" >> ~/.zshrc && \
     echo "alias ll=\"eza -l\"" >> ~/.zshrc && \
     echo "alias la=\"eza -la\"" >> ~/.zshrc && \
-    echo "alias tools=\"mise ls\"" >> ~/.zshrc && \
+    echo "alias tools=\"mise ls --current\"" >> ~/.zshrc && \
     echo "eval \"\$(starship init zsh)\"" >> ~/.zshrc
 
 # Zoxide is now installed via mise in the base image

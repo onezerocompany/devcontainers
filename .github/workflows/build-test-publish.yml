@@ -36,7 +36,9 @@ jobs:
           context: ./images/base
           target: standard
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache
+          cache-to: |
+            type=inline
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache,mode=max
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache,mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/base:latest
@@ -69,8 +71,12 @@ jobs:
           context: ./images/base
           target: dind
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dind-buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dind-buildcache,mode=max
+          cache-to: |
+            type=inline
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dind-buildcache,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dind-buildcache,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache,mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/base:dind
           push: true
@@ -101,7 +107,9 @@ jobs:
         with:
           context: ./images/settings-gen
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/settings-gen:buildcache
+          cache-to: |
+            type=inline
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/settings-gen:buildcache,mode=max
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/settings-gen:buildcache,mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/settings-gen:latest
@@ -111,7 +119,7 @@ jobs:
   build-devcontainer:
     name: Build and Publish devcontainer:latest Image
     runs-on: ubuntu-latest
-    needs: [build-base, build-settings-gen]
+    needs: [build-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -135,8 +143,12 @@ jobs:
           context: ./images/devcontainer
           target: standard
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:buildcache,mode=max
+          cache-to: |
+            type=inline
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:buildcache,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:buildcache,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache,mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/devcontainer:latest
             ghcr.io/${{ github.repository_owner }}/devcontainer:base
@@ -145,7 +157,7 @@ jobs:
   build-runner:
     name: Build and Publish runner Image
     runs-on: ubuntu-latest
-    needs: [build-base, build-settings-gen]
+    needs: [build-base]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -168,8 +180,12 @@ jobs:
         with:
           context: ./images/runner
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:latest-buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:latest-buildcache,mode=max
+          cache-to: |
+            type=inline
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:buildcache,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/runner:buildcache,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:buildcache,mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/runner:latest
           push: true
@@ -178,7 +194,7 @@ jobs:
   build-devcontainer-dind:
     name: Build and Publish devcontainer:dind Image
     runs-on: ubuntu-latest
-    needs: [build-base-dind, build-settings-gen]
+    needs: [build-base-dind]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -202,8 +218,13 @@ jobs:
           context: ./images/devcontainer
           target: dind
           platforms: linux/amd64,linux/arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:dind-buildcache
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:dind-buildcache,mode=max
+          cache-to: |
+            type=inline
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:dind-buildcache,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:dind-buildcache,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/base:dind-buildcache,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/devcontainer:buildcache,mode=max
           tags: ghcr.io/${{ github.repository_owner }}/devcontainer:dind
           push: true
 
