@@ -5,12 +5,12 @@ format = "$status$time$cmd_duration\n[$os$hostname$memory_usage$battery](dimmed)
 right_format = "$directory"
 
 [battery]
-charging_symbol = " "
+charging_symbol = " "
 discharging_symbol = "󰂃 "
-empty_symbol = " "
+empty_symbol = " "
 format = "| $symbol $percentage"
-full_symbol = " "
-unknown_symbol = " "
+full_symbol = " "
+unknown_symbol = " "
 disabled = false
 
 [[battery.display]]
@@ -25,18 +25,18 @@ show_notifications = true
 
 [directory]
 before_repo_root_style = "fg:white"
-format = "[](fg:white)[$path](bg:white fg:black)[](fg:white)"
-read_only = ""
-repo_root_format = "[](fg:purple)[ $repo_root](bg:purple fg:white)[](fg:purple bg:white)[ .$path ](bg:white fg:black)[](fg:white)"
+format = "[](fg:white)[$path](bg:white fg:black)[](fg:white)"
+read_only = ""
+repo_root_format = "[](fg:purple)[ $repo_root](bg:purple fg:white)[](fg:purple bg:white)[ .$path ](bg:white fg:black)[](fg:white)"
 repo_root_style = "fg:white"
 truncation_length = 3
 
 [directory.substitutions]
 Documents = "󰈙 "
-Downloads = " "
-GitHub = " "
-Music = " "
-Pictures = " "
+Downloads = " "
+GitHub = " "
+Music = " "
+Pictures = " "
 
 [hostname]
 format = "$hostname "
@@ -45,7 +45,7 @@ ssh_only = false
 [memory_usage]
 disabled = false
 format = "| $symbol  $ram_pct "
-symbol = ""
+symbol = ""
 threshold = 50
 
 [os]
@@ -53,16 +53,16 @@ disabled = false
 format = "$symbol "
 
 [os.symbols]
-Macos = ""
-Windows = ""
+Macos = ""
+Windows = ""
 
 [status]
 disabled = false
 format = "$symbol"
 map_symbol = true
 not_executable_symbol = "󰂭 "
-not_found_symbol = " "
-symbol = " "
+not_found_symbol = " "
+symbol = " "
 
 [time]
 disabled = false
@@ -71,7 +71,7 @@ style = "fg:white"
 time_format = "%T "
 
 [username]
-format = "[](fg:white)[ $user ]($style)[](fg:white)"
+format = "[](fg:white)[ $user ]($style)[](fg:white)"
 show_always = true
 style_root = "bg:white fg:black bold"
 style_user = "bg:white fg:black"

@@ -3,18 +3,18 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
-# Trust and install mise tools
-if command -v mise &> /dev/null; then
-    echo "📦 Installing development tools with mise..."
+# Install project-specific mise tools if .mise.toml exists
+if command -v mise &> /dev/null && [ -f ".mise.toml" ]; then
+    echo "📦 Installing project-specific tools from .mise.toml..."
     # Suppress TERM warnings by setting a minimal TERM if not set
     if [ -z "$TERM" ]; then
         export TERM=dumb
     fi
     mise trust --all 2>&1 || true
     mise install --yes 2>&1 || true
-    echo "✅ Development tools installed"
-else
-    echo "⚠️  mise not found, skipping tool installation"
+    echo "✅ Project tools installed"
+elif [ -f ".mise.toml" ]; then
+    echo "⚠️  mise not found, skipping project tool installation"
 fi
 
 # Clear the terminal for a clean start (only if TERM is properly set)

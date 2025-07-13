@@ -1,24 +1,14 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:dind",
-  "postCreateCommand": "/usr/local/bin/devcontainer-post-create",
+  "image": "ghcr.io/onezerocompany/devcontainer:base",
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.profiles.linux": {
-          "zsh": {
-            "path": "/bin/zsh",
-            "args": ["-l"]
-          }
-        },
-        "workbench.action.terminal.focus": true
-      },
-      "extensions": []
-    },
-    "codespaces": {
-      "openFiles": []
+        "terminal.integrated.fontFamily": "Monaspace Argon",
+        "terminal.integrated.fontSize": 14
+      }
     }
   },
   "remoteUser": "zero"
 }
+  

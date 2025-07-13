@@ -1,4 +1,5 @@
-FROM ubuntu:22.04
+# Base stage with common dependencies
+FROM ubuntu:22.04 AS base
 
 ENV ASPNETCORE_URLS=http://+:80
 ENV DOTNET_RUNNING_IN_CONTAINER=true
@@ -102,6 +103,39 @@ RUN echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
 RUN mkdir -p ~/.cache/mise && \
     mkdir -p ~/.local/share/mise
 
+# Copy global mise configuration and install tools
+COPY --chown=$USERNAME:$USERNAME mise-global.toml /home/$USERNAME/.mise.toml
+RUN mise install
+
 RUN touch ~/.sudo_as_admin_successful
 
+# Standard stage - no Docker-in-Docker
+FROM base AS standard
 CMD ["/bin/zsh"]
+
+# Docker-in-Docker stage
+FROM base AS dind
+
+USER root
+
+# Copy and install Docker
+COPY install-docker.sh .
+RUN bash ./install-docker.sh && rm install-docker.sh
+
+# Copy Docker-related files
+COPY modprobe entrypoint.sh /usr/local/bin/ 
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+	/usr/local/bin/modprobe
+
+# Copy supervisor configuration
+COPY supervisor/ /etc/supervisor/conf.d/
+
+# Create Docker volume
+VOLUME /var/lib/docker
+
+# Switch back to the configured user
+USER $USERNAME
+
+# Set Docker-specific entrypoint
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["bash"]

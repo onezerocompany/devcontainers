@@ -1,62 +1,12 @@
 #!/bin/bash -e
 
-# Feature options
-ENABLE_FIREWALL="${ENABLEFIREWALL:-"true"}"
-ADDITIONAL_ALLOWED_DOMAINS="${ADDITIONALALLOWEDDOMAINS:-""}"
-USERNAME="${USER:-"${_REMOTE_USER:-"zero"}"}"
-
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
-    exit 1
-fi
-
-# Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("zero" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
-fi
-
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
-}
-
-# Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
-}
-
-# Install required packages for firewall functionality
-if [ "${ENABLE_FIREWALL}" = "true" ]; then
-    echo "Installing firewall dependencies..."
-    check_packages iptables ipset dnsutils curl sudo
-fi
+USERNAME="${USERNAME:-zero}"
 
 # Create directory for scripts
 mkdir -p /usr/local/share/sandbox
 
 # Create the firewall initialization script
-if [ "${ENABLE_FIREWALL}" = "true" ]; then
-    echo "Setting up firewall initialization script..."
-    
-    cat > /usr/local/share/sandbox/init-firewall.sh << 'EOF'
+cat > /usr/local/share/sandbox/init-firewall.sh << 'EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -209,9 +159,6 @@ sudo ip6tables -A OUTPUT -p tcp --dport 53 -j ACCEPT
 sudo iptables -A OUTPUT -m set --match-set allowed-domains dst -j ACCEPT
 sudo ip6tables -A OUTPUT -m set --match-set allowed-domains-v6 dst -j ACCEPT
 
-# Log dropped packets (optional, can be verbose)
-# sudo iptables -A OUTPUT -j LOG --log-prefix "DROPPED: " --log-level 4
-
 echo "Firewall initialization complete"
 
 # Test connectivity
@@ -236,19 +183,22 @@ else
 fi
 EOF
 
-    chmod +x /usr/local/share/sandbox/init-firewall.sh
-    
-    # Add sudoers entry for the user to run firewall script
-    if [ "${USERNAME}" != "root" ]; then
-        echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/local/share/sandbox/init-firewall.sh" > /etc/sudoers.d/sandbox
-        echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/sbin/iptables, /usr/sbin/ip6tables, /usr/sbin/ipset" >> /etc/sudoers.d/sandbox
-        chmod 0440 /etc/sudoers.d/sandbox
-    fi
-    
-    # Pass environment variables to the script
-    if [ -n "${ADDITIONAL_ALLOWED_DOMAINS}" ]; then
-        echo "export ADDITIONAL_ALLOWED_DOMAINS=\"${ADDITIONAL_ALLOWED_DOMAINS}\"" >> /etc/profile.d/sandbox.sh
-    fi
-fi
+chmod +x /usr/local/share/sandbox/init-firewall.sh
 
-echo "Sandbox feature installation complete!"
+# Add sudoers entries for sandbox operations
+cat > /etc/sudoers.d/sandbox << EOF
+# Sandbox state management
+${USERNAME} ALL=(ALL) NOPASSWD: /bin/mkdir -p /var/lib/devcontainer-sandbox
+${USERNAME} ALL=(ALL) NOPASSWD: /bin/chmod 755 /var/lib/devcontainer-sandbox
+${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/tee /var/lib/devcontainer-sandbox/*
+${USERNAME} ALL=(ALL) NOPASSWD: /bin/chmod 444 /var/lib/devcontainer-sandbox/*
+${USERNAME} ALL=(ALL) NOPASSWD: /sbin/iptables -L OUTPUT -n
+
+# Firewall management
+${USERNAME} ALL=(ALL) NOPASSWD: /usr/local/share/sandbox/init-firewall.sh
+${USERNAME} ALL=(ALL) NOPASSWD: /usr/sbin/iptables, /usr/sbin/ip6tables, /usr/sbin/ipset
+EOF
+
+chmod 0440 /etc/sudoers.d/sandbox
+
+echo "Sandbox setup complete!"

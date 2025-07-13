@@ -88,8 +88,8 @@ A comprehensive development container with mise for managing all your tools.
 
 **Features:**
 - mise for polyglot tool management
-- Common shell utilities (zoxide, eza, bat, starship)
-- Pre-configured with Node.js, Bun, and GitHub CLI
+- Pre-installed tools: Node.js, Python, Go, starship, zoxide, fzf, bat, eza, GitHub CLI
+- Common shell utilities with modern aliases
 - Support for adding any programming language or tool via mise
 - VS Code extensions: EditorConfig, GitLens, GitHub Pull Requests, Docker, Makefile Tools
 
@@ -313,72 +313,65 @@ Instead of installing fixed tool versions through features, we use [mise](https:
 
 ### Configuration
 
-The templates come with minimal tools pre-configured (Node.js, Bun, GitHub CLI). You can add any tools you need by creating a `.mise.toml` file in your project root.
+The templates come with essential development tools pre-installed via mise. You can add project-specific tools by creating a `.mise.toml` file in your project root.
 
-**Example `.mise.toml` showing available tools:**
+**Pre-installed tools:**
+- Node.js 20.11.0
+- Python 3.11
+- Go 1.21
+- starship (prompt)
+- zoxide (directory jumper)
+- fzf (fuzzy finder)
+- bat (better cat)
+- eza (better ls)
+- GitHub CLI
+
+**Add project-specific tools in `.mise.toml`:**
 
 ```toml
 [tools]
-# Programming Languages
-node = "lts"              # Latest LTS Node.js
-python = "3.12"           # Specific Python version
-go = "latest"             # Latest Go
-rust = "stable"           # Stable Rust
-ruby = "3.3"              # Ruby 3.3
-java = "openjdk-21"       # OpenJDK 21
+# JavaScript/TypeScript
+bun = "latest"            # Fast JavaScript runtime
+deno = "latest"           # Secure TypeScript runtime
+yarn = "4.0"              # Package manager
 
-# JavaScript Tools
-bun = "latest"            # Bun runtime
-deno = "latest"           # Deno runtime
-pnpm = "latest"           # pnpm package manager
-yarn = "latest"           # Yarn package manager
+# Languages
+ruby = "3.3"              # Ruby language
+rust = "stable"           # Rust toolchain
+java = "temurin-21"       # Java runtime
 
-# Cloud Tools
-aws-cli = "latest"        # AWS CLI
-gcloud = "latest"         # Google Cloud CLI
-azure-cli = "latest"      # Azure CLI
-kubectl = "latest"        # Kubernetes CLI
-helm = "latest"           # Helm
-terraform = "latest"      # Terraform
-
-# Development Tools
-github-cli = "latest"     # GitHub CLI
-firebase = "latest"       # Firebase CLI
-trivy = "latest"          # Security scanner
-1password-cli = "latest"  # 1Password CLI
-hugo = "latest"           # Static site generator
+# DevOps Tools
+terraform = "1.7"         # Infrastructure as Code
+kubectl = "1.29"          # Kubernetes CLI
+helm = "3.14"             # Kubernetes package manager
 
 # Database Tools
-postgresql = "16"         # PostgreSQL client
-mysql = "8.0"             # MySQL client
-redis = "latest"          # Redis
-mongodb = "latest"        # MongoDB
-
-[settings]
-experimental = true
-trusted_config_paths = ["/workspaces"]
+postgres = "16"           # PostgreSQL client
+mysql = "8.2"             # MySQL client
+redis = "7.2"             # Redis client
 ```
 
 ### Common Commands
 
 ```bash
-# Install all tools defined in .mise.toml
+# List installed tools (or use the 'tools' alias)
+mise ls
+tools  # alias for mise ls
+
+# Install project-specific tools from .mise.toml
 mise install
 
 # Install a specific tool
-mise install node@20
+mise install rust@stable
 
 # Use a tool temporarily
-mise use python@3.11
-
-# List installed tools
-mise list
+mise use ruby@3.3
 
 # Update all tools
 mise upgrade
 
-# See all available tools
-mise plugins list
+# See available tools to install
+mise ls-remote
 ```
 
 ## 📚 Usage Examples

@@ -1,0 +1,7 @@
+[tools]
+node = "20.11.0"
+starship = "latest"
+zoxide = "latest"
+fzf = "latest"
+bat = "latest"
+eza = "latest"
