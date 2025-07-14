@@ -62,41 +62,40 @@ RUN mkdir -p /home/zero/.config && \
     cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml
 
 # Configure shell - append devcontainer-specific config to existing .zshrc
-RUN cat >> ~/.zshrc << 'EOF'
-
-# DevContainer specific configuration
-# Display MOTD only in interactive shells with proper terminal
-if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then
-    if [ -f /etc/motd ]; then cat /etc/motd; fi
-fi
-
-# Shell options
-setopt auto_cd
-
-# Tool initialization (these require mise-installed tools to be in PATH)
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init --cmd cd zsh)"
-fi
-
-# Aliases for modern CLI tools
-if command -v batcat >/dev/null 2>&1; then
-    alias cat="batcat"
-fi
-
-if command -v eza >/dev/null 2>&1; then
-    alias ls="eza"
-    alias ll="eza -l"
-    alias la="eza -la"
-fi
-
-# Mise tools alias
-alias tools="mise ls --current"
-
-# Initialize starship prompt (must be last)
-if command -v starship >/dev/null 2>&1; then
-    eval "$(starship init zsh)"
-fi
-EOF
+RUN echo '' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# DevContainer specific configuration' >> ~/.zshrc && \
+    echo '# Display MOTD only in interactive shells with proper terminal' >> ~/.zshrc && \
+    echo 'if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then' >> ~/.zshrc && \
+    echo '    if [ -f /etc/motd ]; then cat /etc/motd; fi' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Shell options' >> ~/.zshrc && \
+    echo 'setopt auto_cd' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Tool initialization (these require mise-installed tools to be in PATH)' >> ~/.zshrc && \
+    echo 'if command -v zoxide >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    eval "$(zoxide init --cmd cd zsh)"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Aliases for modern CLI tools' >> ~/.zshrc && \
+    echo 'if command -v batcat >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    alias cat="batcat"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo 'if command -v eza >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    alias ls="eza"' >> ~/.zshrc && \
+    echo '    alias ll="eza -l"' >> ~/.zshrc && \
+    echo '    alias la="eza -la"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Mise tools alias' >> ~/.zshrc && \
+    echo 'alias tools="mise ls --current"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Initialize starship prompt (must be last)' >> ~/.zshrc && \
+    echo 'if command -v starship >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    eval "$(starship init zsh)"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc
 
 # Zoxide is now installed via mise in the base image
 
@@ -127,41 +126,40 @@ RUN mkdir -p /home/zero/.config && \
     cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml
 
 # Configure shell - append devcontainer-specific config to existing .zshrc
-RUN cat >> ~/.zshrc << 'EOF'
-
-# DevContainer specific configuration
-# Display MOTD only in interactive shells with proper terminal
-if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then
-    if [ -f /etc/motd ]; then cat /etc/motd; fi
-fi
-
-# Shell options
-setopt auto_cd
-
-# Tool initialization (these require mise-installed tools to be in PATH)
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init --cmd cd zsh)"
-fi
-
-# Aliases for modern CLI tools
-if command -v batcat >/dev/null 2>&1; then
-    alias cat="batcat"
-fi
-
-if command -v eza >/dev/null 2>&1; then
-    alias ls="eza"
-    alias ll="eza -l"
-    alias la="eza -la"
-fi
-
-# Mise tools alias
-alias tools="mise ls --current"
-
-# Initialize starship prompt (must be last)
-if command -v starship >/dev/null 2>&1; then
-    eval "$(starship init zsh)"
-fi
-EOF
+RUN echo '' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# DevContainer specific configuration' >> ~/.zshrc && \
+    echo '# Display MOTD only in interactive shells with proper terminal' >> ~/.zshrc && \
+    echo 'if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then' >> ~/.zshrc && \
+    echo '    if [ -f /etc/motd ]; then cat /etc/motd; fi' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Shell options' >> ~/.zshrc && \
+    echo 'setopt auto_cd' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Tool initialization (these require mise-installed tools to be in PATH)' >> ~/.zshrc && \
+    echo 'if command -v zoxide >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    eval "$(zoxide init --cmd cd zsh)"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Aliases for modern CLI tools' >> ~/.zshrc && \
+    echo 'if command -v batcat >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    alias cat="batcat"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo 'if command -v eza >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    alias ls="eza"' >> ~/.zshrc && \
+    echo '    alias ll="eza -l"' >> ~/.zshrc && \
+    echo '    alias la="eza -la"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Mise tools alias' >> ~/.zshrc && \
+    echo 'alias tools="mise ls --current"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Initialize starship prompt (must be last)' >> ~/.zshrc && \
+    echo 'if command -v starship >/dev/null 2>&1; then' >> ~/.zshrc && \
+    echo '    eval "$(starship init zsh)"' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc
 
 # Use the unified entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
