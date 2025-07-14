@@ -164,9 +164,14 @@ if [ -n "${VSCODE_IPC_HOOK_CLI}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
 fi
 
 # Execute the command or start interactive shell
-if [ $# -eq 0 ] && [ -t 0 ]; then
-    # No arguments and running interactively, start zsh
-    exec zsh -l
+if [ $# -eq 0 ]; then
+    if [ -t 0 ]; then
+        # Running interactively, start zsh
+        exec zsh -l
+    else
+        # Running non-interactively (e.g., docker run -d), keep container alive
+        exec tail -f /dev/null
+    fi
 else
     # Execute whatever command was passed
     exec "$@"
