@@ -218,16 +218,16 @@ jobs:
           docker ps | grep test-container
           
           # Execute a simple command to verify the shell works
-          docker exec test-container zsh -c "echo 'Container started successfully'"
+          docker exec test-container zsh -l -c "echo 'Container started successfully'"
           
           # Check if mise is available
-          docker exec test-container zsh -c "which mise"
+          docker exec test-container zsh -l -c "which mise"
           
           # Check if other expected tools are available
-          docker exec test-container zsh -c "which starship"
-          docker exec test-container zsh -c "which eza"
-          docker exec test-container zsh -c "which batcat"
-          docker exec test-container zsh -c "which zoxide"
+          docker exec test-container zsh -l -c "which starship"
+          docker exec test-container zsh -l -c "which eza"
+          docker exec test-container zsh -l -c "which batcat"
+          docker exec test-container zsh -l -c "which zoxide"
           
           # Clean up
           docker stop test-container
@@ -256,14 +256,14 @@ jobs:
           sleep 5
           
           # Install tools using mise
-          docker exec test-mise zsh -c "cd /workspace && mise install"
+          docker exec test-mise zsh -l -c "cd /workspace && mise install"
           
           # Verify tools are installed
-          docker exec test-mise zsh -c "cd /workspace && mise ls"
+          docker exec test-mise zsh -l -c "cd /workspace && mise ls"
           
           # Test that tools are available
-          docker exec test-mise zsh -c "cd /workspace && node --version"
-          docker exec test-mise zsh -c "cd /workspace && python --version"
+          docker exec test-mise zsh -l -c "cd /workspace && node --version"
+          docker exec test-mise zsh -l -c "cd /workspace && python --version"
           
           # Clean up
           docker stop test-mise
