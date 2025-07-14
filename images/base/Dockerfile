@@ -14,8 +14,11 @@ RUN apt-get update -y && \
     apt-get update -y && \
     apt-get install -y apt-fast
 
-RUN apt-get upgrade -y && \
-    apt-get install -y \
+# Split upgrade and install to avoid QEMU issues on ARM64
+RUN apt-get upgrade -y || true
+
+# Install packages in smaller groups to reduce memory pressure
+RUN apt-get install -y \
         curl \
         wget \
         sudo \
@@ -28,7 +31,9 @@ RUN apt-get upgrade -y && \
         tar xz-utils \
         jq \
         ca-certificates \
-        lsb-release \
+        lsb-release
+
+RUN apt-get install -y \
         build-essential \
         make \
         cmake \
@@ -39,7 +44,9 @@ RUN apt-get upgrade -y && \
         libicu70 \
         libssl3 \
         libstdc++6 \
-        zlib1g zlib1g-dev \
+        zlib1g zlib1g-dev
+
+RUN apt-get install -y \
         skopeo \
         binutils \
         gnupg2 \
@@ -105,7 +112,12 @@ RUN mkdir -p ~/.cache/mise && \
 
 # Copy global mise configuration and install tools
 COPY --chown=$USERNAME:$USERNAME mise-global.toml /home/$USERNAME/.mise.toml
-RUN mise install
+# Add retry logic for mise install to handle network timeouts
+RUN for i in 1 2 3; do \
+        echo "Attempt $i: Installing mise tools..." && \
+        mise install && break || \
+        (echo "Failed attempt $i, retrying in 5 seconds..." && sleep 5); \
+    done
 
 RUN touch ~/.sudo_as_admin_successful
 
