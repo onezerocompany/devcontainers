@@ -150,19 +150,26 @@ jobs:
           cache-to: type=gha,mode=max
           target: dind
 
-  # Test devcontainer startup
-  test-devcontainer-startup:
-    name: Test DevContainer Startup
+  # Test all devcontainer functionality
+  test-devcontainer:
+    name: Test DevContainer
     needs: [build-devcontainer-standard, build-devcontainer-dind]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        variant: [standard, dind]
+        include:
+          - variant: standard
+            test-type: startup
+          - variant: dind
+            test-type: startup
+          - variant: standard
+            test-type: mise-tools
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Test devcontainer startup
+        if: matrix.test-type == 'startup'
         run: |
           IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
           
@@ -192,18 +199,10 @@ jobs:
           # Clean up
           docker stop test-container
 
-  # Test mise tool installation
-  test-mise-tools:
-    name: Test Mise Tool Installation
-    needs: build-devcontainer-standard
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Test mise tool installation
+        if: matrix.test-type == 'mise-tools'
         run: |
-          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-standard"
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
           
           echo "Testing mise tool installation in $IMAGE_TAG"
           
