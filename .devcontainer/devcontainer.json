@@ -1,14 +1,5 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:base",
-  "customizations": {
-    "vscode": {
-      "settings": {
-        "terminal.integrated.fontFamily": "Monaspace Argon",
-        "terminal.integrated.fontSize": 14
-      }
-    }
-  },
+  "image": "ghcr.io/onezerocompany/devcontainer:latest",
   "remoteUser": "zero"
 }
-  

@@ -1,0 +1,34 @@
+{
+  "name": "My Project",
+  "image": "ghcr.io/onezerocompany/devcontainer:latest",
+  "remoteUser": "zero",
+  
+  // VS Code specific settings
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // Automatically close the initial terminal after initialization
+        "terminal.integrated.commandsToSkipShell": ["workbench.action.terminal.clear"],
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      },
+      "extensions": []
+    }
+  },
+  
+  // Run the post-attach script after VS Code connects
+  "postAttachCommand": "/usr/local/bin/vscode-post-attach",
+  
+  // Optional: Enable sandbox mode
+  "containerEnv": {
+    "DEVCONTAINER_SANDBOX_ENABLED": "false",
+    "DEVCONTAINER_SANDBOX_FIREWALL": "false",
+    "DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS": ""
+  },
+  
+  // For DIND variant, uncomment these:
+  // "image": "ghcr.io/onezerocompany/devcontainer:dind",
+  // "runArgs": ["--privileged"],
+  // "mounts": [
+  //   "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+  // ]
+}

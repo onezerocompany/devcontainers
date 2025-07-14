@@ -19,9 +19,11 @@ RUN chmod +x /usr/local/bin/vscode-kit && \
 COPY starship.toml /etc/skel/.config/starship.toml
 COPY scripts/motd-gen.sh /tmp/motd-gen.sh
 COPY scripts/post-create.sh /usr/local/bin/devcontainer-post-create
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint
+COPY scripts/vscode-post-attach.sh /usr/local/bin/vscode-post-attach
 
-# Set up motd
-RUN chmod +x /usr/local/bin/devcontainer-post-create && \
+# Set up motd and entrypoint
+RUN chmod +x /usr/local/bin/devcontainer-post-create /usr/local/bin/entrypoint /usr/local/bin/vscode-post-attach && \
     /tmp/motd-gen.sh > /etc/motd && \
     chmod 644 /etc/motd && \
     rm /tmp/motd-gen.sh
@@ -48,11 +50,8 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Copy and run sandbox setup
-COPY scripts/setup-sandbox.sh scripts/entrypoint-wrapper.sh /tmp/
+COPY scripts/setup-sandbox.sh /tmp/
 RUN bash /tmp/setup-sandbox.sh && \
-    mv /tmp/entrypoint-wrapper.sh /usr/local/bin/devcontainer-entrypoint && \
-    chmod 755 /usr/local/bin/devcontainer-entrypoint && \
-    chown root:root /usr/local/bin/devcontainer-entrypoint && \
     rm /tmp/setup-sandbox.sh
 
 # Switch to zero user for remaining setup
@@ -86,9 +85,9 @@ RUN echo "" >> ~/.zshrc && \
 
 # Zoxide is now installed via mise in the base image
 
-# Use the wrapper as entrypoint
-ENTRYPOINT ["/usr/local/bin/devcontainer-entrypoint"]
-CMD ["zsh", "-l"]
+# Use the unified entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
+CMD []
 
 # DIND variant - based on base:dind
 FROM ghcr.io/onezerocompany/base:dind AS dind
@@ -101,10 +100,8 @@ COPY --from=devcontainer-common /etc/motd /etc/motd
 COPY --from=devcontainer-common /etc/skel/.config /etc/skel/.config
 
 # Copy and run docker setup
-COPY scripts/setup-docker.sh scripts/docker-init.sh /tmp/
+COPY scripts/setup-docker.sh /tmp/
 RUN bash /tmp/setup-docker.sh && \
-    mv /tmp/docker-init.sh /usr/local/share/docker-init.sh && \
-    chmod +x /usr/local/share/docker-init.sh && \
     rm /tmp/setup-docker.sh
 
 # Switch to zero user for remaining setup
@@ -136,6 +133,6 @@ RUN echo "" >> ~/.zshrc && \
     echo "alias tools=\"mise ls\"" >> ~/.zshrc && \
     echo "eval \"\$(starship init zsh)\"" >> ~/.zshrc
 
-# Use docker-init.sh as the entrypoint to handle socket forwarding
-ENTRYPOINT ["/usr/local/share/docker-init.sh"]
-CMD ["bash"]
+# Use the unified entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
+CMD []

@@ -156,6 +156,7 @@ jobs:
     needs: [build-devcontainer-standard, build-devcontainer-dind]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - variant: standard

@@ -1,5 +1,5 @@
 [tools]
-node = "20.11.0"
+node = "lts"
 starship = "latest"
 zoxide = "latest"
 fzf = "latest"
