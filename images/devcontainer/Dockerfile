@@ -61,27 +61,42 @@ USER zero
 RUN mkdir -p /home/zero/.config && \
     cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml
 
-# Configure shell - append to existing .zshrc instead of overwriting
-RUN echo "" >> ~/.zshrc && \
-    echo "# Display MOTD only in interactive shells with proper terminal" >> ~/.zshrc && \
-    echo "if [[ -o interactive ]] && [[ -t 0 ]] && [[ \"\$TERM\" != \"dumb\" ]]; then" >> ~/.zshrc && \
-    echo "    if [ -f /etc/motd ]; then cat /etc/motd; fi" >> ~/.zshrc && \
-    echo "fi" >> ~/.zshrc && \
-    echo "" >> ~/.zshrc && \
-    echo "# Common utilities configuration" >> ~/.zshrc && \
-    echo "setopt auto_cd" >> ~/.zshrc && \
-    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.zshrc && \
-    echo "" >> ~/.zshrc && \
-    echo "# Activate mise for tool management" >> ~/.zshrc && \
-    echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
-    echo "" >> ~/.zshrc && \
-    echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> ~/.zshrc && \
-    echo "alias cat=\"batcat\"" >> ~/.zshrc && \
-    echo "alias ls=\"eza\"" >> ~/.zshrc && \
-    echo "alias ll=\"eza -l\"" >> ~/.zshrc && \
-    echo "alias la=\"eza -la\"" >> ~/.zshrc && \
-    echo "alias tools=\"mise ls --current\"" >> ~/.zshrc && \
-    echo "eval \"\$(starship init zsh)\"" >> ~/.zshrc
+# Configure shell - append devcontainer-specific config to existing .zshrc
+RUN cat >> ~/.zshrc << 'EOF'
+
+# DevContainer specific configuration
+# Display MOTD only in interactive shells with proper terminal
+if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then
+    if [ -f /etc/motd ]; then cat /etc/motd; fi
+fi
+
+# Shell options
+setopt auto_cd
+
+# Tool initialization (these require mise-installed tools to be in PATH)
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init --cmd cd zsh)"
+fi
+
+# Aliases for modern CLI tools
+if command -v batcat >/dev/null 2>&1; then
+    alias cat="batcat"
+fi
+
+if command -v eza >/dev/null 2>&1; then
+    alias ls="eza"
+    alias ll="eza -l"
+    alias la="eza -la"
+fi
+
+# Mise tools alias
+alias tools="mise ls --current"
+
+# Initialize starship prompt (must be last)
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+fi
+EOF
 
 # Zoxide is now installed via mise in the base image
 
@@ -111,27 +126,42 @@ USER zero
 RUN mkdir -p /home/zero/.config && \
     cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml
 
-# Configure shell - append to existing .zshrc instead of overwriting
-RUN echo "" >> ~/.zshrc && \
-    echo "# Display MOTD only in interactive shells with proper terminal" >> ~/.zshrc && \
-    echo "if [[ -o interactive ]] && [[ -t 0 ]] && [[ \"\$TERM\" != \"dumb\" ]]; then" >> ~/.zshrc && \
-    echo "    if [ -f /etc/motd ]; then cat /etc/motd; fi" >> ~/.zshrc && \
-    echo "fi" >> ~/.zshrc && \
-    echo "" >> ~/.zshrc && \
-    echo "# Common utilities configuration" >> ~/.zshrc && \
-    echo "setopt auto_cd" >> ~/.zshrc && \
-    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.zshrc && \
-    echo "" >> ~/.zshrc && \
-    echo "# Activate mise for tool management" >> ~/.zshrc && \
-    echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
-    echo "" >> ~/.zshrc && \
-    echo "eval \"\$(zoxide init --cmd cd zsh)\"" >> ~/.zshrc && \
-    echo "alias cat=\"batcat\"" >> ~/.zshrc && \
-    echo "alias ls=\"eza\"" >> ~/.zshrc && \
-    echo "alias ll=\"eza -l\"" >> ~/.zshrc && \
-    echo "alias la=\"eza -la\"" >> ~/.zshrc && \
-    echo "alias tools=\"mise ls\"" >> ~/.zshrc && \
-    echo "eval \"\$(starship init zsh)\"" >> ~/.zshrc
+# Configure shell - append devcontainer-specific config to existing .zshrc
+RUN cat >> ~/.zshrc << 'EOF'
+
+# DevContainer specific configuration
+# Display MOTD only in interactive shells with proper terminal
+if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then
+    if [ -f /etc/motd ]; then cat /etc/motd; fi
+fi
+
+# Shell options
+setopt auto_cd
+
+# Tool initialization (these require mise-installed tools to be in PATH)
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init --cmd cd zsh)"
+fi
+
+# Aliases for modern CLI tools
+if command -v batcat >/dev/null 2>&1; then
+    alias cat="batcat"
+fi
+
+if command -v eza >/dev/null 2>&1; then
+    alias ls="eza"
+    alias ll="eza -l"
+    alias la="eza -la"
+fi
+
+# Mise tools alias
+alias tools="mise ls --current"
+
+# Initialize starship prompt (must be last)
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+fi
+EOF
 
 # Use the unified entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

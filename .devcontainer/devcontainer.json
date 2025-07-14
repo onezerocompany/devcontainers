@@ -1,5 +1,5 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:latest",
+  "image": "ghcr.io/onezerocompany/devcontainer:dind",
   "remoteUser": "zero"
 }

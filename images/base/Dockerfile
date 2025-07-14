@@ -79,12 +79,23 @@ RUN chsh -s /bin/zsh && \
     chsh -s /bin/zsh $USERNAME && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-RUN \
-    echo "autoload -Uz compinit" >> /home/$USERNAME/.zshrc && \ 
-    echo "compinit" >> /home/$USERNAME/.zshrc
+# Create a minimal .zshrc with just the essentials
+RUN cat > /home/$USERNAME/.zshrc << 'EOF'
+# Zsh completion system
+autoload -Uz compinit
+compinit
 
-RUN echo "alias apt-get='apt-fast'" >> /home/$USERNAME/.zshrc && \
-    chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
+# Basic aliases
+alias apt-get='apt-fast'
+
+# Path configuration (mise binaries)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Mise activation (tool management)
+eval "$($HOME/.local/bin/mise activate zsh)"
+EOF
+
+RUN chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
@@ -102,9 +113,8 @@ ENV PATH="$HOME/.local/bin:${PATH}"
 ENV MISE_TRUSTED_CONFIG_PATHS="/"
 ENV MISE_YES=1
 
-# Add mise activation to shell configs
-RUN echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc && \
-    echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+# Create bash config for mise
+RUN echo 'eval "$($HOME/.local/bin/mise activate bash)"' > ~/.bashrc
 
 # Create mise cache directories
 RUN mkdir -p ~/.cache/mise && \
