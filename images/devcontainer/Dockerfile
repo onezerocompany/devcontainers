@@ -1,5 +1,5 @@
 # Common stage with all shared dependencies
-FROM ghcr.io/onezerocompany/base:latest AS devcontainer-common
+FROM ghcr.io/onezerocompany/devcontainer:base AS devcontainer-common
 
 USER root
 
@@ -29,7 +29,7 @@ RUN chmod +x /usr/local/bin/devcontainer-post-create /usr/local/bin/entrypoint /
     rm /tmp/motd-gen.sh
 
 # Standard variant - based on base:latest
-FROM ghcr.io/onezerocompany/base:latest AS standard
+FROM ghcr.io/onezerocompany/devcontainer:base AS standard
 
 USER root
 
@@ -104,7 +104,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint"]
 CMD []
 
 # DIND variant - based on base:dind
-FROM ghcr.io/onezerocompany/base:dind AS dind
+FROM ghcr.io/onezerocompany/devcontainer:dind AS dind
 
 USER root
 
