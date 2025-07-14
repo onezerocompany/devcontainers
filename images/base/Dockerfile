@@ -80,18 +80,23 @@ RUN chsh -s /bin/zsh && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 # Create a minimal .zshrc with just the essentials
-RUN echo '# Zsh completion system' > /home/$USERNAME/.zshrc && \
+RUN echo '# Ensure mise tools are available in all contexts' > /home/$USERNAME/.zshrc && \
+    echo '# Source .zshenv to get PATH setup if not already done' >> /home/$USERNAME/.zshrc && \
+    echo 'if [[ ! "$PATH" =~ "$HOME/.local/bin" ]]; then' >> /home/$USERNAME/.zshrc && \
+    echo '    source ~/.zshenv' >> /home/$USERNAME/.zshrc && \
+    echo 'fi' >> /home/$USERNAME/.zshrc && \
+    echo '' >> /home/$USERNAME/.zshrc && \
+    echo '# Zsh completion system' >> /home/$USERNAME/.zshrc && \
     echo 'autoload -Uz compinit' >> /home/$USERNAME/.zshrc && \
     echo 'compinit' >> /home/$USERNAME/.zshrc && \
     echo '' >> /home/$USERNAME/.zshrc && \
     echo '# Basic aliases' >> /home/$USERNAME/.zshrc && \
     echo "alias apt-get='apt-fast'" >> /home/$USERNAME/.zshrc && \
     echo '' >> /home/$USERNAME/.zshrc && \
-    echo '# Path configuration (mise binaries)' >> /home/$USERNAME/.zshrc && \
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/$USERNAME/.zshrc && \
-    echo '' >> /home/$USERNAME/.zshrc && \
     echo '# Mise activation (tool management)' >> /home/$USERNAME/.zshrc && \
-    echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >> /home/$USERNAME/.zshrc
+    echo 'if [ -f "$HOME/.local/bin/mise" ]; then' >> /home/$USERNAME/.zshrc && \
+    echo '    eval "$($HOME/.local/bin/mise activate zsh)"' >> /home/$USERNAME/.zshrc && \
+    echo 'fi' >> /home/$USERNAME/.zshrc
 
 # Also set up .zshenv for non-interactive shells
 RUN echo '# Path configuration for non-interactive shells' > /home/$USERNAME/.zshenv && \

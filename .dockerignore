@@ -1,0 +1,74 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# GitHub specific
+.github/
+CONTRIBUTING.md
+ISSUE_TEMPLATE.md
+PULL_REQUEST_TEMPLATE.md
+
+# Documentation
+README.md
+LICENSE
+*.md
+docs/
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build artifacts
+*.log
+*.tmp
+*.temp
+.cache/
+dist/
+build/
+
+# Test files
+test/
+tests/
+*_test.go
+*_test.py
+*.test.js
+*.spec.js
+coverage/
+.coverage
+.pytest_cache/
+
+# Docker files we don't need in context
+docker-compose*.yml
+.dockerignore
+
+# Development files
+.env
+.env.local
+.env.*.local
+node_modules/
+*.pyc
+__pycache__/
+
+# DevContainer specific
+.devcontainer/
+
+# Project specific
+devcontainer-guide.md

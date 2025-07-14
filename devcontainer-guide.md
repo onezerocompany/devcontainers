@@ -93,21 +93,32 @@ The entire development environment is defined in:
 
 ### Basic devcontainer.json
 
+With our optimized DevContainer images, you only need minimal configuration:
+
 ```json
 {
   "name": "My Project",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {}
-  },
-  "postCreateCommand": "npm install",
-  "customizations": {
-    "vscode": {
-      "extensions": ["dbaeumer.vscode-eslint"]
-    }
-  }
+  "image": "ghcr.io/onezerocompany/devcontainer:latest",
+  "remoteUser": "zero"
 }
 ```
+
+Or for Docker-in-Docker support:
+
+```json
+{
+  "name": "My Project",
+  "image": "ghcr.io/onezerocompany/devcontainer:dind",
+  "remoteUser": "zero"
+}
+```
+
+That's it! The image includes:
+- Zsh with Starship prompt (works automatically in VS Code)
+- Modern CLI tools (bat, eza, zoxide, fzf)
+- Tool version management via mise
+- Node.js LTS pre-installed
+- Git and development essentials
 
 ### Advanced Configuration
 

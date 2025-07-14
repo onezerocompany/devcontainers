@@ -92,6 +92,11 @@ RUN echo '' >> ~/.zshrc && \
     echo '# Mise tools alias' >> ~/.zshrc && \
     echo 'alias tools="mise ls --current"' >> ~/.zshrc && \
     echo '' >> ~/.zshrc && \
+    echo '# Ensure mise tools are in PATH for non-login shells' >> ~/.zshrc && \
+    echo 'if [[ ! "$PATH" =~ "$HOME/.local/bin" ]]; then' >> ~/.zshrc && \
+    echo '    source ~/.zshenv' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
     echo '# Initialize starship prompt (must be last)' >> ~/.zshrc && \
     echo 'if command -v starship >/dev/null 2>&1; then' >> ~/.zshrc && \
     echo '    eval "$(starship init zsh)"' >> ~/.zshrc && \
@@ -155,6 +160,11 @@ RUN echo '' >> ~/.zshrc && \
     echo '' >> ~/.zshrc && \
     echo '# Mise tools alias' >> ~/.zshrc && \
     echo 'alias tools="mise ls --current"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Ensure mise tools are in PATH for non-login shells' >> ~/.zshrc && \
+    echo 'if [[ ! "$PATH" =~ "$HOME/.local/bin" ]]; then' >> ~/.zshrc && \
+    echo '    source ~/.zshenv' >> ~/.zshrc && \
+    echo 'fi' >> ~/.zshrc && \
     echo '' >> ~/.zshrc && \
     echo '# Initialize starship prompt (must be last)' >> ~/.zshrc && \
     echo 'if command -v starship >/dev/null 2>&1; then' >> ~/.zshrc && \
