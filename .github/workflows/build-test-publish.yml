@@ -226,7 +226,7 @@ jobs:
           # Check if other expected tools are available - source .zprofile explicitly
           docker exec test-container zsh -l -c "source ~/.zprofile && which starship"
           docker exec test-container zsh -l -c "source ~/.zprofile && which eza"
-          docker exec test-container zsh -l -c "source ~/.zprofile && which batcat"
+          docker exec test-container zsh -l -c "source ~/.zprofile && which bat"
           docker exec test-container zsh -l -c "source ~/.zprofile && which zoxide"
           
           # Clean up
