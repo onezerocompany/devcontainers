@@ -80,20 +80,18 @@ RUN chsh -s /bin/zsh && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 # Create a minimal .zshrc with just the essentials
-RUN cat > /home/$USERNAME/.zshrc << 'EOF'
-# Zsh completion system
-autoload -Uz compinit
-compinit
-
-# Basic aliases
-alias apt-get='apt-fast'
-
-# Path configuration (mise binaries)
-export PATH="$HOME/.local/bin:$PATH"
-
-# Mise activation (tool management)
-eval "$($HOME/.local/bin/mise activate zsh)"
-EOF
+RUN echo '# Zsh completion system' > /home/$USERNAME/.zshrc && \
+    echo 'autoload -Uz compinit' >> /home/$USERNAME/.zshrc && \
+    echo 'compinit' >> /home/$USERNAME/.zshrc && \
+    echo '' >> /home/$USERNAME/.zshrc && \
+    echo '# Basic aliases' >> /home/$USERNAME/.zshrc && \
+    echo "alias apt-get='apt-fast'" >> /home/$USERNAME/.zshrc && \
+    echo '' >> /home/$USERNAME/.zshrc && \
+    echo '# Path configuration (mise binaries)' >> /home/$USERNAME/.zshrc && \
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/$USERNAME/.zshrc && \
+    echo '' >> /home/$USERNAME/.zshrc && \
+    echo '# Mise activation (tool management)' >> /home/$USERNAME/.zshrc && \
+    echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >> /home/$USERNAME/.zshrc
 
 RUN chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
 
