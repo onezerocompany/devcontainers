@@ -223,11 +223,11 @@ jobs:
           # Check if mise is available
           docker exec test-container zsh -l -c "which mise"
           
-          # Check if other expected tools are available
-          docker exec test-container zsh -l -c "which starship"
-          docker exec test-container zsh -l -c "which eza"
-          docker exec test-container zsh -l -c "which batcat"
-          docker exec test-container zsh -l -c "which zoxide"
+          # Check if other expected tools are available - source .zprofile explicitly
+          docker exec test-container zsh -l -c "source ~/.zprofile && which starship"
+          docker exec test-container zsh -l -c "source ~/.zprofile && which eza"
+          docker exec test-container zsh -l -c "source ~/.zprofile && which batcat"
+          docker exec test-container zsh -l -c "source ~/.zprofile && which zoxide"
           
           # Clean up
           docker stop test-container
@@ -261,9 +261,9 @@ jobs:
           # Verify tools are installed
           docker exec test-mise zsh -l -c "cd /workspace && mise ls"
           
-          # Test that tools are available
-          docker exec test-mise zsh -l -c "cd /workspace && node --version"
-          docker exec test-mise zsh -l -c "cd /workspace && python --version"
+          # Test that tools are available - source .zprofile explicitly
+          docker exec test-mise zsh -l -c "cd /workspace && source ~/.zprofile && node --version"
+          docker exec test-mise zsh -l -c "cd /workspace && source ~/.zprofile && python --version"
           
           # Clean up
           docker stop test-mise
