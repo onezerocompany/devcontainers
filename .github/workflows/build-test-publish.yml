@@ -160,22 +160,22 @@ jobs:
             test: |
               # Set up mise in non-interactive shell
               export PATH="$HOME/.local/bin:$PATH"
-              eval "$(~/.local/bin/mise activate bash)"
               
-              # Mise should be available
+              # First check if mise is available
+              if ! command -v mise &> /dev/null; then
+                echo "ERROR: mise not found in PATH"
+                exit 1
+              fi
+              
+              # Activate mise
+              eval "$(mise activate bash)"
+              
+              # Verify critical tools work
               mise --version
-              
-              # Node should be available through mise (this is the critical one)
               node --version
               npm --version
               
-              # Show what tools mise is managing
-              echo "=== Mise managed tools ==="
-              mise list
-              
-              # The other tools might need their shims loaded differently
-              # For now, we just verify mise and node work correctly
-              echo "✅ Essential tools (mise, node, npm) are working"
+              echo "✅ Tool management working correctly"
 
           - name: "File Permissions"
             test: |
