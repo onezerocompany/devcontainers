@@ -139,7 +139,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-standard
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
-          target: standard
+          build-args: |
+            DIND=false
 
   # Build the devcontainer dind image
   build-devcontainer-dind:
@@ -180,7 +181,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-dind
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
-          target: dind
+          build-args: |
+            DIND=true
 
   # Test all devcontainer functionality
   test-devcontainer:

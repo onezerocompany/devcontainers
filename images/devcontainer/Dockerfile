@@ -13,7 +13,7 @@ ARG DIND=false
 USER root
 
 # Copy vscode-kit
-COPY vscode-kit /usr/local/bin/vscode-kit
+COPY scripts/vscode-kit.sh /usr/local/bin/vscode-kit
 RUN chmod +x /usr/local/bin/vscode-kit && \
     vscode-kit install
 
