@@ -93,7 +93,16 @@ RUN echo '# Zsh completion system' > /home/$USERNAME/.zshrc && \
     echo '# Mise activation (tool management)' >> /home/$USERNAME/.zshrc && \
     echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >> /home/$USERNAME/.zshrc
 
-RUN chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
+# Also set up .zshenv for non-interactive shells
+RUN echo '# Path configuration for non-interactive shells' > /home/$USERNAME/.zshenv && \
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/$USERNAME/.zshenv && \
+    echo '' >> /home/$USERNAME/.zshenv && \
+    echo '# Source mise env for non-interactive shells' >> /home/$USERNAME/.zshenv && \
+    echo 'if [ -f "$HOME/.local/bin/mise" ]; then' >> /home/$USERNAME/.zshenv && \
+    echo '    eval "$($HOME/.local/bin/mise activate zsh --shims)"' >> /home/$USERNAME/.zshenv && \
+    echo 'fi' >> /home/$USERNAME/.zshenv
+
+RUN chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc /home/$USERNAME/.zshenv
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
