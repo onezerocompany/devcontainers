@@ -102,7 +102,16 @@ RUN echo '# Path configuration for non-interactive shells' > /home/$USERNAME/.zs
     echo '    eval "$($HOME/.local/bin/mise activate zsh --shims)"' >> /home/$USERNAME/.zshenv && \
     echo 'fi' >> /home/$USERNAME/.zshenv
 
-RUN chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc /home/$USERNAME/.zshenv
+# Also set up .zprofile for login shells
+RUN echo '# Path configuration for login shells' > /home/$USERNAME/.zprofile && \
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/$USERNAME/.zprofile && \
+    echo '' >> /home/$USERNAME/.zprofile && \
+    echo '# Source mise env for login shells' >> /home/$USERNAME/.zprofile && \
+    echo 'if [ -f "$HOME/.local/bin/mise" ]; then' >> /home/$USERNAME/.zprofile && \
+    echo '    eval "$($HOME/.local/bin/mise activate zsh --shims)"' >> /home/$USERNAME/.zprofile && \
+    echo 'fi' >> /home/$USERNAME/.zprofile
+
+RUN chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc /home/$USERNAME/.zshenv /home/$USERNAME/.zprofile
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
