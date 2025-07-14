@@ -1,8 +1,8 @@
 ARG DIND=false
 ARG BASE_IMAGE_REGISTRY=ghcr.io/onezerocompany
-ARG BASE_IMAGE_NAME=base
+ARG BASE_IMAGE_NAME=devcontainer
 
-# Use base:dind if DIND=true, otherwise use base:base
+# Use devcontainer:dind if DIND=true, otherwise use devcontainer:base
 FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:base AS base-image-false
 FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:dind AS base-image-true
 FROM base-image-${DIND} AS devcontainer
@@ -24,8 +24,9 @@ COPY scripts/motd-gen.sh /tmp/motd-gen.sh
 # Copy configuration scripts
 COPY scripts/configure-shells.sh /tmp/configure-shells.sh
 
-# Generate MOTD
-RUN /tmp/motd-gen.sh > /etc/motd && \
+# Generate MOTD and set permissions
+RUN chmod +x /tmp/configure-shells.sh && \
+    /tmp/motd-gen.sh > /etc/motd && \
     chmod 644 /etc/motd && \
     rm /tmp/motd-gen.sh
 
@@ -68,12 +69,13 @@ RUN mkdir -p /home/zero/.config && \
     if [ -f /etc/skel/.config/starship.toml ]; then \
         cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml; \
     fi && \
-    chmod +x /tmp/configure-shells.sh && \
-    /tmp/configure-shells.sh && \
-    rm /tmp/configure-shells.sh
+    bash /tmp/configure-shells.sh
 
 # Create wrapper script for DIND that calls both entrypoints
 USER root
+RUN rm -f /tmp/configure-shells.sh
+
+# Configure entrypoint based on variant
 RUN if [ "${DIND}" = "true" ]; then \
         echo '#!/bin/sh' > /usr/local/bin/entrypoint && \
         echo '# Start supervisor for Docker daemon' >> /usr/local/bin/entrypoint && \
