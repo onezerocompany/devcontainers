@@ -36,16 +36,8 @@ fi
 
 USERNAME="${USERNAME:-zero}"
 
-# Start Docker daemon for DIND variant if needed
-if [ -f /etc/supervisor/supervisord.conf ] && ! pgrep -x dockerd >/dev/null; then
-    echo "🐳 Starting Docker daemon..."
-    sudo /usr/bin/supervisord -c /etc/supervisor/supervisord.conf -n >> /dev/null 2>&1 &
-    # Wait for Docker to be ready
-    while ! docker version >/dev/null 2>&1; do
-        sleep 1
-    done
-    echo "✅ Docker daemon started"
-fi
+# Note: Docker daemon is not started automatically in DIND variant
+# Users should start it manually or use docker compose with appropriate settings
 
 # Main initialization
 echo "🚀 Initializing devcontainer..."
