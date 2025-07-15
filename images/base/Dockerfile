@@ -42,6 +42,10 @@ RUN mkdir -p /home/$USERNAME/.local/bin && \
     mkdir -p /home/$USERNAME/.local/share && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
+# Copy unified entrypoint as root
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 WORKDIR /home/$USERNAME
 USER $USERNAME
 
@@ -64,10 +68,6 @@ RUN for i in 1 2 3; do \
     done
 
 RUN touch ~/.sudo_as_admin_successful
-
-# Copy unified entrypoint
-COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Standard stage - no Docker-in-Docker
 FROM base AS standard
