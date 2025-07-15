@@ -33,6 +33,7 @@ RUN set -ex && \
     chmod 644 /etc/motd && \
     # Keep configure-shells.sh for later user execution
     mv /tmp/devcontainer-scripts/configure-shells.sh /tmp/configure-shells.sh && \
+    chown ${USERNAME}:${USERNAME} /tmp/configure-shells.sh && \
     # Clean up remaining scripts
     rm -rf /tmp/devcontainer-scripts
 
