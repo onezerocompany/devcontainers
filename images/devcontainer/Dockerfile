@@ -1,104 +1,55 @@
-ARG DIND=false
 ARG BASE_IMAGE_REGISTRY=ghcr.io/onezerocompany
-ARG BASE_IMAGE_NAME=devcontainer
+ARG BASE_IMAGE_NAME=base
+ARG BASE_IMAGE_TAG=latest
 
-# Use devcontainer:dind if DIND=true, otherwise use devcontainer:base
-FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:base AS base-image-false
-FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:dind AS base-image-true
-FROM base-image-${DIND} AS devcontainer
+# Select tag based on DIND argument (set BASE_IMAGE_TAG at build time)
+FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
 # Re-declare ARG after FROM to use it in the build
 ARG DIND=false
+ARG USERNAME=zero
 
 USER root
 
-# Copy vscode-kit
-COPY scripts/vscode-kit.sh /usr/local/bin/vscode-kit
-RUN chmod +x /usr/local/bin/vscode-kit && \
-    vscode-kit install
+# Copy all scripts at once for better layer caching
+COPY scripts/ /tmp/devcontainer-scripts/
 
-# Copy utility scripts and configs
-COPY starship.toml /etc/skel/.config/starship.toml
-COPY scripts/motd-gen.sh /tmp/motd-gen.sh
-
-# Copy configuration scripts
-COPY scripts/configure-shells.sh /tmp/configure-shells.sh
-
-# Generate MOTD and set permissions
-RUN chmod +x /tmp/configure-shells.sh && \
-    /tmp/motd-gen.sh > /etc/motd && \
+# Run all setup scripts and installations in a single layer
+RUN set -ex && \
+    # Make all scripts executable
+    chmod -R +x /tmp/devcontainer-scripts/ && \
+    # Run sandbox setup
+    /tmp/devcontainer-scripts/setup-sandbox.sh && \
+    # Install scripts to proper locations
+    mv /tmp/devcontainer-scripts/init-sandbox.sh /usr/local/bin/init-sandbox && \
+    mv /tmp/devcontainer-scripts/vscode-kit.sh /usr/local/bin/vscode-kit && \
+    mv /tmp/devcontainer-scripts/entrypoint.sh /usr/local/bin/devcontainer-entrypoint && \
+    mv /tmp/devcontainer-scripts/hooks/post-create.sh /usr/local/bin/post-create && \
+    mv /tmp/devcontainer-scripts/hooks/post-attach.sh /usr/local/bin/post-attach && \
+    # Install vscode-kit
+    vscode-kit install && \
+    # Generate MOTD
+    /tmp/devcontainer-scripts/motd-gen.sh > /etc/motd && \
     chmod 644 /etc/motd && \
-    rm /tmp/motd-gen.sh
+    # Keep configure-shells.sh for later user execution
+    mv /tmp/devcontainer-scripts/configure-shells.sh /tmp/configure-shells.sh && \
+    # Clean up remaining scripts
+    rm -rf /tmp/devcontainer-scripts
 
-# Standard variant specific setup
-RUN if [ "${DIND}" != "true" ]; then \
-        echo "Setting up standard variant..." && \
-        # Only install packages not in base
-        apt-get update && apt-get install -y \
-            ipset \
-            dnsutils \
-            libcap2-bin && \
-        apt-get clean && \
-        rm -rf /var/lib/apt/lists/*; \
-    fi
+# Switch to user for user-specific setup
+USER ${USERNAME}
 
-# Copy and run sandbox setup for standard variant only
-COPY scripts/setup-sandbox.sh /tmp/
-RUN if [ "${DIND}" != "true" ] && [ -f /tmp/setup-sandbox.sh ]; then \
-        bash /tmp/setup-sandbox.sh && \
-        rm /tmp/setup-sandbox.sh; \
-    elif [ -f /tmp/setup-sandbox.sh ]; then \
-        rm /tmp/setup-sandbox.sh; \
-    fi
+# Copy starship config and set up user environment
+COPY --chown=${USERNAME}:${USERNAME} starship.toml /home/${USERNAME}/.config/starship.toml
+RUN bash /tmp/configure-shells.sh && rm -f /tmp/configure-shells.sh
 
-# For DIND variant, we need to handle entrypoint carefully
-# Copy devcontainer entrypoint but preserve DIND functionality
-COPY scripts/entrypoint.sh /usr/local/bin/devcontainer-entrypoint
-RUN chmod +x /usr/local/bin/devcontainer-entrypoint
-
-# Copy vscode hooks
-COPY scripts/hooks/post-create.sh /usr/local/bin/post-create
-COPY scripts/hooks/post-attach.sh /usr/local/bin/post-attach
-RUN chmod +x /usr/local/bin/post-create /usr/local/bin/post-attach
-
-# Switch to zero user for remaining setup
-USER zero
-
-# Set up user environment
-RUN mkdir -p /home/zero/.config && \
-    if [ -f /etc/skel/.config/starship.toml ]; then \
-        cp /etc/skel/.config/starship.toml /home/zero/.config/starship.toml; \
-    fi && \
-    bash /tmp/configure-shells.sh
-
-# Create wrapper script for DIND that calls both entrypoints
+# Switch back to root for final steps
 USER root
-RUN rm -f /tmp/configure-shells.sh
 
-# Configure entrypoint based on variant
-RUN if [ "${DIND}" = "true" ]; then \
-        echo '#!/bin/sh' > /usr/local/bin/entrypoint && \
-        echo '# Start supervisor for Docker daemon' >> /usr/local/bin/entrypoint && \
-        echo 'sudo /usr/bin/supervisord -c /etc/supervisor/supervisord.conf -n >> /dev/null 2>&1 &' >> /usr/local/bin/entrypoint && \
-        echo '' >> /usr/local/bin/entrypoint && \
-        echo '# Wait for Docker to start' >> /usr/local/bin/entrypoint && \
-        echo 'echo "Starting docker..."' >> /usr/local/bin/entrypoint && \
-        echo 'while ! pgrep "dockerd" >/dev/null; do' >> /usr/local/bin/entrypoint && \
-        echo '  sleep 1' >> /usr/local/bin/entrypoint && \
-        echo 'done' >> /usr/local/bin/entrypoint && \
-        echo '' >> /usr/local/bin/entrypoint && \
-        echo '# Fix Docker socket permissions' >> /usr/local/bin/entrypoint && \
-        echo 'sudo chown zero:zero /var/run/docker.sock 2>/dev/null || true' >> /usr/local/bin/entrypoint && \
-        echo '' >> /usr/local/bin/entrypoint && \
-        echo '# Run devcontainer initialization' >> /usr/local/bin/entrypoint && \
-        echo 'exec /usr/local/bin/devcontainer-entrypoint "$@"' >> /usr/local/bin/entrypoint && \
-        chmod +x /usr/local/bin/entrypoint; \
-    else \
-        # For standard variant, use devcontainer entrypoint directly
-        ln -sf /usr/local/bin/devcontainer-entrypoint /usr/local/bin/entrypoint; \
-    fi
+# Use devcontainer entrypoint for all variants (it handles DIND internally)
+RUN ln -sf /usr/local/bin/devcontainer-entrypoint /usr/local/bin/entrypoint
 
-USER zero
+USER ${USERNAME}
 
 # Use the unified entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

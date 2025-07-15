@@ -77,8 +77,11 @@ docker buildx version
 curl -L "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
 chmod +x /usr/local/bin/docker-compose && docker-compose version
 
-# Make sure zero is allowed to run docker-compose
-chown zero:zero /usr/local/bin/docker-compose
+# Get username from environment or default to zero
+USERNAME="${USERNAME:-zero}"
+
+# Make sure the user is allowed to run docker-compose
+chown ${USERNAME}:${USERNAME} /usr/local/bin/docker-compose
 
 # Create a symlink to the docker binary in /usr/local/lib/docker/cli-plugins
 # for users which uses 'docker compose' instead of 'docker-compose'
@@ -88,6 +91,6 @@ ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-com
 groupadd docker
 
 # add user to docker group
-usermod -aG docker zero
+usermod -aG docker ${USERNAME}
 
 newgrp docker

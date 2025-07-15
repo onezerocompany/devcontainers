@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# Simple colored banner
-BANNER="\033[35m ██████╗ ███╗   ██╗███████╗███████╗███████╗██████╗  ██████╗ 
+# Generate MOTD with colored banner
+cat << 'EOF'
+
+ ██████╗ ███╗   ██╗███████╗███████╗███████╗██████╗  ██████╗ 
 ██╔═══██╗████╗  ██║██╔════╝╚══███╔╝██╔════╝██╔══██╗██╔═══██╗
 ██║   ██║██╔██╗ ██║█████╗    ███╔╝ █████╗  ██████╔╝██║   ██║
 ██║   ██║██║╚██╗██║██╔══╝   ███╔╝  ██╔══╝  ██╔══██╗██║   ██║
 ╚██████╔╝██║ ╚████║███████╗███████╗███████╗██║  ██║╚██████╔╝
- ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝\033[0m"
+ ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝
 
-printf "\n$BANNER\n"
-# reset colors and styles
-printf "\033[0m"
-printf "\nThis is a OneZero Company development container\n"
-printf "\nRun 'tools' to see installed development tools\n"
-printf "Run 'mise ls-remote' to see available tools\n"
+This is a OneZero Company development container
+
+Run 'tools' to see installed development tools
+Run 'mise ls-remote' to see available tools
+EOF

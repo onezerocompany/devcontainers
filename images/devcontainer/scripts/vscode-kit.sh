@@ -1,11 +1,13 @@
 #!/bin/bash
 
-if [ -f ~/.bashrc ]; then
-  source ~/.bashrc
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/../../base/scripts/common-utils.sh" ]; then
+    source "$SCRIPT_DIR/../../base/scripts/common-utils.sh"
 fi
 
 USER=${USER:-zero}
-INSTALL_DIR=${INSTALL_DIR:-/home/zero/.vscode-install}
+INSTALL_DIR=${INSTALL_DIR:-/home/${USER}/.vscode-install}
 WORKSPACE_DIR=${WORKSPACE_DIR:-/workspaces}
 VSCODE_SERVER_DIR=${VSCODE_SERVER_DIR:-~/.vscode-server}
 EXTENSION_DIR=${EXTENSION_DIR:-~/.vscode-server/extensions}
@@ -29,13 +31,7 @@ if [ "$arch" == "unsupported" ]; then
   exit 1
 fi
 
-wait_for_docker() {
-  echo "Waiting for Docker to start..."
-  while [ ! -e /var/run/docker.sock ]; do
-    sleep 1
-  done
-  echo "Docker started."
-}
+# wait_for_docker is available from common-utils.sh
 
 install() {
   echo "Installing vscode and vscode-web tools for $arch..."
@@ -52,9 +48,9 @@ install() {
     echo "vscode-cli installed at $INSTALL_DIR/code"
   fi
 
-  # Add to zsh and bash path
-  echo "export PATH=\$PATH:$INSTALL_DIR/code" >> /home/$USER/.zshrc
-  echo "export PATH=\$PATH:$INSTALL_DIR/code" >> /home/$USER/.bashrc
+  # Add code directory to PATH
+  add_to_path "$INSTALL_DIR/code"
+  configure_path  # This ensures .local/bin is in PATH for all shells
 
   mkdir -p $INSTALL_DIR/vscode-server
 
@@ -69,17 +65,17 @@ install() {
     echo "vscode-server installed at $INSTALL_DIR/vscode-server"
   fi
 
-  # Add to zsh and bash path
-  echo "export PATH=\$PATH:$INSTALL_DIR/vscode-server/bin" >> /home/$USER/.zshrc
-  echo "export PATH=\$PATH:$INSTALL_DIR/vscode-server/bin" >> /home/$USER/.bashrc
+  # Add vscode-server bin directory to PATH
+  add_to_path "$INSTALL_DIR/vscode-server/bin"
 
 }
 
 
 setup() {
-
-  # Wait for Docker to start
-  wait_for_docker
+  # Wait for Docker to start if needed
+  if [ -S "/var/run/docker.sock" ]; then
+    wait_for_docker
+  fi
 
   # Wait for workspace to be mounted
   while [ ! -d $WORKSPACE_DIR ]; do

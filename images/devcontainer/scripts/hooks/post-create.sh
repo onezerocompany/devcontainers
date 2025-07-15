@@ -17,16 +17,5 @@ elif [ -f ".mise.toml" ]; then
     echo "⚠️  mise not found, skipping project tool installation"
 fi
 
-# Clear the terminal for a clean start (only if TERM is properly set)
-if [ -n "$TERM" ] && [ "$TERM" != "dumb" ]; then
-    clear
-fi
-
 # The MOTD will be displayed when the shell starts
 echo "✨ DevContainer is ready!"
-echo ""
-echo "Opening a new terminal session..."
-echo ""
-
-# Small delay to ensure everything is loaded
-sleep 1

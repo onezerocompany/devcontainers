@@ -31,11 +31,11 @@ RUN groupadd --gid $USER_GID $USERNAME && \
     echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
 # Set up shell configurations for both bash and zsh
-COPY scripts/setup-shell-config.sh /tmp/
-RUN chmod +x /tmp/setup-shell-config.sh && \
-    /tmp/setup-shell-config.sh $USERNAME && \
-    rm /tmp/setup-shell-config.sh && \
-    chown -R $USERNAME:$USERNAME /home/$USERNAME
+COPY scripts/configure-shells.sh /tmp/
+RUN chmod +x /tmp/configure-shells.sh && \
+    /tmp/configure-shells.sh $USERNAME && \
+    rm /tmp/configure-shells.sh
+
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
@@ -47,8 +47,10 @@ RUN curl -fsSL https://mise.run | sh
 RUN mkdir -p ~/.cache/mise && \
     mkdir -p ~/.local/share/mise
 
-# Copy global mise configuration and install tools
-COPY --chown=$USERNAME:$USERNAME mise-global.toml /home/$USERNAME/.mise.toml
+# Copy mise configuration
+COPY --chown=$USERNAME:$USERNAME .mise.toml /home/$USERNAME/.mise.toml
+
+# Install tools using mise configuration
 # Add retry logic for mise install to handle network timeouts
 RUN for i in 1 2 3; do \
         echo "Attempt $i: Installing mise tools..." && \
@@ -58,8 +60,13 @@ RUN for i in 1 2 3; do \
 
 RUN touch ~/.sudo_as_admin_successful
 
+# Copy unified entrypoint
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Standard stage - no Docker-in-Docker
 FROM base AS standard
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/bin/zsh"]
 
 # Docker-in-Docker stage
@@ -72,9 +79,8 @@ COPY scripts/install-docker.sh /tmp/
 RUN bash /tmp/install-docker.sh && rm /tmp/install-docker.sh
 
 # Copy Docker-related files
-COPY scripts/modprobe scripts/entrypoint.sh /usr/local/bin/ 
-RUN chmod +x /usr/local/bin/entrypoint.sh \
-	/usr/local/bin/modprobe
+COPY scripts/modprobe /usr/local/bin/ 
+RUN chmod +x /usr/local/bin/modprobe
 
 # Copy supervisor configuration
 COPY supervisor/ /etc/supervisor/conf.d/
@@ -85,6 +91,7 @@ VOLUME /var/lib/docker
 # Switch back to the configured user
 USER $USERNAME
 
-# Set Docker-specific entrypoint
-ENTRYPOINT ["entrypoint.sh"]
+# Set Docker-specific entrypoint with DIND flag
+ENV IS_DIND=true
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/bin/zsh"]

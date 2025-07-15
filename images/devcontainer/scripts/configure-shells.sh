@@ -3,6 +3,13 @@ set -e
 
 echo "Configuring shells for devcontainer..."
 
+# Check if configuration already exists to avoid duplicates
+if grep -q "DevContainer specific configuration" ~/.zshrc 2>/dev/null || 
+   grep -q "DevContainer specific configuration" ~/.bashrc 2>/dev/null; then
+    echo "Shell configuration already applied."
+    exit 0
+fi
+
 # DevContainer-specific configuration that will be appended to existing shell configs
 DEVCONTAINER_CONFIG='
 # DevContainer specific configuration
@@ -48,18 +55,18 @@ if command -v starship >/dev/null 2>&1; then
 fi
 '
 
-# Append to .zshrc if it exists
-if [ -f ~/.zshrc ]; then
-    echo "" >> ~/.zshrc
-    echo "$DEVCONTAINER_CONFIG" >> ~/.zshrc
-    echo "Updated .zshrc with devcontainer configuration"
-fi
+# Function to append config to shell file
+append_to_shell_config() {
+    local shell_file="$1"
+    if [ -f "$shell_file" ]; then
+        echo "" >> "$shell_file"
+        echo "$DEVCONTAINER_CONFIG" >> "$shell_file"
+        echo "Updated $(basename "$shell_file") with devcontainer configuration"
+    fi
+}
 
-# Append to .bashrc if it exists
-if [ -f ~/.bashrc ]; then
-    echo "" >> ~/.bashrc
-    echo "$DEVCONTAINER_CONFIG" >> ~/.bashrc
-    echo "Updated .bashrc with devcontainer configuration"
-fi
+# Apply to both shells
+append_to_shell_config ~/.zshrc
+append_to_shell_config ~/.bashrc
 
 echo "Shell configuration complete."

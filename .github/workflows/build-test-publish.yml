@@ -140,6 +140,9 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
           build-args: |
+            BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
+            BASE_IMAGE_NAME=${{ github.repository_owner }}/devcontainer
+            BASE_IMAGE_TAG=base
             DIND=false
 
   # Build the devcontainer dind image
@@ -182,6 +185,9 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
           build-args: |
+            BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
+            BASE_IMAGE_NAME=${{ github.repository_owner }}/devcontainer
+            BASE_IMAGE_TAG=dind
             DIND=true
 
   # Test all devcontainer functionality
@@ -199,6 +205,8 @@ jobs:
             test-type: startup
           - variant: standard
             test-type: mise-tools
+          - variant: dind
+            test-type: docker-in-docker
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -270,3 +278,28 @@ jobs:
           # Clean up
           docker stop test-mise
           rm test-mise.toml
+
+      - name: Test Docker-in-Docker functionality
+        if: matrix.test-type == 'docker-in-docker'
+        run: |
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
+          
+          echo "Testing Docker-in-Docker functionality in $IMAGE_TAG"
+          
+          # Run container with privileged mode for DIND
+          docker run --rm -d --name test-dind --privileged $IMAGE_TAG
+          
+          # Wait for container and Docker daemon to start
+          sleep 10
+          
+          # Verify Docker is running inside the container
+          docker exec test-dind docker version
+          
+          # Test running a container inside the container
+          docker exec test-dind docker run --rm hello-world
+          
+          # Verify Docker socket permissions are correct
+          docker exec test-dind zsh -l -c "ls -la /var/run/docker.sock"
+          
+          # Clean up
+          docker stop test-dind

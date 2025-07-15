@@ -2,10 +2,20 @@
 
 USERNAME="${USERNAME:-zero}"
 
+# Install packages required for sandbox functionality
+echo "Installing sandbox packages..."
+apt-get update
+apt-get install -y \
+    ipset \
+    dnsutils \
+    libcap2-bin
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+
 # Create directory for scripts
 mkdir -p /usr/local/share/sandbox
 
-# Create the firewall initialization script
+# Create the firewall initialization script that will be called by init-sandbox
 cat > /usr/local/share/sandbox/init-firewall.sh << 'EOF'
 #!/bin/bash
 set -euo pipefail

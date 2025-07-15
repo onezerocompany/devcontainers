@@ -58,4 +58,17 @@ COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib
 
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
 
+# Create an entrypoint that initializes sandbox before running actions
+RUN echo '#!/bin/bash' > /usr/local/bin/runner-entrypoint && \
+    echo '# Initialize sandbox if available' >> /usr/local/bin/runner-entrypoint && \
+    echo 'if [ -x "/usr/local/bin/init-sandbox" ]; then' >> /usr/local/bin/runner-entrypoint && \
+    echo '    /usr/local/bin/init-sandbox' >> /usr/local/bin/runner-entrypoint && \
+    echo 'fi' >> /usr/local/bin/runner-entrypoint && \
+    echo '' >> /usr/local/bin/runner-entrypoint && \
+    echo '# Execute the command or run the runner' >> /usr/local/bin/runner-entrypoint && \
+    echo 'exec "$@"' >> /usr/local/bin/runner-entrypoint && \
+    chmod +x /usr/local/bin/runner-entrypoint
+
 USER runner
+
+ENTRYPOINT ["/usr/local/bin/runner-entrypoint"]
