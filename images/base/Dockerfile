@@ -36,6 +36,11 @@ RUN chmod +x /tmp/configure-shells.sh && \
     /tmp/configure-shells.sh $USERNAME && \
     rm /tmp/configure-shells.sh /tmp/common-utils.sh
 
+# Create necessary directories for the user before switching
+RUN mkdir -p /home/$USERNAME/.local/bin && \
+    mkdir -p /home/$USERNAME/.cache && \
+    mkdir -p /home/$USERNAME/.local/share && \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
