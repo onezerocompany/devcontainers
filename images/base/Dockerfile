@@ -31,10 +31,10 @@ RUN groupadd --gid $USER_GID $USERNAME && \
     echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
 # Set up shell configurations for both bash and zsh
-COPY scripts/configure-shells.sh /tmp/
+COPY scripts/configure-shells.sh scripts/common-utils.sh /tmp/
 RUN chmod +x /tmp/configure-shells.sh && \
     /tmp/configure-shells.sh $USERNAME && \
-    rm /tmp/configure-shells.sh
+    rm /tmp/configure-shells.sh /tmp/common-utils.sh
 
 
 WORKDIR /home/$USERNAME
