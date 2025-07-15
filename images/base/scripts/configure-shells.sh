@@ -87,11 +87,8 @@ EOF
 
     # Create .zshrc
     cat > "$HOME_DIR/.zshrc" << 'EOF'
-# Ensure mise tools are available in all contexts
-# Source .zshenv to get PATH setup if not already done
-if [[ ! "$PATH" =~ "$HOME/.local/bin" ]]; then
-    source ~/.zshenv
-fi
+# Ensure PATH includes .local/bin for mise
+export PATH="$HOME/.local/bin:$PATH"
 
 # Zsh completion system
 autoload -Uz compinit
@@ -103,6 +100,8 @@ alias apt-get='apt-fast'
 # Mise activation (tool management)
 if [ -f "$HOME/.local/bin/mise" ]; then
     eval "$($HOME/.local/bin/mise activate zsh)"
+    # Also ensure shims are in PATH for installed tools
+    eval "$($HOME/.local/bin/mise activate zsh --shims)"
 fi
 EOF
 

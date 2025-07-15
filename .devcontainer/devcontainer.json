@@ -16,8 +16,6 @@
     }
   },
 
-  // Run the post-attach script after VS Code connects
-  "postAttachCommand": "post-attach",
 
   // Optional: Enable sandbox mode
   "containerEnv": {

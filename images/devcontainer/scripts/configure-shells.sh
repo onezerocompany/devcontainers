@@ -3,16 +3,19 @@ set -e
 
 echo "Configuring shells for devcontainer..."
 
-# Check if configuration already exists to avoid duplicates
-if grep -q "DevContainer specific configuration" ~/.zshrc 2>/dev/null || 
-   grep -q "DevContainer specific configuration" ~/.bashrc 2>/dev/null; then
-    echo "Shell configuration already applied."
+# Check if starship initialization already exists (more specific check)
+if grep -q "starship init" ~/.zshrc 2>/dev/null && 
+   grep -q "starship init" ~/.bashrc 2>/dev/null; then
+    echo "Starship configuration already applied."
     exit 0
 fi
 
 # DevContainer-specific configuration that will be appended to existing shell configs
 DEVCONTAINER_CONFIG='
 # DevContainer specific configuration
+# Ensure mise tools are in PATH first
+export PATH="$HOME/.local/bin:$PATH"
+
 # Display MOTD only in interactive shells with proper terminal
 if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then
     if [ -f /etc/motd ]; then cat /etc/motd; fi
@@ -20,6 +23,11 @@ fi
 
 # Shell options
 setopt auto_cd 2>/dev/null || true  # zsh only
+
+# Re-activate mise to ensure tools are available
+if [ -f "$HOME/.local/bin/mise" ]; then
+    eval "$($HOME/.local/bin/mise activate ${SHELL##*/})"
+fi
 
 # Tool initialization (these require mise-installed tools to be in PATH)
 if command -v zoxide >/dev/null 2>&1; then
@@ -40,18 +48,21 @@ fi
 # Mise tools alias
 alias tools="mise ls --current"
 
-# Ensure mise tools are in PATH for non-login shells
-if [[ ! "$PATH" =~ "$HOME/.local/bin" ]]; then
-    if [ -f ~/.zshenv ]; then
-        source ~/.zshenv
-    elif [ -f ~/.bashrc ]; then
-        source ~/.bashrc
-    fi
+# Debug: Check if starship is available
+if [ -n "$DEVCONTAINER_DEBUG" ]; then
+    echo "DEBUG: PATH=$PATH"
+    echo "DEBUG: Checking for starship..."
+    which starship || echo "DEBUG: starship not found in PATH"
 fi
 
 # Initialize starship prompt (must be last)
-if command -v starship >/dev/null 2>&1; then
+# First try direct path, then command lookup
+if [ -x "$HOME/.local/share/mise/installs/starship/latest/bin/starship" ]; then
+    eval "$($HOME/.local/share/mise/installs/starship/latest/bin/starship init ${SHELL##*/})"
+elif command -v starship >/dev/null 2>&1; then
     eval "$(starship init ${SHELL##*/})"
+else
+    echo "Warning: starship not found. Please ensure mise tools are installed."
 fi
 '
 
