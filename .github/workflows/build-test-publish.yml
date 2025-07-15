@@ -286,11 +286,25 @@ jobs:
           
           echo "Testing Docker-in-Docker functionality in $IMAGE_TAG"
           
-          # Run container with privileged mode for DIND
-          docker run --rm -d --name test-dind --privileged $IMAGE_TAG
+          # Run container with privileged mode for DIND and keep it running
+          docker run --rm -d --name test-dind --privileged $IMAGE_TAG tail -f /dev/null
           
-          # Wait for container and Docker daemon to start
-          sleep 10
+          # Wait for container to be ready
+          sleep 5
+          
+          # Check if container is still running
+          docker ps | grep test-dind || (echo "Container exited unexpectedly" && docker logs test-dind && exit 1)
+          
+          # Wait for Docker daemon to start
+          echo "Waiting for Docker daemon to start..."
+          for i in {1..30}; do
+            if docker exec test-dind docker version >/dev/null 2>&1; then
+              echo "Docker daemon is ready"
+              break
+            fi
+            echo "Waiting for Docker... ($i/30)"
+            sleep 1
+          done
           
           # Verify Docker is running inside the container
           docker exec test-dind docker version
