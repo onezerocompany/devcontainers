@@ -286,14 +286,29 @@ jobs:
           
           echo "Testing Docker-in-Docker functionality in $IMAGE_TAG"
           
-          # Run container with privileged mode for DIND and keep it running
-          docker run --rm -d --name test-dind --privileged $IMAGE_TAG tail -f /dev/null
+          # First test if the container can start at all
+          echo "Testing if container starts..."
+          docker run --rm $IMAGE_TAG echo "Container started successfully" || (echo "Container failed to start" && exit 1)
+          
+          # Run container with privileged mode for DIND
+          echo "Starting DIND container..."
+          docker run --rm -d --name test-dind --privileged \
+            -e USERNAME=zero \
+            $IMAGE_TAG
           
           # Wait for container to be ready
           sleep 5
           
           # Check if container is still running
-          docker ps | grep test-dind || (echo "Container exited unexpectedly" && docker logs test-dind && exit 1)
+          if ! docker ps | grep test-dind; then
+            echo "Container exited unexpectedly. Checking logs..."
+            # Try to get logs if container still exists
+            docker logs test-dind 2>&1 || echo "Container already removed"
+            # Try running interactively to see the error
+            echo "Running container interactively to debug..."
+            docker run --rm --privileged -e USERNAME=zero $IMAGE_TAG echo "Test" || true
+            exit 1
+          fi
           
           # Wait for Docker daemon to start
           echo "Waiting for Docker daemon to start..."
