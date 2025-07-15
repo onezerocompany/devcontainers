@@ -87,6 +87,7 @@ EOF
 
     # Create .zshrc
     cat > "$HOME_DIR/.zshrc" << 'EOF'
+# Base image shell configuration
 # Ensure PATH includes .local/bin for mise
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -103,6 +104,8 @@ if [ -f "$HOME/.local/bin/mise" ]; then
     # Also ensure shims are in PATH for installed tools
     eval "$($HOME/.local/bin/mise activate zsh --shims)"
 fi
+
+# Note: Additional configuration may be added by devcontainer image
 EOF
 
     # Set ownership if not root

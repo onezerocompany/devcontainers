@@ -61,6 +61,12 @@ if [ -x "/usr/local/bin/init-sandbox" ]; then
     /usr/local/bin/init-sandbox
 fi
 
+# Ensure mise tools are available in PATH for shell configuration
+if [ -f "$HOME/.local/bin/mise" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+    eval "$($HOME/.local/bin/mise activate bash --shims)"
+fi
+
 # Signal VS Code that initialization is complete
 if [ -n "${VSCODE_IPC_HOOK_CLI}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
     echo "📋 Devcontainer initialization complete"

@@ -26,6 +26,7 @@ RUN set -ex && \
     mv /tmp/devcontainer-scripts/entrypoint.sh /usr/local/bin/devcontainer-entrypoint && \
     mv /tmp/devcontainer-scripts/hooks/post-create.sh /usr/local/bin/post-create && \
     mv /tmp/devcontainer-scripts/hooks/post-attach.sh /usr/local/bin/post-attach && \
+    mv /tmp/devcontainer-scripts/debug-starship.sh /usr/local/bin/debug-starship && \
     # Install vscode-kit
     vscode-kit install && \
     # Generate MOTD
