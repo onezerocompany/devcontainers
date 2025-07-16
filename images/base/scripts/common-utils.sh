@@ -36,17 +36,27 @@ sudoIf() {
 
 # Common entrypoint execution logic
 execute_command() {
+    echo "[EXECUTE_COMMAND] Args: $@" >> /tmp/entrypoint.log
+    echo "[EXECUTE_COMMAND] Interactive terminal: $([ -t 0 ] && echo 'yes' || echo 'no')" >> /tmp/entrypoint.log
+    
     if [ $# -eq 0 ]; then
         # No command provided
         if [ -t 0 ]; then
-            # Interactive terminal - start shell
-            exec /bin/zsh -l
+            # Interactive terminal - start user's default shell
+            # Get the user's default shell from /etc/passwd
+            USER_SHELL=$(getent passwd $(whoami) | cut -d: -f7)
+            echo "[EXECUTE_COMMAND] User shell from passwd: $USER_SHELL" >> /tmp/entrypoint.log
+            # Fall back to /bin/zsh if shell lookup fails
+            USER_SHELL=${USER_SHELL:-/bin/zsh}
+            echo "[EXECUTE_COMMAND] Final shell choice: $USER_SHELL" >> /tmp/entrypoint.log
+            exec $USER_SHELL -l
         else
             # Non-interactive - keep container running
             exec tail -f /dev/null
         fi
     else
         # Execute provided command
+        echo "[EXECUTE_COMMAND] Executing command: $@" >> /tmp/entrypoint.log
         exec "$@"
     fi
 }

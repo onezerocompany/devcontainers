@@ -28,7 +28,7 @@ RUN chmod +x /tmp/install-packages.sh && \
 
 # Create user with configurable name
 RUN groupadd --gid $USER_GID $USERNAME && \
-    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m -s /bin/zsh $USERNAME && \
     echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
 # Set up shell configurations for both bash and zsh
@@ -105,6 +105,5 @@ VOLUME /var/lib/docker
 USER $USERNAME
 
 # Set Docker-specific entrypoint with DIND flag
-ENV IS_DIND=true
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []

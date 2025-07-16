@@ -145,18 +145,26 @@ if [ "$EUID" -eq 0 ] && [ "$USERNAME" != "root" ]; then
 fi
 
 
-# Change default shell to zsh for the user
-echo "Setting default shell to zsh for $USERNAME..."
-if [ "$USERNAME" = "root" ]; then
-    chsh -s /bin/zsh
-else
-    chsh -s /bin/zsh "$USERNAME"
+# Note: Shell is already set to zsh when user is created in Dockerfile
+# This is just a fallback in case it wasn't set properly
+echo "Verifying shell settings for $USERNAME..."
+CURRENT_SHELL=$(getent passwd "$USERNAME" | cut -d: -f7)
+if [ "$CURRENT_SHELL" != "/bin/zsh" ]; then
+    echo "Updating shell from $CURRENT_SHELL to /bin/zsh for $USERNAME..."
+    if [ "$USERNAME" = "root" ]; then
+        chsh -s /bin/zsh
+    else
+        chsh -s /bin/zsh "$USERNAME"
+    fi
 fi
 
-# If running as root and configuring another user, also set root's shell
+# If running as root and configuring another user, also verify root's shell
 if [ "$EUID" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-    echo "Setting default shell to zsh for root..."
-    chsh -s /bin/zsh
+    ROOT_SHELL=$(getent passwd root | cut -d: -f7)
+    if [ "$ROOT_SHELL" != "/bin/zsh" ]; then
+        echo "Updating shell from $ROOT_SHELL to /bin/zsh for root..."
+        chsh -s /bin/zsh
+    fi
 fi
 
 echo "Shell configuration completed for user $USERNAME"
