@@ -143,7 +143,7 @@ jobs:
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
-            BASE_IMAGE_NAME=${{ github.repository_owner }}/devcontainer
+            BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
             BASE_IMAGE_TAG=base
             DIND=false
 
@@ -188,7 +188,7 @@ jobs:
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
-            BASE_IMAGE_NAME=${{ github.repository_owner }}/devcontainer
+            BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
             BASE_IMAGE_TAG=dind
             DIND=true
 
