@@ -16,6 +16,8 @@
     }
   },
 
+  "postAttachCommand": "post-attach",
+
 
   // Optional: Enable sandbox mode
   "containerEnv": {
