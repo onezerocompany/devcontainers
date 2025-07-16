@@ -3,10 +3,15 @@
 
 set -e
 
-# Source common utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/../../base/scripts/common-utils.sh" ]; then
-    source "$SCRIPT_DIR/../../base/scripts/common-utils.sh"
+# Source common utilities from runtime location
+if [ -f "/usr/local/bin/common-utils.sh" ]; then
+    source "/usr/local/bin/common-utils.sh"
+else
+    # Fallback for build-time usage
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -f "$SCRIPT_DIR/../../base/scripts/common-utils.sh" ]; then
+        source "$SCRIPT_DIR/../../base/scripts/common-utils.sh"
+    fi
 fi
 
 # Define the state file location (only writable by root)
