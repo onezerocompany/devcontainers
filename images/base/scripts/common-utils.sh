@@ -77,6 +77,28 @@ fix_docker_permissions() {
     fi
 }
 
+# Enhanced Docker-in-Docker detection
+detect_dind() {
+    # Check 1: Docker daemon binary exists
+    if command -v dockerd >/dev/null 2>&1; then
+        # Check 2: Supervisor config for Docker exists
+        if [ -f "/etc/supervisor/conf.d/dockerd.conf" ] || [ -f "/etc/supervisor/supervisord.conf" ]; then
+            return 0
+        fi
+        # Check 3: Running in container with Docker capabilities
+        if [ -f "/.dockerenv" ]; then
+            return 0
+        fi
+    fi
+    
+    # Check 4: Legacy environment variable (fallback)
+    if [ "${IS_DIND:-false}" = "true" ]; then
+        return 0
+    fi
+    
+    return 1
+}
+
 # Initialize Docker if running in Docker-in-Docker mode
 init_docker_if_needed() {
     if [ -f /.dockerenv ] && [ -x "$(command -v dockerd)" ]; then

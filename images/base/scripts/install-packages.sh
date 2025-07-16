@@ -1,24 +1,57 @@
 #!/bin/bash
 set -e
 
-# Update package list and install software-properties-common
+# Update package list
 apt-get update -y
-apt-get install -y software-properties-common
 
-# Add repositories
-add-apt-repository -y ppa:git-core/ppa
-add-apt-repository -y ppa:apt-fast/stable
+# Install basic requirements
+apt-get install -y curl wget software-properties-common
 
-# Update again after adding repositories
-apt-get update -y
-apt-get install -y apt-fast
+# Try to install apt-fast manually without PPA
+echo "Attempting to install apt-fast..."
+mkdir -p /etc/bash_completion.d
+if wget -O /usr/local/sbin/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast" 2>/dev/null && \
+   chmod +x /usr/local/sbin/apt-fast && \
+   wget -O /etc/bash_completion.d/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/completions/bash/apt-fast" 2>/dev/null; then
+    # Create apt-fast configuration
+    cat > /etc/apt-fast.conf << 'EOF'
+# apt-fast configuration
+_APTMGR=apt-get
+DOWNLOADBEFORE=true
+_MAXNUM=5
+_MAXCONPERSRV=10
+_SPLITCON=8
+_MINSPLITSZ=1M
+_PIECEALGO=default
+DLLIST='/tmp/apt-fast.list'
+_DOWNLOADER='aria2c --no-conf -c -j ${_MAXNUM} -x ${_MAXCONPERSRV} -s ${_SPLITCON} -i ${DLLIST} --min-split-size=${_MINSPLITSZ} --stream-piece-selector=${_PIECEALGO} --connect-timeout=60 --timeout=600 --max-connection-per-server=16'
+APTCACHE=/var/cache/apt/apt-fast
+EOF
+    
+    # Install aria2 for parallel downloads
+    if apt-get install -y aria2; then
+        echo "apt-fast installed successfully"
+        APT_CMD="apt-fast"
+    else
+        echo "Failed to install aria2, falling back to apt-get"
+        APT_CMD="apt-get"
+    fi
+else
+    echo "Failed to download apt-fast, using standard apt-get"
+    APT_CMD="apt-get"
+fi
+
+# Optionally try to add git PPA for newer git version (but don't fail if it doesn't work)
+echo "Attempting to add git PPA for newer version..."
+add-apt-repository -y ppa:git-core/ppa 2>/dev/null || echo "Could not add git PPA, will use default version"
+apt-get update -y || true
 
 # Split upgrade and install to avoid QEMU issues on ARM64
-apt-get upgrade -y || true
+$APT_CMD upgrade -y || true
 
 # Install packages in smaller groups to reduce memory pressure
 # Group 1: Basic tools
-apt-get install -y \
+$APT_CMD install -y \
     curl \
     wget \
     sudo \
@@ -34,7 +67,7 @@ apt-get install -y \
     lsb-release
 
 # Group 2: Build tools and libraries
-apt-get install -y \
+$APT_CMD install -y \
     build-essential \
     make \
     cmake \
@@ -48,7 +81,7 @@ apt-get install -y \
     zlib1g zlib1g-dev
 
 # Group 3: Additional development tools
-apt-get install -y \
+$APT_CMD install -y \
     skopeo \
     binutils \
     gnupg2 \
@@ -65,5 +98,5 @@ apt-get install -y \
     python3-minimal
 
 # Group 4: Supervisor and iptables
-apt-get install -y supervisor iptables
+$APT_CMD install -y supervisor iptables
 update-alternatives --set iptables /usr/sbin/iptables-legacy

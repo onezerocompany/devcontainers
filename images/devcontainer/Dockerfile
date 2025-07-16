@@ -11,32 +11,47 @@ ARG USERNAME=zero
 
 USER root
 
-# Copy all scripts at once for better layer caching
-COPY scripts/ /tmp/devcontainer-scripts/
+# Copy and run setup-sandbox.sh
+COPY scripts/setup-sandbox.sh /tmp/devcontainer-scripts/
+RUN chmod +x /tmp/devcontainer-scripts/setup-sandbox.sh && \
+    /tmp/devcontainer-scripts/setup-sandbox.sh
 
-# Run all setup scripts and installations in a single layer
-RUN set -ex && \
-    # Make all scripts executable
-    chmod -R +x /tmp/devcontainer-scripts/ && \
-    # Run sandbox setup
-    /tmp/devcontainer-scripts/setup-sandbox.sh && \
-    # Install scripts to proper locations
-    mv /tmp/devcontainer-scripts/init-sandbox.sh /usr/local/bin/init-sandbox && \
-    mv /tmp/devcontainer-scripts/vscode-kit.sh /usr/local/bin/vscode-kit && \
-    mv /tmp/devcontainer-scripts/entrypoint.sh /usr/local/bin/devcontainer-entrypoint && \
-    mv /tmp/devcontainer-scripts/hooks/post-create.sh /usr/local/bin/post-create && \
-    mv /tmp/devcontainer-scripts/hooks/post-attach.sh /usr/local/bin/post-attach && \
-    mv /tmp/devcontainer-scripts/debug-starship.sh /usr/local/bin/debug-starship && \
-    # Install vscode-kit
-    vscode-kit install && \
-    # Generate MOTD
+# Copy vscode-kit.sh early since we need to run it
+COPY scripts/vscode-kit.sh /usr/local/bin/vscode-kit
+RUN chmod +x /usr/local/bin/vscode-kit
+
+# Install vscode-kit
+RUN vscode-kit install
+
+# Copy and run motd-gen.sh
+COPY scripts/motd-gen.sh /tmp/devcontainer-scripts/
+RUN chmod +x /tmp/devcontainer-scripts/motd-gen.sh && \
     /tmp/devcontainer-scripts/motd-gen.sh > /etc/motd && \
-    chmod 644 /etc/motd && \
-    # Keep configure-shells.sh for later user execution
-    mv /tmp/devcontainer-scripts/configure-shells.sh /tmp/configure-shells.sh && \
-    chown ${USERNAME}:${USERNAME} /tmp/configure-shells.sh && \
-    # Clean up remaining scripts
-    rm -rf /tmp/devcontainer-scripts
+    chmod 644 /etc/motd
+
+# Copy configure-shells.sh for later user execution
+COPY scripts/configure-shells.sh /tmp/
+RUN chmod +x /tmp/configure-shells.sh && \
+    chown ${USERNAME}:${USERNAME} /tmp/configure-shells.sh
+
+# Clean up
+RUN rm -rf /tmp/devcontainer-scripts
+
+# Copy remaining scripts directly to /usr/local/bin (better caching)
+COPY scripts/init-sandbox.sh /usr/local/bin/init-sandbox
+RUN chmod +x /usr/local/bin/init-sandbox
+
+COPY scripts/entrypoint.sh /usr/local/bin/devcontainer-entrypoint
+RUN chmod +x /usr/local/bin/devcontainer-entrypoint
+
+COPY scripts/hooks/post-create.sh /usr/local/bin/post-create
+RUN chmod +x /usr/local/bin/post-create
+
+COPY scripts/hooks/post-attach.sh /usr/local/bin/post-attach
+RUN chmod +x /usr/local/bin/post-attach
+
+COPY scripts/debug-starship.sh /usr/local/bin/debug-starship
+RUN chmod +x /usr/local/bin/debug-starship
 
 # Switch to user for user-specific setup
 USER ${USERNAME}
@@ -48,7 +63,7 @@ RUN bash /tmp/configure-shells.sh && rm -f /tmp/configure-shells.sh
 # Switch back to root for final steps
 USER root
 
-# Use devcontainer entrypoint for all variants (it handles DIND internally)
+# Use devcontainer entrypoint for all variants
 RUN ln -sf /usr/local/bin/devcontainer-entrypoint /usr/local/bin/entrypoint
 
 USER ${USERNAME}

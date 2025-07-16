@@ -31,10 +31,10 @@ RUN groupadd --gid $USER_GID $USERNAME && \
     echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
 # Set up shell configurations for both bash and zsh
-COPY scripts/configure-shells.sh scripts/common-utils.sh /tmp/
+COPY scripts/configure-shells.sh scripts/common-utils.sh starship.toml /tmp/
 RUN chmod +x /tmp/configure-shells.sh && \
     /tmp/configure-shells.sh $USERNAME && \
-    rm /tmp/configure-shells.sh /tmp/common-utils.sh
+    rm /tmp/configure-shells.sh /tmp/common-utils.sh /tmp/starship.toml
 
 # Create necessary directories for the user before switching
 RUN mkdir -p /home/$USERNAME/.local/bin && \
@@ -42,9 +42,10 @@ RUN mkdir -p /home/$USERNAME/.local/bin && \
     mkdir -p /home/$USERNAME/.local/share && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-# Copy unified entrypoint as root
+# Copy unified entrypoint and common utilities as root
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY scripts/common-utils.sh /usr/local/bin/common-utils.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/common-utils.sh
 
 WORKDIR /home/$USERNAME
 USER $USERNAME
@@ -60,7 +61,7 @@ RUN mkdir -p ~/.cache/mise && \
 # The devcontainer can mount these as volumes if needed for caching
 
 # Copy mise configuration
-COPY --chown=$USERNAME:$USERNAME .mise.toml /home/$USERNAME/.mise.toml
+COPY --chown=$USERNAME:$USERNAME global-mise.toml /home/$USERNAME/.mise.toml
 
 # Install tools using mise configuration
 # Add retry logic for mise install to handle network timeouts
@@ -83,15 +84,15 @@ FROM base AS dind
 USER root
 
 # Copy and install Docker
-COPY scripts/install-docker.sh /tmp/
+COPY dind/install-docker.sh /tmp/
 RUN bash /tmp/install-docker.sh && rm /tmp/install-docker.sh
 
 # Copy Docker-related files
-COPY scripts/modprobe /usr/local/bin/ 
+COPY dind/modprobe /usr/local/bin/ 
 RUN chmod +x /usr/local/bin/modprobe
 
 # Copy supervisor configuration
-COPY supervisor/ /etc/supervisor/conf.d/
+COPY dind/supervisor/ /etc/supervisor/conf.d/
 
 # Create Docker volume
 VOLUME /var/lib/docker

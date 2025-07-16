@@ -5,11 +5,19 @@ USERNAME="${USERNAME:-zero}"
 # Install packages required for sandbox functionality
 echo "Installing sandbox packages..."
 apt-get update
-apt-get install -y \
+
+# Use apt-fast if available, otherwise fall back to apt-get
+if command -v apt-fast >/dev/null 2>&1; then
+    APT_CMD="apt-fast"
+else
+    APT_CMD="apt-get"
+fi
+
+$APT_CMD install -y \
     ipset \
     dnsutils \
     libcap2-bin
-apt-get clean
+$APT_CMD clean
 rm -rf /var/lib/apt/lists/*
 
 # Create directory for scripts

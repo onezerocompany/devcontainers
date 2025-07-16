@@ -5,17 +5,15 @@
 set -e
 
 # Source common utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common-utils.sh"
+source /usr/local/bin/common-utils.sh
 
 USERNAME="${USERNAME:-zero}"
-IS_DIND="${IS_DIND:-false}"
 
 # Main initialization
 echo "🚀 Initializing container..."
 
 # Docker-in-Docker specific initialization
-if [ "$IS_DIND" = "true" ] || [ -f "/usr/bin/supervisord" ]; then
+if detect_dind; then
     echo "🐳 Docker-in-Docker mode detected"
     
     # Start supervisor for Docker daemon

@@ -4,35 +4,8 @@
 
 set -e
 
-# Source common utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/../../base/scripts/common-utils.sh" ]; then
-    source "$SCRIPT_DIR/../../base/scripts/common-utils.sh"
-else
-    # Define minimal functions if common-utils.sh is not found
-    fix_docker_permissions() {
-        local docker_socket="/var/run/docker.sock"
-        if [ -S "$docker_socket" ]; then
-            sudo chmod 666 "$docker_socket" 2>/dev/null || true
-        fi
-    }
-    
-    execute_command() {
-        if [ $# -eq 0 ]; then
-            # No command provided
-            if [ -t 0 ]; then
-                # Interactive terminal - start shell
-                exec zsh -l
-            else
-                # Non-interactive - keep container running
-                exec tail -f /dev/null
-            fi
-        else
-            # Execute provided command
-            exec "$@"
-        fi
-    }
-fi
+# Source common utilities from base image
+source /usr/local/bin/common-utils.sh
 
 USERNAME="${USERNAME:-zero}"
 
