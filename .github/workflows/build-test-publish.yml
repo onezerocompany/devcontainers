@@ -135,8 +135,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-standard
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
           build-args: |
@@ -181,7 +181,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-dind
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dind
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
           build-args: |
@@ -213,30 +213,30 @@ jobs:
         if: matrix.test-type == 'startup'
         run: |
           IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
-          
+
           echo "Testing startup of $IMAGE_TAG"
-          
+
           # Run the container and check if it starts successfully
           docker run --rm -d --name test-container $IMAGE_TAG
-          
+
           # Wait for container to be fully started
           sleep 5
-          
+
           # Check if container is still running
           docker ps | grep test-container
-          
+
           # Execute a simple command to verify the shell works
           docker exec test-container zsh -l -c "echo 'Container started successfully'"
-          
+
           # Check if mise is available
           docker exec test-container zsh -l -c "which mise"
-          
-          # Check if other expected tools are available - source .zprofile explicitly
-          docker exec test-container zsh -l -c "source ~/.zprofile && which starship"
-          docker exec test-container zsh -l -c "source ~/.zprofile && which eza"
-          docker exec test-container zsh -l -c "source ~/.zprofile && which bat"
-          docker exec test-container zsh -l -c "source ~/.zprofile && which zoxide"
-          
+
+          # Check if other expected tools are available - ensure mise is activated
+          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which starship'
+          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which eza'
+          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which bat'
+          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which zoxide'
+
           # Clean up
           docker stop test-container
 
@@ -244,36 +244,35 @@ jobs:
         if: matrix.test-type == 'mise-tools'
         run: |
           IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
-          
+
           echo "Testing mise tool installation in $IMAGE_TAG"
-          
+
           # Create a test mise configuration
           cat > test-mise.toml << 'EOF'
           [tools]
           node = "20"
           python = "3.11"
           EOF
-          
+
           # Run container with the test configuration
           docker run --rm -d --name test-mise \
             -v $(pwd)/test-mise.toml:/workspace/.mise.toml \
             -w /workspace \
             $IMAGE_TAG
-          
+
           # Wait for container to start
           sleep 5
-          
+
           # Install tools using mise
           docker exec test-mise zsh -l -c "cd /workspace && mise install"
-          
+
           # Verify tools are installed
           docker exec test-mise zsh -l -c "cd /workspace && mise ls"
-          
-          # Test that tools are available - source .zprofile explicitly
-          docker exec test-mise zsh -l -c "cd /workspace && source ~/.zprofile && node --version"
-          docker exec test-mise zsh -l -c "cd /workspace && source ~/.zprofile && python --version"
-          
+
+          # Test that tools are available - ensure mise is activated
+          docker exec test-mise zsh -l -c 'cd /workspace && eval "$($HOME/.local/bin/mise activate zsh --shims)" && node --version'
+          docker exec test-mise zsh -l -c 'cd /workspace && eval "$($HOME/.local/bin/mise activate zsh --shims)" && python --version'
+
           # Clean up
           docker stop test-mise
           rm test-mise.toml
-
