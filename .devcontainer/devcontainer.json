@@ -1,6 +1,6 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:dind",
+  "image": "ghcr.io/onezerocompany/devcontainer:base",
   "remoteUser": "zero",
 
   // VS Code specific settings
@@ -16,6 +16,7 @@
     }
   },
 
+  "postCreateCommand": "post-create",
   "postAttachCommand": "post-attach",
 
 
