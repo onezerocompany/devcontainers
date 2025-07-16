@@ -1,34 +1,7 @@
 #!/bin/bash
 
 # Source common utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/../../base/scripts/common-utils.sh" ]; then
-    source "$SCRIPT_DIR/../../base/scripts/common-utils.sh"
-elif [ -f "/usr/local/bin/common-utils.sh" ]; then
-    source "/usr/local/bin/common-utils.sh"
-else
-    # Define the functions locally if common-utils.sh is not found
-    add_to_path() {
-        local dir="$1"
-        if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
-            export PATH="$dir:$PATH"
-        fi
-    }
-    
-    configure_path() {
-        local path_line="export PATH=\"\$HOME/.local/bin:\$PATH\""
-        
-        # Add to bash configs
-        if [ -f "$HOME/.bashrc" ]; then
-            grep -qF "$path_line" "$HOME/.bashrc" || echo "$path_line" >> "$HOME/.bashrc"
-        fi
-        
-        # Add to zsh configs
-        if [ -f "$HOME/.zshenv" ]; then
-            grep -qF "$path_line" "$HOME/.zshenv" || echo "$path_line" >> "$HOME/.zshenv"
-        fi
-    }
-fi
+source "/usr/local/bin/common-utils.sh"
 
 USER=${USER:-zero}
 INSTALL_DIR=${INSTALL_DIR:-/home/${USER}/.vscode-install}

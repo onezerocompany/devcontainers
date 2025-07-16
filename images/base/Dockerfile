@@ -58,9 +58,6 @@ RUN curl -fsSL https://mise.run | sh
 RUN mkdir -p ~/.cache/mise && \
     mkdir -p ~/.local/share/mise
 
-# Note: We don't declare VOLUME here as it causes issues with pre-installed tools
-# The devcontainer can mount these as volumes if needed for caching
-
 # Copy mise configuration
 COPY --chown=$USERNAME:$USERNAME global-mise.toml /home/$USERNAME/.mise.toml
 

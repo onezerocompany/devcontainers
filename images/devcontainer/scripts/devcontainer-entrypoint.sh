@@ -1,6 +1,6 @@
 #!/bin/bash
-# Unified entrypoint for devcontainer variants
-# Handles sandbox initialization and VS Code integration
+# Devcontainer-specific entrypoint
+# Handles sandbox initialization and VS Code integration without duplicating base logic
 
 set -e
 
@@ -9,25 +9,8 @@ source /usr/local/bin/common-utils.sh
 
 USERNAME="${USERNAME:-zero}"
 
-# Start Docker daemon for DIND variant if needed
-if [ -f /etc/supervisor/supervisord.conf ] && ! pgrep -x dockerd >/dev/null; then
-    echo "🐳 Starting Docker daemon..."
-    sudo /usr/bin/supervisord -c /etc/supervisor/supervisord.conf -n >> /dev/null 2>&1 &
-    # Wait for Docker to be ready
-    while ! docker version >/dev/null 2>&1; do
-        sleep 1
-    done
-    echo "✅ Docker daemon started"
-fi
-
 # Main initialization
-echo "🚀 Initializing devcontainer..."
-
-# Fix Docker permissions if needed (for both DIND and socket mount)
-if [ -S "/var/run/docker.sock" ] && [ "${USERNAME}" != "root" ]; then
-    echo "🐳 Configuring Docker access..."
-    fix_docker_permissions
-fi
+echo "=== Devcontainer Initialization ==="
 
 # Initialize sandbox (using shared script from base image)
 if [ -x "/usr/local/bin/init-sandbox" ]; then
@@ -55,5 +38,6 @@ if [ -n "${VSCODE_IPC_HOOK_CLI}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
     fi
 fi
 
-# Execute the command or start interactive shell
-execute_command "$@"
+# Run the base entrypoint script with all arguments
+# This handles Docker initialization and command execution
+exec /usr/local/bin/entrypoint.sh "$@"

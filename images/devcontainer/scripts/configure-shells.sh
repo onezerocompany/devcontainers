@@ -18,8 +18,6 @@ read -r -d '' DEVCONTAINER_CONFIG << 'EOF' || true
 
 # DEVCONTAINER_CONFIG_APPLIED
 # DevContainer specific configuration
-# Ensure mise tools are in PATH first
-export PATH="$HOME/.local/bin:$PATH"
 
 # Display MOTD only in interactive shells with proper terminal
 if [[ -o interactive ]] && [[ -t 0 ]] && [[ "$TERM" != "dumb" ]]; then
@@ -28,18 +26,6 @@ fi
 
 # Shell options
 setopt auto_cd 2>/dev/null || true  # zsh only
-
-# Re-activate mise to ensure tools are available with shims
-if [ -f "$HOME/.local/bin/mise" ]; then
-    eval "$($HOME/.local/bin/mise activate ${SHELL##*/})"
-    # Also ensure shims are in PATH for installed tools
-    eval "$($HOME/.local/bin/mise activate ${SHELL##*/} --shims)"
-fi
-
-# Tool initialization (these require mise-installed tools to be in PATH)
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init --cmd cd ${SHELL##*/})"
-fi
 
 # Aliases for modern CLI tools
 if command -v batcat >/dev/null 2>&1; then
@@ -56,24 +42,6 @@ fi
 
 # Mise tools alias
 alias tools="mise ls --current"
-
-# Initialize starship prompt (must be last)
-# Try multiple methods to find starship
-if command -v starship >/dev/null 2>&1; then
-    eval "$(starship init ${SHELL##*/})"
-elif [ -x "$HOME/.local/share/mise/installs/starship/latest/bin/starship" ]; then
-    eval "$($HOME/.local/share/mise/installs/starship/latest/bin/starship init ${SHELL##*/})"
-elif [ -x "$HOME/.local/share/mise/shims/starship" ]; then
-    eval "$($HOME/.local/share/mise/shims/starship init ${SHELL##*/})"
-else
-    # Try to find starship in any mise installation
-    STARSHIP_PATH=$(find "$HOME/.local/share/mise/installs/starship" -name "starship" -type f -executable 2>/dev/null | head -1)
-    if [ -n "$STARSHIP_PATH" ] && [ -x "$STARSHIP_PATH" ]; then
-        eval "$($STARSHIP_PATH init ${SHELL##*/})"
-    else
-        echo "Warning: starship not found. Run 'mise install' to install tools."
-    fi
-fi
 EOF
 
 # Function to append config to shell file

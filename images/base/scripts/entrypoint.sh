@@ -38,5 +38,7 @@ if detect_dind; then
     fi
 fi
 
+echo "Base container initialized successfully.\n"
+
 # Execute the command or start interactive shell
 execute_command "$@"
