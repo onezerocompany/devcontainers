@@ -199,11 +199,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - variant: standard
+          - variant: base
             test-type: startup
           - variant: dind
             test-type: startup
-          - variant: standard
+          - variant: base
             test-type: mise-tools
     steps:
       - name: Checkout repository
@@ -212,7 +212,7 @@ jobs:
       - name: Test devcontainer startup
         if: matrix.test-type == 'startup'
         run: |
-          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.variant }}"
 
           echo "Testing startup of $IMAGE_TAG"
 
@@ -243,7 +243,7 @@ jobs:
       - name: Test mise tool installation
         if: matrix.test-type == 'mise-tools'
         run: |
-          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:devcontainer-${{ matrix.variant }}"
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.variant }}"
 
           echo "Testing mise tool installation in $IMAGE_TAG"
 
