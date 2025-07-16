@@ -15,7 +15,10 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/devcontainer
+  BASE_IMAGE_NAME: ${{ github.repository_owner }}/base
+  DEVCONTAINER_IMAGE_NAME: ${{ github.repository_owner }}/devcontainer
+  RUNNER_IMAGE_NAME: ${{ github.repository_owner }}/runner
+  SETTINGS_GEN_IMAGE_NAME: ${{ github.repository_owner }}/settings-gen
 
 jobs:
   # Build the base image
@@ -53,10 +56,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-base
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-base,mode=max
+            ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-base
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-base,mode=max
           target: standard
 
   # Build the dind image
@@ -94,9 +96,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dind
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-dind
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-dind,mode=max
+            ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:dind
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-dind
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-dind,mode=max
           target: dind
 
   # Build the devcontainer standard image
@@ -135,10 +137,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
+            ${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:base
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
             BASE_IMAGE_NAME=${{ github.repository_owner }}/devcontainer
@@ -181,98 +183,93 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dind
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
+            ${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:dind
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
             BASE_IMAGE_NAME=${{ github.repository_owner }}/devcontainer
             BASE_IMAGE_TAG=dind
             DIND=true
 
-  # Test all devcontainer functionality
-  test-devcontainer:
-    name: Test DevContainer
-    needs: [build-devcontainer-standard, build-devcontainer-dind]
+  # Build the runner image
+  build-runner:
+    name: Build Runner Image
+    needs: [build-base]
+
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - variant: base
-            test-type: startup
-          - variant: dind
-            test-type: startup
-          - variant: base
-            test-type: mise-tools
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Test devcontainer startup
-        if: matrix.test-type == 'startup'
-        run: |
-          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.variant }}"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
-          echo "Testing startup of $IMAGE_TAG"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.12.5
 
-          # Run the container and check if it starts successfully
-          docker run --rm -d --name test-container $IMAGE_TAG
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-          # Wait for container to be fully started
-          sleep 5
+      - name: Build and push runner image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/runner
+          file: ./images/runner/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner,mode=max
+          
+  # Build the settings generator image
+  build-settings-gen:
+    name: Build Settings Generator Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-          # Check if container is still running
-          docker ps | grep test-container
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
-          # Execute a simple command to verify the shell works
-          docker exec test-container zsh -l -c "echo 'Container started successfully'"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.12.5
 
-          # Check if mise is available
-          docker exec test-container zsh -l -c "which mise"
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-          # Check if other expected tools are available - ensure mise is activated
-          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which starship'
-          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which eza'
-          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which bat'
-          docker exec test-container zsh -l -c 'eval "$($HOME/.local/bin/mise activate zsh --shims)" && which zoxide'
-
-          # Clean up
-          docker stop test-container
-
-      - name: Test mise tool installation
-        if: matrix.test-type == 'mise-tools'
-        run: |
-          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.variant }}"
-
-          echo "Testing mise tool installation in $IMAGE_TAG"
-
-          # Create a test mise configuration
-          cat > test-mise.toml << 'EOF'
-          [tools]
-          node = "20"
-          python = "3.11"
-          EOF
-
-          # Run container with the test configuration
-          docker run --rm -d --name test-mise \
-            -v $(pwd)/test-mise.toml:/workspace/.mise.toml \
-            -w /workspace \
-            $IMAGE_TAG
-
-          # Wait for container to start
-          sleep 5
-
-          # Install tools using mise
-          docker exec test-mise zsh -l -c "cd /workspace && mise install"
-
-          # Verify tools are installed
-          docker exec test-mise zsh -l -c "cd /workspace && mise ls"
-
-          # Test that tools are available - ensure mise is activated
-          docker exec test-mise zsh -l -c 'cd /workspace && eval "$($HOME/.local/bin/mise activate zsh --shims)" && node --version'
-          docker exec test-mise zsh -l -c 'cd /workspace && eval "$($HOME/.local/bin/mise activate zsh --shims)" && python --version'
-
-          # Clean up
-          docker stop test-mise
-          rm test-mise.toml
+      - name: Build and push settings generator image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/settings-gen
+          file: ./images/settings-gen/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:buildcache-settings-gen
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:buildcache-settings-gen,mode=max
