@@ -144,7 +144,7 @@ jobs:
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
             BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
-            BASE_IMAGE_TAG=base
+            BASE_IMAGE_TAG=latest
             DIND=false
 
   # Build the devcontainer dind image
