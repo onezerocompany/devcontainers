@@ -40,7 +40,7 @@ execute_command() {
         # No command provided
         if [ -t 0 ]; then
             # Interactive terminal - start shell
-            exec zsh -l
+            exec /bin/zsh -l
         else
             # Non-interactive - keep container running
             exec tail -f /dev/null

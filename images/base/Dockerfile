@@ -18,6 +18,7 @@ ENV MISE_DATA_DIR=$HOME/.local/share/mise
 ENV PATH="$HOME/.local/bin:${PATH}"
 ENV MISE_TRUSTED_CONFIG_PATHS="/"
 ENV MISE_YES=1
+ENV SHELL=/bin/zsh
 
 # Copy and run package installation script
 COPY scripts/install-packages.sh /tmp/
@@ -34,7 +35,7 @@ RUN groupadd --gid $USER_GID $USERNAME && \
 COPY scripts/configure-shells.sh scripts/common-utils.sh starship.toml /tmp/
 RUN chmod +x /tmp/configure-shells.sh && \
     /tmp/configure-shells.sh $USERNAME && \
-    rm /tmp/configure-shells.sh /tmp/common-utils.sh /tmp/starship.toml
+    rm /tmp/configure-shells.sh /tmp/common-utils.sh
 
 # Create necessary directories for the user before switching
 RUN mkdir -p /home/$USERNAME/.local/bin && \
@@ -71,12 +72,15 @@ RUN for i in 1 2 3; do \
         (echo "Failed attempt $i, retrying in 5 seconds..." && sleep 5); \
     done
 
+# Copy starship configuration after mise has installed starship
+COPY --chown=$USERNAME:$USERNAME starship.toml /home/$USERNAME/.config/starship.toml
+
 RUN touch ~/.sudo_as_admin_successful
 
 # Standard stage - no Docker-in-Docker
 FROM base AS standard
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/bin/zsh"]
+CMD []
 
 # Docker-in-Docker stage
 FROM base AS dind
@@ -103,4 +107,4 @@ USER $USERNAME
 # Set Docker-specific entrypoint with DIND flag
 ENV IS_DIND=true
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/bin/zsh"]
+CMD []

@@ -1,7 +1,2 @@
 [tools]
 node = "lts"
-starship = "latest"
-zoxide = "latest"
-fzf = "latest"
-bat = "0.24.0"
-eza = "latest"

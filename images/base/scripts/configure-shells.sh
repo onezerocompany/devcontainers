@@ -50,6 +50,11 @@ fi
 if command -v starship >/dev/null 2>&1; then
     eval "\$(starship init bash)"
 fi
+
+# Zoxide (smart cd)
+if command -v zoxide >/dev/null 2>&1; then
+    eval "\$(zoxide init bash)"
+fi
 EOF
 
     # Create .bash_profile
@@ -115,6 +120,11 @@ if command -v starship >/dev/null 2>&1; then
     eval "$(starship init zsh)"
 fi
 
+# Zoxide (smart cd)
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init zsh)"
+fi
+
 # Note: Additional configuration may be added by devcontainer image
 EOF
 
@@ -134,27 +144,6 @@ if [ "$EUID" -eq 0 ] && [ "$USERNAME" != "root" ]; then
     create_shell_configs "/root" "root"
 fi
 
-# Install starship prompt
-echo "Installing starship prompt..."
-curl -sS https://starship.rs/install.sh | sh -s -- -y
-
-# Copy starship configuration
-echo "Setting up starship configuration..."
-mkdir -p "$USER_HOME/.config"
-if [ -f "$SCRIPT_DIR/../starship.toml" ]; then
-    cp "$SCRIPT_DIR/../starship.toml" "$USER_HOME/.config/starship.toml"
-    if [ "$USERNAME" != "root" ]; then
-        chown -R "$USERNAME:$USERNAME" "$USER_HOME/.config"
-    fi
-fi
-
-# Also copy for root if we're configuring another user
-if [ "$EUID" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-    mkdir -p /root/.config
-    if [ -f "$SCRIPT_DIR/../starship.toml" ]; then
-        cp "$SCRIPT_DIR/../starship.toml" /root/.config/starship.toml
-    fi
-fi
 
 # Change default shell to zsh for the user
 echo "Setting default shell to zsh for $USERNAME..."
