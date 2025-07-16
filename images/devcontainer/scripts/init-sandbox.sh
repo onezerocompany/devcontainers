@@ -29,14 +29,13 @@ initialize_sandbox_state() {
     # Write the initial state based on environment variable
     # This happens only once when the container starts
     if [ ! -f "$SANDBOX_STATE_FILE" ]; then
-        if [ "${DEVCONTAINER_SANDBOX_ENABLED}" = "true" ]; then
+        if [ "${SANDBOX_ENABLED}" = "true" ]; then
             echo "true" | sudoIf tee "$SANDBOX_STATE_FILE" > /dev/null
             sudoIf chmod 444 "$SANDBOX_STATE_FILE"  # Read-only for everyone, owned by root
             
-            # Also save firewall and domains config
-            echo "${DEVCONTAINER_SANDBOX_FIREWALL:-false}" | sudoIf tee "${SANDBOX_STATE_DIR}/firewall" > /dev/null
-            echo "${DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS:-}" | sudoIf tee "${SANDBOX_STATE_DIR}/domains" > /dev/null
-            sudoIf chmod 444 "${SANDBOX_STATE_DIR}/firewall" "${SANDBOX_STATE_DIR}/domains"
+            # Also save allowed domains config
+            echo "${SANDBOX_ALLOWED_DOMAINS:-}" | sudoIf tee "${SANDBOX_STATE_DIR}/domains" > /dev/null
+            sudoIf chmod 444 "${SANDBOX_STATE_DIR}/domains"
         else
             echo "false" | sudoIf tee "$SANDBOX_STATE_FILE" > /dev/null
             sudoIf chmod 444 "$SANDBOX_STATE_FILE"
@@ -60,35 +59,30 @@ initialize_sandbox_state
 SANDBOX_ENABLED=$(read_sandbox_state)
 
 if [ "$SANDBOX_ENABLED" = "true" ]; then
-    echo "🔒 Sandbox mode is enabled (immutable)"
+    echo "  🔒 Sandbox mode is enabled (immutable)"
     
-    # Check if we're in a devcontainer environment or if explicitly enabled
-    if [ -n "${DEVCONTAINER}" ] || [ -n "${CODESPACES}" ] || [ -n "${REMOTE_CONTAINERS}" ] || [ "${ENABLE_SANDBOX_FIREWALL}" = "true" ]; then
-        # Read firewall config from immutable state
-        FIREWALL_ENABLED=$(cat "${SANDBOX_STATE_DIR}/firewall" 2>/dev/null || echo "false")
-        
-        if [ "$FIREWALL_ENABLED" = "true" ]; then
-            # Check if firewall is already initialized
-            if ! sudoIf iptables -L OUTPUT -n | grep -q "policy DROP" 2>/dev/null; then
-                echo "🔥 Initializing sandbox firewall..."
-                
-                # Read allowed domains from immutable state
-                ALLOWED_DOMAINS=$(cat "${SANDBOX_STATE_DIR}/domains" 2>/dev/null || echo "")
-                if [ -n "$ALLOWED_DOMAINS" ]; then
-                    export ADDITIONAL_ALLOWED_DOMAINS="$ALLOWED_DOMAINS"
-                fi
-                
-                # Run firewall initialization
-                if sudoIf /usr/local/share/sandbox/init-firewall.sh; then
-                    echo "✅ Firewall initialized successfully"
-                else
-                    echo "⚠️  Warning: Firewall initialization failed"
-                fi
-            else
-                echo "✅ Firewall already initialized"
+    # Check if we're in a devcontainer environment
+    if [ -n "${DEVCONTAINER}" ] || [ -n "${CODESPACES}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
+        # Check if firewall is already initialized
+        if ! sudoIf iptables -L OUTPUT -n | grep -q "policy DROP" 2>/dev/null; then
+            echo "    🔧 Initializing sandbox firewall..."
+            
+            # Read allowed domains from immutable state
+            SANDBOX_ALLOWED_DOMAINS=$(cat "${SANDBOX_STATE_DIR}/domains" 2>/dev/null || echo "")
+            if [ -n "$SANDBOX_ALLOWED_DOMAINS" ]; then
+                export SANDBOX_ALLOWED_DOMAINS
             fi
+            
+            # Run firewall initialization
+            if sudoIf /usr/local/share/sandbox/init-firewall.sh; then
+                echo "      ✓ Firewall initialized successfully"
+            else
+                echo "      ⚠️  Warning: Firewall initialization failed"
+            fi
+        else
+            echo "    ✓ Firewall already initialized"
         fi
     fi
 else
-    echo "🔓 Sandbox mode is disabled"
+    echo "  🔓 Sandbox mode is disabled"
 fi

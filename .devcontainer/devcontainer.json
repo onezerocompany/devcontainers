@@ -2,7 +2,6 @@
   "name": "devcontainers",
   "image": "ghcr.io/onezerocompany/devcontainer:dind",
   "remoteUser": "zero",
-
   // VS Code specific settings
   "customizations": {
     "vscode": {
@@ -15,18 +14,15 @@
       "extensions": []
     }
   },
-
   "postCreateCommand": "post-create",
   "postAttachCommand": "post-attach",
-
-
   // Optional: Enable sandbox mode
   "containerEnv": {
-    "DEVCONTAINER_SANDBOX_ENABLED": "false",
-    "DEVCONTAINER_SANDBOX_FIREWALL": "false",
-    "DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS": ""
+    "SANDBOX_ENABLED": "false",
+    "SANDBOX_ALLOWED_DOMAINS": ""
   },
-
   // DIND configuration - privileged mode is required for Docker daemon
-  "runArgs": ["--privileged"]
+  "runArgs": [
+    "--privileged"
+  ]
 }

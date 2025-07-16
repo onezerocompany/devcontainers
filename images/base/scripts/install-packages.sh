@@ -8,7 +8,7 @@ apt-get update -y
 apt-get install -y curl wget software-properties-common
 
 # Try to install apt-fast manually without PPA
-echo "Attempting to install apt-fast..."
+echo "📦 Installing package manager optimizations..."
 mkdir -p /etc/bash_completion.d
 if wget -O /usr/local/sbin/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast" 2>/dev/null && \
     chmod +x /usr/local/sbin/apt-fast && \
@@ -30,27 +30,28 @@ EOF
      
      # Install aria2 for parallel downloads
      if apt-get install -y aria2; then
-          echo "apt-fast installed successfully"
+          echo "  ✅ apt-fast installed successfully."
           APT_CMD="apt-fast"
      else
-          echo "Failed to install aria2, falling back to apt-get"
+          echo "  ⚠️ Failed to install aria2, falling back to apt-get."
           APT_CMD="apt-get"
      fi
 else
-     echo "Failed to download apt-fast, using standard apt-get"
+     echo "  ⚠️ Failed to download apt-fast, using standard apt-get."
      APT_CMD="apt-get"
 fi
 
 # Optionally try to add git PPA for newer git version (but don't fail if it doesn't work)
-echo "Attempting to add git PPA for newer version..."
-add-apt-repository -y ppa:git-core/ppa 2>/dev/null || echo "Could not add git PPA, will use default version"
+echo "🔧 Adding package repositories..."
+add-apt-repository -y ppa:git-core/ppa 2>/dev/null || echo "  ⚠️ Could not add git PPA, will use default version."
 apt-get update -y || true
 
 # Split upgrade and install to avoid QEMU issues on ARM64
+echo "📦 Installing system packages..."
 $APT_CMD upgrade -y || true
 
 # Install packages in smaller groups to reduce memory pressure
-# Group 1: Basic tools
+echo "  📦 Installing basic tools..."
 $APT_CMD install -y \
      curl \
      wget \
@@ -69,7 +70,7 @@ $APT_CMD install -y \
      fzf \
      
 
-# Group 2: Build tools and libraries
+echo "  🔨 Installing build tools and libraries..."
 $APT_CMD install -y \
      build-essential \
      make \
@@ -83,7 +84,7 @@ $APT_CMD install -y \
      libstdc++6 \
      zlib1g zlib1g-dev
 
-# Group 3: Additional development tools
+echo "  🛠️ Installing additional development tools..."
 $APT_CMD install -y \
      skopeo \
      binutils \
@@ -100,20 +101,20 @@ $APT_CMD install -y \
      gnome-keyring \
      python3-minimal
 
-# Group 4: Supervisor and iptables
+echo "  🔧 Installing supervisor and iptables..."
 $APT_CMD install -y supervisor iptables
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 # Install modern CLI tools
-echo "Installing modern CLI tools..."
+echo "🚀 Installing modern CLI tools..."
 
-# Install starship prompt
+echo "  ⭐ Installing starship prompt..."
 curl -sS https://starship.rs/install.sh | sh -s -- -y
 
-# Install zoxide (smart cd)
+echo "  📂 Installing zoxide (smart cd)..."
 curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 
-# Install eza (better ls)
+echo "  📋 Installing eza (better ls)..."
 mkdir -p /etc/apt/keyrings
 wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
 echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list

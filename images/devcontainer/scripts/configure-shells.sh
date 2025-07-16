@@ -8,7 +8,7 @@ DEVCONTAINER_MARKER="# DEVCONTAINER_CONFIG_APPLIED"
 
 # Check if configuration already applied by looking for our marker
 if grep -q "$DEVCONTAINER_MARKER" ~/.zshrc 2>/dev/null; then
-    echo "DevContainer shell configuration already applied."
+    echo "  DevContainer shell configuration already applied"
     exit 0
 fi
 
@@ -52,17 +52,17 @@ append_to_shell_config() {
     # Create file if it doesn't exist (especially for .bashrc)
     if [ ! -f "$shell_file" ]; then
         echo "# Shell configuration for $shell_type" > "$shell_file"
-        echo "Created $(basename "$shell_file")"
+        echo "    Created $(basename "$shell_file")"
     fi
     
     # Append devcontainer configuration
     echo "" >> "$shell_file"
     echo "$DEVCONTAINER_CONFIG" >> "$shell_file"
-    echo "Updated $(basename "$shell_file") with devcontainer configuration"
+    echo "    Updated $(basename "$shell_file") with devcontainer configuration"
 }
 
 # Apply to both shells
 append_to_shell_config ~/.zshrc "zsh"
 append_to_shell_config ~/.bashrc "bash"
 
-echo "Shell configuration complete."
+echo "  Shell configuration complete"

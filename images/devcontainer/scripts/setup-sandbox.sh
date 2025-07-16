@@ -32,13 +32,13 @@ echo "Initializing sandbox firewall..."
 
 # Check if running in container
 if [ ! -f /.dockerenv ] && [ ! -f /run/.containerenv ]; then
-    echo "Not running in a container, skipping firewall setup"
+    echo "  Warning: Not running in a container, skipping firewall setup."
     exit 0
 fi
 
 # Check if we have necessary capabilities
 if ! capsh --print | grep -q cap_net_admin; then
-    echo "Warning: NET_ADMIN capability not available, skipping firewall setup"
+    echo "  Warning: NET_ADMIN capability not available, skipping firewall setup."
     exit 0
 fi
 
@@ -64,7 +64,7 @@ add_domain_to_ipset() {
                 sudo ipset add allowed-domains "$ip" 2>/dev/null || true
             fi
         done
-        echo "Added IPs for $domain"
+        echo "    ✓ Added IPs for $domain"
     fi
 }
 
@@ -111,7 +111,7 @@ CORE_DOMAINS=(
 )
 
 # Add GitHub IP ranges
-echo "Adding GitHub IP ranges..."
+echo "  Adding GitHub IP ranges..."
 GITHUB_META_URL="https://api.github.com/meta"
 if GITHUB_IPS=$(curl -s "$GITHUB_META_URL" | grep -oE '"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+"' | tr -d '"'); then
     for ip_range in $GITHUB_IPS; do
@@ -120,18 +120,18 @@ if GITHUB_IPS=$(curl -s "$GITHUB_META_URL" | grep -oE '"[0-9]+\.[0-9]+\.[0-9]+\.
 fi
 
 # Resolve and add core domains
-echo "Resolving core domains..."
+echo "  Resolving core domains..."
 for domain in "${CORE_DOMAINS[@]}"; do
     add_domain_to_ipset "$domain"
 done
 
 # Add additional allowed domains from environment
-if [ -n "${ADDITIONAL_ALLOWED_DOMAINS:-}" ]; then
-    IFS=',' read -ra EXTRA_DOMAINS <<< "$ADDITIONAL_ALLOWED_DOMAINS"
+if [ -n "${SANDBOX_ALLOWED_DOMAINS:-}" ]; then
+    IFS=',' read -ra EXTRA_DOMAINS <<< "$SANDBOX_ALLOWED_DOMAINS"
     for domain in "${EXTRA_DOMAINS[@]}"; do
         domain=$(echo "$domain" | xargs) # trim whitespace
         if [ -n "$domain" ]; then
-            echo "Adding custom domain: $domain"
+            echo "  Adding custom domain: $domain..."
             add_domain_to_ipset "$domain"
         fi
     done
@@ -144,7 +144,7 @@ sudo ipset add allowed-domains 192.168.0.0/16 2>/dev/null || true
 sudo ipset add allowed-domains 127.0.0.0/8 2>/dev/null || true
 
 # Configure iptables rules
-echo "Configuring firewall rules..."
+echo "  Configuring firewall rules..."
 
 # Save current rules
 sudo iptables-save > /tmp/iptables.backup
@@ -177,27 +177,28 @@ sudo ip6tables -A OUTPUT -p tcp --dport 53 -j ACCEPT
 sudo iptables -A OUTPUT -m set --match-set allowed-domains dst -j ACCEPT
 sudo ip6tables -A OUTPUT -m set --match-set allowed-domains-v6 dst -j ACCEPT
 
-echo "Firewall initialization complete"
+echo "    ✓ Firewall initialization complete"
 
 # Test connectivity
-echo "Testing connectivity..."
+echo "
+Testing connectivity..."
 if curl -s https://api.anthropic.com > /dev/null 2>&1; then
-    echo "✓ Can reach Anthropic API"
+    echo "  ✓ Can reach Anthropic API"
 else
-    echo "✗ Cannot reach Anthropic API"
+    echo "  ✗ Cannot reach Anthropic API"
 fi
 
 if curl -s https://api.github.com > /dev/null 2>&1; then
-    echo "✓ Can reach GitHub API"
+    echo "  ✓ Can reach GitHub API"
 else
-    echo "✗ Cannot reach GitHub API"
+    echo "  ✗ Cannot reach GitHub API"
 fi
 
 # This should fail
 if curl -s --max-time 5 https://example.com > /dev/null 2>&1; then
-    echo "✗ Firewall may not be working correctly - can reach blocked site"
+    echo "  ✗ Firewall may not be working correctly - can reach blocked site"
 else
-    echo "✓ Firewall is blocking unauthorized connections"
+    echo "  ✓ Firewall is blocking unauthorized connections"
 fi
 EOF
 
@@ -219,4 +220,5 @@ EOF
 
 chmod 0440 /etc/sudoers.d/sandbox
 
-echo "Sandbox setup complete!"
+echo "
+✓ Sandbox setup complete"

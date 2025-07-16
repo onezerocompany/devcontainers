@@ -23,12 +23,14 @@ else
     USER_HOME="/home/$USERNAME"
 fi
 
+echo "Configuring shells for $USERNAME..."
+
 # Function to create shell configuration files
 create_shell_configs() {
     local HOME_DIR=$1
     local USER=$2
     
-    echo "Creating shell configurations in $HOME_DIR for user $USER..."
+    echo "  Creating shell configurations in $HOME_DIR for user $USER..."
     
     # Create common PATH export
     local PATH_EXPORT='export PATH="$HOME/.local/bin:$PATH"'
@@ -140,17 +142,17 @@ create_shell_configs "$USER_HOME" "$USERNAME"
 
 # Also create for root if we're running as root and configuring another user
 if [ "$EUID" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-    echo "Also creating shell configurations for root..."
+    echo "  Also creating shell configurations for root..."
     create_shell_configs "/root" "root"
 fi
 
 
 # Note: Shell is already set to zsh when user is created in Dockerfile
 # This is just a fallback in case it wasn't set properly
-echo "Verifying shell settings for $USERNAME..."
+echo "  Verifying shell settings for $USERNAME..."
 CURRENT_SHELL=$(getent passwd "$USERNAME" | cut -d: -f7)
 if [ "$CURRENT_SHELL" != "/bin/zsh" ]; then
-    echo "Updating shell from $CURRENT_SHELL to /bin/zsh for $USERNAME..."
+    echo "    Updating shell from $CURRENT_SHELL to /bin/zsh for $USERNAME..."
     if [ "$USERNAME" = "root" ]; then
         chsh -s /bin/zsh
     else
@@ -162,7 +164,7 @@ fi
 if [ "$EUID" -eq 0 ] && [ "$USERNAME" != "root" ]; then
     ROOT_SHELL=$(getent passwd root | cut -d: -f7)
     if [ "$ROOT_SHELL" != "/bin/zsh" ]; then
-        echo "Updating shell from $ROOT_SHELL to /bin/zsh for root..."
+        echo "    Updating shell from $ROOT_SHELL to /bin/zsh for root..."
         chsh -s /bin/zsh
     fi
 fi

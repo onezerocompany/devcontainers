@@ -37,7 +37,7 @@ devcontainer:latest
   - GitHub and related services
   - Package registries (npm, PyPI, crates.io, etc.)
   - Linear.app
-  - Custom domains via `ADDITIONAL_ALLOWED_DOMAINS`
+  - Custom domains via `SANDBOX_ALLOWED_DOMAINS`
 - **Private Network Access**: Maintains access to local/private IP ranges
 - **DNS Resolution**: Automatic IP resolution for allowed domains
 
@@ -142,11 +142,8 @@ docker run -it --cap-add=NET_ADMIN devcontainer:latest
 - `VSCODE_LOG_PATH`: VS Code server log location (default: /tmp/vscode-server.log)
 
 #### Sandbox Configuration
-- `ADDITIONAL_ALLOWED_DOMAINS`: Comma-separated list of additional domains to allow through firewall
-- `DEVCONTAINER_SANDBOX_ENABLED`: Enable sandbox on container start (true/false)
-- `DEVCONTAINER_SANDBOX_FIREWALL`: Enable firewall within sandbox (true/false)
-- `DEVCONTAINER_SANDBOX_ALLOWED_DOMAINS`: Initial allowed domains (comma-separated)
-- `ENABLE_SANDBOX_FIREWALL`: Alternative flag to enable firewall (true/false)
+- `SANDBOX_ENABLED`: Enable sandbox mode with firewall on container start (true/false)
+- `SANDBOX_ALLOWED_DOMAINS`: Comma-separated list of allowed domains for the firewall
 
 ## Security Sandbox
 
@@ -193,9 +190,9 @@ The firewall allows connections to these domains by default:
 
 ### Adding Custom Domains
 ```bash
-# At container start
+# At container start (domains are set once and become immutable)
 docker run -it \
-  -e ADDITIONAL_ALLOWED_DOMAINS="example.com,api.example.com" \
+  -e SANDBOX_ALLOWED_DOMAINS="example.com,api.example.com" \
   --cap-add=NET_ADMIN \
   devcontainer:latest
 ```

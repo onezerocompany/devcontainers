@@ -10,27 +10,33 @@ source /usr/local/bin/common-utils.sh
 USERNAME="${USERNAME:-zero}"
 
 # Main initialization
-echo "=== Devcontainer Initialization ==="
+echo "🚀 Initializing devcontainer..."
+echo
 
 # Initialize sandbox (using shared script from base image)
 if [ -x "/usr/local/bin/init-sandbox" ]; then
     /usr/local/bin/init-sandbox
+    echo
 fi
 
 # Ensure mise tools are available in PATH for shell configuration
 if [ -f "$HOME/.local/bin/mise" ]; then
+    echo "  🔧 Configuring development tools..."
     export PATH="$HOME/.local/bin:$PATH"
     eval "$($HOME/.local/bin/mise activate bash --shims)"
+    echo "    ✓ Development tools configured"
+    echo
 fi
 
 # Signal VS Code that initialization is complete
 if [ -n "${VSCODE_IPC_HOOK_CLI}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
-    echo "📋 Devcontainer initialization complete"
+    echo "✅ Devcontainer initialization complete"
     # Add a marker file that VS Code can detect
     touch /tmp/.devcontainer-init-complete
     
     # If this is the initial VS Code terminal, signal to close it
     if [ -n "${VSCODE_DEVCONTAINER_INIT}" ]; then
+        echo
         echo "🔄 Closing initialization terminal..."
         # Give VS Code time to read the output
         sleep 2

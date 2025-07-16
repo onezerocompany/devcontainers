@@ -66,16 +66,16 @@ wait_for_docker() {
     local max_attempts=30
     local attempt=0
     
-    echo "Waiting for Docker daemon to start..."
+    echo "🔄 Waiting for Docker daemon to start..."
     while ! docker version >/dev/null 2>&1; do
         attempt=$((attempt + 1))
         if [ $attempt -gt $max_attempts ]; then
-            echo "Docker daemon failed to start after $max_attempts attempts"
+            echo "  ❌ Docker daemon failed to start after $max_attempts attempts."
             return 1
         fi
         sleep 1
     done
-    echo "Docker daemon is ready"
+    echo "  ✅ Docker daemon is ready."
     return 0
 }
 
@@ -114,14 +114,14 @@ init_docker_if_needed() {
     if [ -f /.dockerenv ] && [ -x "$(command -v dockerd)" ]; then
         # Check if Docker daemon is already running
         if ! docker version >/dev/null 2>&1; then
-            echo "Starting Docker daemon..."
+            echo "🔄 Starting Docker daemon..."
             sudoIf dockerd &
             
             # Wait for Docker to be ready
             if wait_for_docker; then
                 fix_docker_permissions
             else
-                echo "Warning: Docker daemon initialization failed"
+                echo "  ⚠️ Warning: Docker daemon initialization failed."
             fi
         fi
     fi

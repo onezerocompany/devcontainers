@@ -24,7 +24,7 @@ detect_arch() {
 
 arch=$(detect_arch)
 if [ "$arch" == "unsupported" ]; then
-  echo "Unsupported architecture"
+  echo "  ❌ Unsupported architecture."
   exit 1
 fi
 
@@ -39,10 +39,10 @@ install() {
   curl -fsSL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-$arch" | tar -xz -C $INSTALL_DIR/code
 
   if [ $? -ne 0 ]; then
-    echo "Failed to install vscode-cli"
+    echo "  ❌ Failed to install vscode-cli."
     exit 1
   else
-    echo "vscode-cli installed at $INSTALL_DIR/code"
+    echo "  ✅ vscode-cli installed at $INSTALL_DIR/code."
   fi
 
   # Add code directory to PATH
@@ -56,10 +56,10 @@ install() {
   curl -fsSL https://vscode.download.prss.microsoft.com/dbazure/download/stable/$hash/vscode-server-linux-$arch-web.tar.gz | tar -xz -C $INSTALL_DIR/vscode-server --strip-components 1
 
   if [ $? -ne 0 ]; then
-    echo "Failed to install vscode-server"
+    echo "  ❌ Failed to install vscode-server."
     exit 1
   else
-    echo "vscode-server installed at $INSTALL_DIR/vscode-server"
+    echo "  ✅ vscode-server installed at $INSTALL_DIR/vscode-server."
   fi
 
   # Add vscode-server bin directory to PATH
@@ -86,16 +86,16 @@ setup() {
   
   extensions=$(echo $extensions_json | jq -r '.[]')
   for extension in $extensions; do
-    echo "📦 Installing extension: $extension"
+    echo "  Installing extension: $extension..."
     if $INSTALL_DIR/vscode-server/bin/code-server --install-extension $extension --extensions-dir $VSCODE_SERVER_DIR/extensions --force > /dev/null; then
-      echo "Extension $extension installed successfully"
+      echo "    ✅ Extension $extension installed successfully."
     else
-      echo "Failed to install extension $extension"
+      echo "    ❌ Failed to install extension $extension."
     fi
   done
 
   if [ -n "$settings_json" ]; then
-    echo "🔧 Applying settings..."
+    echo "  Applying settings..."
     echo $settings_json > $VSCODE_SERVER_DIR/data/Machine/settings.json
   fi
 }
