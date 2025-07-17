@@ -36,11 +36,12 @@ test_command() {
     local command="$2"
     local expected_exit_code="${3:-0}"
     
-    if eval "$command" >/dev/null 2>&1; then
-        if [ $? -eq $expected_exit_code ]; then
-            log_success "$description"
-            return 0
-        fi
+    eval "$command" >/dev/null 2>&1
+    local exit_code=$?
+    
+    if [ $exit_code -eq $expected_exit_code ]; then
+        log_success "$description"
+        return 0
     fi
     
     log_error "$description"

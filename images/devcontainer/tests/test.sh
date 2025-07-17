@@ -20,12 +20,12 @@ log_info() {
 
 log_success() {
     echo -e "${GREEN}[PASS]${NC} $1"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 log_error() {
     echo -e "${RED}[FAIL]${NC} $1"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 test_command() {
@@ -33,11 +33,12 @@ test_command() {
     local command="$2"
     local expected_exit_code="${3:-0}"
     
-    if eval "$command" >/dev/null 2>&1; then
-        if [ $? -eq $expected_exit_code ]; then
-            log_success "$description"
-            return 0
-        fi
+    eval "$command" >/dev/null 2>&1
+    local exit_code=$?
+    
+    if [ $exit_code -eq $expected_exit_code ]; then
+        log_success "$description"
+        return 0
     fi
     
     log_error "$description"
@@ -94,7 +95,7 @@ test_vscode_integration() {
     # Test devcontainer init completion marker
     if [ -f /tmp/.devcontainer-init-complete ]; then
         log_success "Devcontainer initialization marker exists"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info "Devcontainer initialization marker not present (normal if not started via devcontainer entrypoint)"
     fi
@@ -110,7 +111,7 @@ test_sandbox_functionality() {
     # Test sandbox state file exists
     if [ -f /var/lib/devcontainer-sandbox/enabled ]; then
         log_success "Sandbox state file exists"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         
         # Read sandbox state
         SANDBOX_STATE=$(cat /var/lib/devcontainer-sandbox/enabled 2>/dev/null || echo "unknown")
@@ -163,14 +164,14 @@ test_container_environment() {
     # Test common devcontainer environment variables (if set)
     if [ -n "$DEVCONTAINER" ]; then
         log_success "DEVCONTAINER environment variable is set"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info "DEVCONTAINER environment variable not set (normal if not in VS Code)"
     fi
     
     if [ -n "$REMOTE_CONTAINERS" ]; then
         log_success "REMOTE_CONTAINERS environment variable is set"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info "REMOTE_CONTAINERS environment variable not set (normal if not in VS Code)"
     fi
@@ -189,7 +190,7 @@ test_shell_customizations() {
     # Test shell profile configurations
     if [ -f "$HOME/.zshenv" ]; then
         log_success "Zsh environment file exists"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info "Zsh environment file not present"
     fi

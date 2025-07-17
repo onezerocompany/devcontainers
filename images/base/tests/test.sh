@@ -32,12 +32,12 @@ log_info() {
 
 log_success() {
     echo -e "${GREEN}[PASS]${NC} $1"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 log_error() {
     echo -e "${RED}[FAIL]${NC} $1"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 test_command() {
@@ -45,11 +45,12 @@ test_command() {
     local command="$2"
     local expected_exit_code="${3:-0}"
     
-    if eval "$command" >/dev/null 2>&1; then
-        if [ $? -eq $expected_exit_code ]; then
-            log_success "$description"
-            return 0
-        fi
+    eval "$command" >/dev/null 2>&1
+    local exit_code=$?
+    
+    if [ $exit_code -eq $expected_exit_code ]; then
+        log_success "$description"
+        return 0
     fi
     
     log_error "$description"
@@ -120,7 +121,7 @@ test_entrypoint() {
     # Test entrypoint creates log file (if it exists)
     if [ -f /tmp/entrypoint.log ]; then
         log_success "Entrypoint creates log file"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info "Entrypoint log file not present (container may not have been started with entrypoint)"
     fi

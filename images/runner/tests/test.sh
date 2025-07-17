@@ -24,12 +24,12 @@ log_info() {
 
 log_success() {
     echo -e "${GREEN}[PASS]${NC} $1"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 log_error() {
     echo -e "${RED}[FAIL]${NC} $1"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 test_command() {
@@ -37,11 +37,12 @@ test_command() {
     local command="$2"
     local expected_exit_code="${3:-0}"
     
-    if eval "$command" >/dev/null 2>&1; then
-        if [ $? -eq $expected_exit_code ]; then
-            log_success "$description"
-            return 0
-        fi
+    eval "$command" >/dev/null 2>&1
+    local exit_code=$?
+    
+    if [ $exit_code -eq $expected_exit_code ]; then
+        log_success "$description"
+        return 0
     fi
     
     log_error "$description"
@@ -95,7 +96,7 @@ test_actions_runner() {
     # Test runner version file exists
     if [ -f /actions-runner/latest-runner-version ]; then
         log_success "Runner version file exists"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         RUNNER_VERSION=$(cat /actions-runner/latest-runner-version 2>/dev/null || echo "unknown")
         log_info "Runner version: $RUNNER_VERSION"
     else
@@ -118,10 +119,10 @@ test_docker_client() {
     # Test Docker version (client only, daemon may not be running)
     if docker version --client >/dev/null 2>&1; then
         log_success "Docker client version check works"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "Docker client version check failed"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -138,7 +139,7 @@ test_container_hooks() {
         HOOK_FILES=$(find /home/runner/k8s -name "*.sh" 2>/dev/null | wc -l)
         if [ "$HOOK_FILES" -gt 0 ]; then
             log_success "Container hook scripts found ($HOOK_FILES files)"
-            ((TESTS_PASSED++))
+            TESTS_PASSED=$((TESTS_PASSED + 1))
         else
             log_info "No container hook scripts found"
         fi
@@ -172,7 +173,7 @@ test_runner_entrypoint() {
     # Test sandbox initialization is available (if it exists)
     if [ -x "/usr/local/bin/init-sandbox" ]; then
         log_success "Sandbox initialization script available"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info "Sandbox initialization script not available (normal for runner image)"
     fi
@@ -202,7 +203,7 @@ test_runner_dependencies() {
     # Test .NET is available (GitHub Actions runner dependency)
     if command -v dotnet >/dev/null 2>&1; then
         log_success ".NET runtime is available"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_info ".NET runtime not available (may be included in runner package)"
     fi
@@ -222,7 +223,7 @@ test_docker_socket() {
     # Test Docker socket exists (may not be present in test environment)
     if [ -S /var/run/docker.sock ]; then
         log_success "Docker socket exists"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         
         # Test runner can access Docker socket
         test_command "Runner can access Docker socket" "[ -r /var/run/docker.sock ]"
@@ -230,7 +231,7 @@ test_docker_socket() {
         # Test Docker daemon is accessible
         if docker version >/dev/null 2>&1; then
             log_success "Docker daemon is accessible"
-            ((TESTS_PASSED++))
+            TESTS_PASSED=$((TESTS_PASSED + 1))
         else
             log_info "Docker daemon not accessible (normal if daemon not running)"
         fi
