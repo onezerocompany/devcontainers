@@ -73,7 +73,11 @@ USER runner
 
 # Test stage
 FROM main AS test
+USER root
 COPY tests/ /tests/
+RUN chmod +x /tests/test.sh
+USER runner
+WORKDIR /home/runner
 RUN /tests/test.sh
 
 # Clean final stage (inherits from main, not test)

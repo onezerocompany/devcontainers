@@ -11,7 +11,7 @@ RUN chmod +x /usr/local/bin/gen.sh
 # Test stage
 FROM main AS test
 COPY tests/ /tests/
-RUN /tests/test.sh
+RUN chmod +x /tests/test.sh && /tests/test.sh
 
 # Clean final stage (inherits from main, not test)
 FROM main AS final

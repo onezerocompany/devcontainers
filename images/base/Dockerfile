@@ -79,7 +79,11 @@ RUN touch ~/.sudo_as_admin_successful
 
 # Test stage for standard variant
 FROM base AS test-standard
+USER root
 COPY tests/ /tests/
+RUN chmod +x /tests/test.sh
+USER $USERNAME
+WORKDIR /home/$USERNAME
 RUN /tests/test.sh
 
 # Standard stage - no Docker-in-Docker (clean, inherits from base)
@@ -111,7 +115,11 @@ USER $USERNAME
 
 # Test stage for DIND variant
 FROM dind-setup AS test-dind
+USER root
 COPY tests/ /tests/
+RUN chmod +x /tests/test.sh
+USER $USERNAME
+WORKDIR /home/$USERNAME
 RUN /tests/test.sh
 
 # Docker-in-Docker stage (clean, inherits from dind-setup)

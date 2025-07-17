@@ -64,7 +64,11 @@ USER $USERNAME
 
 # Test stage
 FROM main AS test
+USER root
 COPY tests/ /tests/
+RUN chmod +x /tests/test.sh
+USER $USERNAME
+WORKDIR /home/$USERNAME
 RUN /tests/test.sh
 
 # Clean final stage (inherits from main, not test)

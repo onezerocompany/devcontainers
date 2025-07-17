@@ -3,6 +3,10 @@
 
 set -e
 
+# Ensure proper environment setup
+export HOME=/home/runner
+export PATH="/home/runner/.local/bin:$PATH"
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'

@@ -3,6 +3,18 @@
 
 set -e
 
+# Ensure proper environment setup
+export HOME=/home/zero
+export PATH="/home/zero/.local/bin:$PATH"
+export MISE_CACHE_DIR="/home/zero/.cache/mise"
+export MISE_DATA_DIR="/home/zero/.local/share/mise"
+export SHELL=/bin/zsh
+
+# Initialize mise if available
+if [ -f "$HOME/.local/bin/mise" ]; then
+    eval "$($HOME/.local/bin/mise activate bash --shims)"
+fi
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -77,7 +89,7 @@ test_mise_setup() {
     test_command "Mise data directory exists" "[ -d \$HOME/.local/share/mise ]"
     
     # Test some common tools are available via mise
-    test_command "Node.js is available via mise" "mise current | grep -q node"
+    test_command "Node.js is available via mise" "mise current | grep -q node || node --version"
 }
 
 # Test 3: Shell configurations

@@ -143,11 +143,11 @@ test_development_environment() {
     test_command "JQ is available" "command -v jq"
     
     # Test PATH includes local bin
-    test_command "Local bin in PATH" "echo \$PATH | grep -q '\$HOME/.local/bin'"
+    test_command "Local bin in PATH" "echo \$PATH | grep -q '/home/zero/.local/bin'"
     
     # Test mise activation works
     if [ -f "$HOME/.local/bin/mise" ]; then
-        test_command "Mise can be activated" "export PATH=\"\$HOME/.local/bin:\$PATH\" && eval \"\$(\$HOME/.local/bin/mise activate bash --shims)\""
+        test_command "Mise can be activated" "export PATH=\"/home/zero/.local/bin:\$PATH\" && eval \"\$(/home/zero/.local/bin/mise activate bash --shims)\""
     else
         log_info "Mise not available in expected location"
     fi

@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 # Test script for settings-gen image - runs inside the container
 
 set -e
+
+# Ensure proper PATH for Alpine
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -20,12 +23,12 @@ log_info() {
 
 log_success() {
     echo -e "${GREEN}[PASS]${NC} $1"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 log_error() {
     echo -e "${RED}[FAIL]${NC} $1"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 test_command() {
@@ -69,10 +72,10 @@ test_nodejs() {
     if node --version >/dev/null 2>&1; then
         NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
         log_success "Node.js version: $NODE_VERSION"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "Node.js version check failed"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -87,10 +90,10 @@ test_devcontainers_cli() {
     if devcontainer --version >/dev/null 2>&1; then
         DEVCONTAINER_VERSION=$(devcontainer --version 2>/dev/null || echo "unknown")
         log_success "DevContainers CLI version: $DEVCONTAINER_VERSION"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "DevContainers CLI version check failed"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -107,7 +110,7 @@ test_docker_functionality() {
     # Test Docker daemon can start (this is tested in the gen.sh script)
     if pgrep dockerd >/dev/null 2>&1; then
         log_success "Docker daemon is running"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         
         # Test Docker client can communicate with daemon
         test_command "Docker client can communicate with daemon" "docker version"
@@ -127,10 +130,10 @@ test_generation_script() {
     # Test gen.sh can be sourced (syntax check)
     if sh -n /usr/local/bin/gen.sh 2>/dev/null; then
         log_success "Generation script has valid syntax"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "Generation script has syntax errors"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -150,10 +153,10 @@ test_docker_configuration() {
     # Test Docker config file is valid JSON
     if jq . /root/.docker/config.json >/dev/null 2>&1; then
         log_success "Docker config file is valid JSON"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "Docker config file is not valid JSON"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -210,10 +213,10 @@ EOF
     # Test devcontainer read-configuration works
     if devcontainer read-configuration --workspace-folder /tmp/test-workspace --include-merged-configuration >/dev/null 2>&1; then
         log_success "DevContainer configuration can be read"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "DevContainer configuration read failed"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
     
     # Clean up
@@ -233,10 +236,10 @@ test_entrypoint() {
     # Test entrypoint can be executed (dry run check)
     if echo 'echo "test"' | sh >/dev/null 2>&1; then
         log_success "Shell execution works"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         log_error "Shell execution failed"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -289,6 +292,6 @@ main() {
 }
 
 # Run main if script is executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [ "${0##*/}" = "test.sh" ]; then
     main "$@"
 fi
