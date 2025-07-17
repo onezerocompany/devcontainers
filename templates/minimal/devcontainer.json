@@ -1,0 +1,4 @@
+{
+  "name": "Minimal DevContainer",
+  "image": "ghcr.io/onezerocompany/devcontainer:latest"
+}

@@ -54,6 +54,9 @@ USER $USERNAME
 # Install mise as non-root user
 RUN curl -fsSL https://mise.run | sh
 
+# Setup node lts using mise global
+RUN mise use -g node@lts
+
 # Create mise cache directories
 RUN mkdir -p ~/.cache/mise && \
     mkdir -p ~/.local/share/mise
