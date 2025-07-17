@@ -11,10 +11,11 @@ ARG USER_GID=$USER_UID
 
 USER root
 
-# Copy and run setup-sandbox.sh
-COPY scripts/setup-sandbox.sh /tmp/devcontainer-scripts/
-RUN chmod +x /tmp/devcontainer-scripts/setup-sandbox.sh && \
-    /tmp/devcontainer-scripts/setup-sandbox.sh
+# Copy and run setup scripts
+COPY scripts/setup-sandbox.sh scripts/setup-dns-filter.sh /tmp/devcontainer-scripts/
+RUN chmod +x /tmp/devcontainer-scripts/*.sh && \
+    /tmp/devcontainer-scripts/setup-sandbox.sh && \
+    /tmp/devcontainer-scripts/setup-dns-filter.sh
 
 # Copy vscode-kit.sh early since we need to run it
 COPY scripts/vscode-kit.sh /usr/local/bin/vscode-kit
@@ -39,7 +40,8 @@ RUN rm -rf /tmp/devcontainer-scripts
 
 # Copy remaining scripts directly to /usr/local/bin (better caching)
 COPY scripts/init-sandbox.sh /usr/local/bin/init-sandbox
-RUN chmod +x /usr/local/bin/init-sandbox
+COPY scripts/init-dns-filter.sh /usr/local/bin/init-dns-filter
+RUN chmod +x /usr/local/bin/init-sandbox /usr/local/bin/init-dns-filter
 
 COPY scripts/devcontainer-entrypoint.sh /usr/local/bin/devcontainer-entrypoint
 RUN chmod +x /usr/local/bin/devcontainer-entrypoint

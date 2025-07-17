@@ -49,23 +49,45 @@ resolve_domain() {
     dig +short "$domain" AAAA | grep -E '^[0-9a-fA-F:]+$' || true
 }
 
+# Function to expand wildcard domains to common subdomains
+expand_wildcard_domain() {
+    local domain=$1
+    local base_domain=${domain#*.}
+    local common_subdomains="www api cdn auth mail ftp blog shop store admin dashboard app dev test staging production"
+    
+    echo "$base_domain"
+    for subdomain in $common_subdomains; do
+        echo "$subdomain.$base_domain"
+    done
+}
+
 # Function to add domain and its IPs to ipset
 add_domain_to_ipset() {
     local domain=$1
-    local ips=$(resolve_domain "$domain")
+    local domains_to_resolve
     
-    if [ -n "$ips" ]; then
-        for ip in $ips; do
-            if [[ $ip =~ : ]]; then
-                # IPv6
-                sudo ipset add allowed-domains-v6 "$ip" 2>/dev/null || true
-            else
-                # IPv4
-                sudo ipset add allowed-domains "$ip" 2>/dev/null || true
-            fi
-        done
-        echo "    ✓ Added IPs for $domain"
+    if [[ $domain == *.* ]]; then
+        domains_to_resolve=$(expand_wildcard_domain "$domain")
+    else
+        domains_to_resolve="$domain"
     fi
+    
+    for target_domain in $domains_to_resolve; do
+        local ips=$(resolve_domain "$target_domain")
+        
+        if [ -n "$ips" ]; then
+            for ip in $ips; do
+                if [[ $ip =~ : ]]; then
+                    # IPv6
+                    sudo ipset add allowed-domains-v6 "$ip" 2>/dev/null || true
+                else
+                    # IPv4
+                    sudo ipset add allowed-domains "$ip" 2>/dev/null || true
+                fi
+            done
+            echo "    ✓ Added IPs for $target_domain"
+        fi
+    done
 }
 
 # Create ipsets for allowed domains
