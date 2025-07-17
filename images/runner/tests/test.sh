@@ -70,7 +70,7 @@ test_runner_user() {
     # Test runner user exists
     test_command "Current user is 'runner'" "[ \"\$(whoami)\" = \"runner\" ]"
     test_command "Runner user has UID 1001" "[ \"\$(id -u)\" = \"1001\" ]"
-    test_command "Runner user has sudo privileges" "sudo -l | grep -q 'NOPASSWD:ALL'"
+    test_command "Runner user has sudo privileges" "sudo -l | grep -q 'NOPASSWD.*ALL'"
     
     # Test runner is in docker group
     test_command "Runner user is in docker group" "groups | grep -q docker"
