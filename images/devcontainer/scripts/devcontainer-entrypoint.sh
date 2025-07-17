@@ -19,12 +19,6 @@ if [ -x "/usr/local/bin/init-sandbox" ]; then
     echo
 fi
 
-# Initialize DNS filter (if enabled)
-if [ -x "/usr/local/bin/init-dns-filter" ]; then
-    /usr/local/bin/init-dns-filter
-    echo
-fi
-
 # Ensure mise tools are available in PATH for shell configuration
 if [ -f "$HOME/.local/bin/mise" ]; then
     echo "  🔧 Configuring development tools..."
