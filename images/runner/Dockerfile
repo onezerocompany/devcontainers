@@ -49,13 +49,35 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && usermod -aG sudo runner \
     && usermod -aG docker runner \
     && echo "runner ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && echo "Defaults env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers
+    && echo "Defaults env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers \
+    && mkdir -p /home/runner/.local/bin \
+    && mkdir -p /home/runner/.cache \
+    && mkdir -p /home/runner/.local/share \
+    && mkdir -p /home/runner/.config \
+    && cp -r /home/zero/.local/bin/* /home/runner/.local/bin/ \
+    && cp -r /home/zero/.local/share/* /home/runner/.local/share/ \
+    && cp -r /home/zero/.cache/* /home/runner/.cache/ \
+    && cp /home/zero/.mise.toml /home/runner/.mise.toml \
+    && if [ -f /home/zero/.config/starship.toml ]; then cp /home/zero/.config/starship.toml /home/runner/.config/starship.toml; fi \
+    && chown -R runner:runner /home/runner \
+    && chmod +x /home/runner/.local/bin/mise
+
+# Set up mise environment variables for runner user
+ENV MISE_CACHE_DIR=/home/runner/.cache/mise
+ENV MISE_DATA_DIR=/home/runner/.local/share/mise
+ENV MISE_TRUSTED_CONFIG_PATHS="/"
+ENV MISE_YES=1
 
 WORKDIR /home/runner
+
+# Switch to runner user and activate mise tools
+USER runner
+RUN /bin/bash -c 'eval "$(/home/runner/.local/bin/mise activate bash)" && /home/runner/.local/bin/mise install && /home/runner/.local/bin/mise reshim'
 
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
 
+USER root
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
 
 # Create an entrypoint that initializes sandbox before running actions

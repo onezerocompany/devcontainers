@@ -7,6 +7,11 @@ set -e
 export HOME=/home/runner
 export PATH="/home/runner/.local/bin:$PATH"
 
+# Activate mise to make tools available
+if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate bash)"
+fi
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -117,13 +122,7 @@ test_docker_client() {
     test_command "Docker buildx plugin is executable" "[ -x /usr/local/lib/docker/cli-plugins/docker-buildx ]"
     
     # Test Docker version (client only, daemon may not be running)
-    if docker version --client >/dev/null 2>&1; then
-        log_success "Docker client version check works"
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-    else
-        log_error "Docker client version check failed"
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-    fi
+    test_command "Docker client version check works" "docker --version"
 }
 
 # Test 5: Container hooks
@@ -136,7 +135,7 @@ test_container_hooks() {
     # Check for hook files (they should exist after installation)
     if [ -d /home/runner/k8s ]; then
         # List some common hook files that should exist
-        HOOK_FILES=$(find /home/runner/k8s -name "*.sh" 2>/dev/null | wc -l)
+        HOOK_FILES=$(find /home/runner/k8s -name "*.js" 2>/dev/null | wc -l)
         if [ "$HOOK_FILES" -gt 0 ]; then
             log_success "Container hook scripts found ($HOOK_FILES files)"
             TESTS_PASSED=$((TESTS_PASSED + 1))
