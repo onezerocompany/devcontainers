@@ -22,17 +22,32 @@ mkdir -p /etc/blocky /var/lib/blocky
 chown -R blocky:blocky /etc/blocky /var/lib/blocky
 
 # Download Blocky binary (latest stable)
-BLOCKY_VERSION="v0.24"
+BLOCKY_VERSION="v0.26.2"
 ARCH=$(dpkg --print-architecture)
 case $ARCH in
     amd64) BLOCKY_ARCH="x86_64" ;;
-    arm64) BLOCKY_ARCH="aarch64" ;;
+    arm64) BLOCKY_ARCH="arm64" ;;
     *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
 
-wget -q -O /usr/local/bin/blocky \
-    "https://github.com/0xERR0R/blocky/releases/download/${BLOCKY_VERSION}/blocky_${BLOCKY_VERSION}_Linux_${BLOCKY_ARCH}"
+# Download and extract Blocky
+BLOCKY_TARBALL="blocky_${BLOCKY_VERSION}_Linux_${BLOCKY_ARCH}.tar.gz"
+BLOCKY_URL="https://github.com/0xERR0R/blocky/releases/download/${BLOCKY_VERSION}/${BLOCKY_TARBALL}"
+
+echo "Downloading Blocky from: ${BLOCKY_URL}"
+if ! wget -q -O /tmp/blocky.tar.gz "${BLOCKY_URL}"; then
+    echo "Failed to download Blocky ${BLOCKY_VERSION} for ${BLOCKY_ARCH}. Trying with verbose output..."
+    wget -O /tmp/blocky.tar.gz "${BLOCKY_URL}" || {
+        echo "ERROR: Failed to download Blocky."
+        echo "Attempted URL: ${BLOCKY_URL}"
+        exit 1
+    }
+fi
+
+# Extract blocky binary from tarball
+tar -xzf /tmp/blocky.tar.gz -C /usr/local/bin blocky
 chmod +x /usr/local/bin/blocky
+rm -f /tmp/blocky.tar.gz
 
 # Create systemd service (or supervisor config for containers)
 cat > /etc/systemd/system/blocky.service <<'EOF'
