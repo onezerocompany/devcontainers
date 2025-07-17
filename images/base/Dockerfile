@@ -77,13 +77,18 @@ COPY --chown=$USERNAME:$USERNAME starship.toml /home/$USERNAME/.config/starship.
 
 RUN touch ~/.sudo_as_admin_successful
 
-# Standard stage - no Docker-in-Docker
+# Test stage for standard variant
+FROM base AS test-standard
+COPY tests/ /tests/
+RUN /tests/test.sh
+
+# Standard stage - no Docker-in-Docker (clean, inherits from base)
 FROM base AS standard
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []
 
-# Docker-in-Docker stage
-FROM base AS dind
+# Pre-DIND stage with Docker setup
+FROM base AS dind-setup
 
 USER root
 
@@ -104,6 +109,12 @@ VOLUME /var/lib/docker
 # Switch back to the configured user
 USER $USERNAME
 
-# Set Docker-specific entrypoint with DIND flag
+# Test stage for DIND variant
+FROM dind-setup AS test-dind
+COPY tests/ /tests/
+RUN /tests/test.sh
+
+# Docker-in-Docker stage (clean, inherits from dind-setup)
+FROM dind-setup AS dind
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []

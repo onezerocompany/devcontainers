@@ -35,7 +35,7 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
         "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${TARGETARCH}" \
     && chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 
-FROM ghcr.io/onezerocompany/base:latest
+FROM ghcr.io/onezerocompany/base:latest AS main
 
 USER root
 
@@ -71,4 +71,11 @@ RUN echo '#!/bin/bash' > /usr/local/bin/runner-entrypoint && \
 
 USER runner
 
+# Test stage
+FROM main AS test
+COPY tests/ /tests/
+RUN /tests/test.sh
+
+# Clean final stage (inherits from main, not test)
+FROM main AS final
 ENTRYPOINT ["/usr/local/bin/runner-entrypoint"]

@@ -28,9 +28,8 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Test files
+# Test files (allow tests/ for Docker testing)
 test/
-tests/
 *_test.go
 *_test.py
 *.test.js

@@ -48,6 +48,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Test base image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/base
+          file: ./images/base/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          target: test-standard
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-base
+
       - name: Build and push base image
         uses: docker/build-push-action@v5
         with:
@@ -87,6 +96,15 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test dind image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/base
+          file: ./images/base/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          target: test-dind
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-dind
 
       - name: Build and push dind image
         uses: docker/build-push-action@v5
@@ -129,6 +147,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Test devcontainer standard image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/devcontainer
+          file: ./images/devcontainer/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          target: test
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard
+          build-args: |
+            BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
+            BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
+            BASE_IMAGE_TAG=latest
+            DIND=false
+
       - name: Build and push devcontainer standard image
         uses: docker/build-push-action@v5
         with:
@@ -141,6 +173,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:base
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard,mode=max
+          target: final
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
             BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
@@ -175,6 +208,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Test devcontainer dind image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/devcontainer
+          file: ./images/devcontainer/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          target: test
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind
+          build-args: |
+            BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
+            BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
+            BASE_IMAGE_TAG=dind
+            DIND=true
+
       - name: Build and push devcontainer dind image
         uses: docker/build-push-action@v5
         with:
@@ -186,6 +233,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:dind
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind,mode=max
+          target: final
           build-args: |
             BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
             BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
@@ -221,6 +269,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Test runner image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/runner
+          file: ./images/runner/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          target: test
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
+
       - name: Build and push runner image
         uses: docker/build-push-action@v5
         with:
@@ -233,6 +290,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner,mode=max
+          target: final
           
   # Build the settings generator image
   build-settings-gen:
@@ -261,6 +319,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Test settings generator image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/settings-gen
+          file: ./images/settings-gen/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          target: test
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:buildcache-settings-gen
+
       - name: Build and push settings generator image
         uses: docker/build-push-action@v5
         with:
@@ -273,213 +340,4 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:buildcache-settings-gen
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:buildcache-settings-gen,mode=max
-
-  # Test base image
-  test-base:
-    name: Test Base Image
-    needs: build-base
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build base image for testing
-        uses: docker/build-push-action@v5
-        with:
-          context: ./images/base
-          file: ./images/base/Dockerfile
-          load: true
-          tags: test-base:latest
-          target: standard
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-base
-
-      - name: Run base image tests
-        run: |
-          docker run --rm -v ${{ github.workspace }}/images/base/tests:/tests test-base:latest bash /tests/test.sh
-
-  # Test base dind image
-  test-base-dind:
-    name: Test Base DIND Image
-    needs: build-dind
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build base dind image for testing
-        uses: docker/build-push-action@v5
-        with:
-          context: ./images/base
-          file: ./images/base/Dockerfile
-          load: true
-          tags: test-base-dind:latest
-          target: dind
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:buildcache-dind
-
-      - name: Run base dind image tests
-        run: |
-          docker run --rm --privileged -v ${{ github.workspace }}/images/base/tests:/tests test-base-dind:latest bash /tests/test.sh
-
-  # Test devcontainer standard image
-  test-devcontainer-standard:
-    name: Test DevContainer Standard Image
-    needs: build-devcontainer-standard
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build devcontainer standard image for testing
-        uses: docker/build-push-action@v5
-        with:
-          context: ./images/devcontainer
-          file: ./images/devcontainer/Dockerfile
-          load: true
-          tags: test-devcontainer:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-standard
-          build-args: |
-            BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
-            BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
-            BASE_IMAGE_TAG=latest
-            DIND=false
-
-      - name: Run devcontainer standard image tests
-        run: |
-          docker run --rm -v ${{ github.workspace }}/images/devcontainer/tests:/tests test-devcontainer:latest bash /tests/test.sh
-
-  # Test devcontainer dind image
-  test-devcontainer-dind:
-    name: Test DevContainer DIND Image
-    needs: build-devcontainer-dind
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build devcontainer dind image for testing
-        uses: docker/build-push-action@v5
-        with:
-          context: ./images/devcontainer
-          file: ./images/devcontainer/Dockerfile
-          load: true
-          tags: test-devcontainer-dind:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.DEVCONTAINER_IMAGE_NAME }}:buildcache-devcontainer-dind
-          build-args: |
-            BASE_IMAGE_REGISTRY=${{ env.REGISTRY }}
-            BASE_IMAGE_NAME=${{ env.BASE_IMAGE_NAME }}
-            BASE_IMAGE_TAG=dind
-            DIND=true
-
-      - name: Run devcontainer dind image tests
-        run: |
-          docker run --rm --privileged -v ${{ github.workspace }}/images/devcontainer/tests:/tests test-devcontainer-dind:latest bash /tests/test.sh
-
-  # Test runner image
-  test-runner:
-    name: Test Runner Image
-    needs: build-runner
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build runner image for testing
-        uses: docker/build-push-action@v5
-        with:
-          context: ./images/runner
-          file: ./images/runner/Dockerfile
-          load: true
-          tags: test-runner:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
-
-      - name: Run runner image tests
-        run: |
-          docker run --rm -v ${{ github.workspace }}/images/runner/tests:/tests test-runner:latest bash /tests/test.sh
-
-  # Test settings-gen image
-  test-settings-gen:
-    name: Test Settings Generator Image
-    needs: build-settings-gen
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build settings-gen image for testing
-        uses: docker/build-push-action@v5
-        with:
-          context: ./images/settings-gen
-          file: ./images/settings-gen/Dockerfile
-          load: true
-          tags: test-settings-gen:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.SETTINGS_GEN_IMAGE_NAME }}:buildcache-settings-gen
-
-      - name: Run settings-gen image tests
-        run: |
-          docker run --rm -v ${{ github.workspace }}/images/settings-gen/tests:/tests test-settings-gen:latest sh /tests/test.sh
+          target: final

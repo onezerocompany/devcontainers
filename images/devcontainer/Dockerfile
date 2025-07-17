@@ -3,7 +3,7 @@ ARG BASE_IMAGE_REGISTRY=ghcr.io/onezerocompany
 ARG BASE_IMAGE_NAME=base
 ARG BASE_IMAGE_TAG=latest
 
-FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
+FROM ${BASE_IMAGE_REGISTRY}/${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG} AS main
 
 ARG USERNAME=zero
 ARG USER_UID=1000
@@ -62,6 +62,12 @@ USER root
 
 USER $USERNAME
 
-# Use the unified entrypoint
+# Test stage
+FROM main AS test
+COPY tests/ /tests/
+RUN /tests/test.sh
+
+# Clean final stage (inherits from main, not test)
+FROM main AS final
 ENTRYPOINT ["/usr/local/bin/devcontainer-entrypoint"]
 CMD []
