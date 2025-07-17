@@ -28,12 +28,13 @@ if [ -f "$HOME/.local/bin/mise" ]; then
     echo
 fi
 
-# Signal VS Code that initialization is complete
+# Signal that initialization is complete
+echo "✅ Devcontainer initialization complete"
+# Add a marker file that VS Code can detect
+touch /tmp/.devcontainer-init-complete
+
+# VS Code specific behavior
 if [ -n "${VSCODE_IPC_HOOK_CLI}" ] || [ -n "${REMOTE_CONTAINERS}" ]; then
-    echo "✅ Devcontainer initialization complete"
-    # Add a marker file that VS Code can detect
-    touch /tmp/.devcontainer-init-complete
-    
     # If this is the initial VS Code terminal, signal to close it
     if [ -n "${VSCODE_DEVCONTAINER_INIT}" ]; then
         echo
