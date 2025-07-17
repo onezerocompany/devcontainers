@@ -1,65 +1,20 @@
 # ~/.config/starship.toml
 
 add_newline = true
-format = "$status$time$cmd_duration\n[$os$hostname$memory_usage](dimmed)\n$username "
+format = "[](fg:purple)[dev ](bg:purple fg:white)$username "
 right_format = "$directory"
 
-
-[cmd_duration]
-format = "[last command ran for](fg:black) $duration"
-min_time = 100
-min_time_to_notify = 20000
-show_notifications = true
-
 [directory]
+disabled = false
 before_repo_root_style = "fg:white"
-format = "[](fg:white)[$path](bg:white fg:black)[](fg:white)"
-read_only = ""
-repo_root_format = "[](fg:purple)[ $repo_root](bg:purple fg:white)[](fg:purple bg:white)[ .$path ](bg:white fg:black)[](fg:white)"
+format = "[](fg:white)[$path](bg:white fg:black)[](fg:white)"
+read_only = ""
+repo_root_format = "[](fg:purple)[ $repo_root](bg:purple fg:white)[](fg:purple bg:white)[ .$path ](bg:white fg:black)[](fg:white)"
 repo_root_style = "fg:white"
 truncation_length = 3
 
-[directory.substitutions]
-Documents = "󰈙 "
-Downloads = " "
-GitHub = " "
-Music = " "
-Pictures = " "
-
-[hostname]
-format = "$hostname "
-ssh_only = false
-
-[memory_usage]
-disabled = false
-format = "| $symbol  $ram_pct "
-symbol = ""
-threshold = 50
-
-[os]
-disabled = false
-format = "$symbol "
-
-[os.symbols]
-Macos = ""
-Windows = ""
-
-[status]
-disabled = false
-format = "$symbol"
-map_symbol = true
-not_executable_symbol = "󰂭 "
-not_found_symbol = " "
-symbol = " "
-
-[time]
-disabled = false
-format = "[it is](dimmed) $time"
-style = "fg:white"
-time_format = "%T "
-
 [username]
-format = "[](fg:white)[ $user ]($style)[](fg:white)"
+format = "[  $user ]($style)[](fg:white)"
 show_always = true
 style_root = "bg:white fg:black bold"
 style_user = "bg:white fg:black"

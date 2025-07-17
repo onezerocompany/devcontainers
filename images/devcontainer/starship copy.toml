@@ -1,0 +1,20 @@
+# ~/.config/starship.toml
+
+add_newline = true
+format = "[](fg:purple)[dev ](bg:purple fg:white)$username "
+right_format = "$directory"
+
+[directory]
+disabled = false
+before_repo_root_style = "fg:white"
+format = "[](fg:white)[$path](bg:white fg:black)[](fg:white)"
+read_only = ""
+repo_root_format = "[](fg:purple)[ $repo_root](bg:purple fg:white)[](fg:purple bg:white)[ .$path ](bg:white fg:black)[](fg:white)"
+repo_root_style = "fg:white"
+truncation_length = 3
+
+[username]
+format = "[  $user ]($style)[](fg:white)"
+show_always = true
+style_root = "bg:white fg:black bold"
+style_user = "bg:white fg:black"
