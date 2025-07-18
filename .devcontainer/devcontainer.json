@@ -2,7 +2,6 @@
   "name": "devcontainers",
   "image": "ghcr.io/onezerocompany/devcontainer",
   "remoteUser": "zero",
-  // VS Code specific settings
   "customizations": {
     "vscode": {
       "settings": {

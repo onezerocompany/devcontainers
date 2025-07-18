@@ -184,6 +184,41 @@ test_packages() {
     done
 }
 
+# Test 9: S6-overlay functionality
+test_s6_overlay() {
+    log_info "Running s6-overlay tests..."
+    
+    # Run the dedicated s6-overlay test script
+    if [ -f "/tests/test-s6-overlay.sh" ]; then
+        # Make sure the script is executable
+        chmod +x /tests/test-s6-overlay.sh
+        
+        # Run s6 tests and capture results
+        local s6_output=$(/tests/test-s6-overlay.sh 2>&1)
+        local s6_exit_code=$?
+        
+        # Extract pass/fail counts from s6 test output
+        local s6_passed=$(echo "$s6_output" | grep "^Passed:" | grep -o '[0-9]\+' || echo "0")
+        local s6_failed=$(echo "$s6_output" | grep "^Failed:" | grep -o '[0-9]\+' || echo "0")
+        
+        # Add to our totals
+        TESTS_PASSED=$((TESTS_PASSED + s6_passed))
+        TESTS_FAILED=$((TESTS_FAILED + s6_failed))
+        
+        # Show s6 test output
+        echo "$s6_output"
+        
+        if [ $s6_exit_code -eq 0 ]; then
+            log_info "S6-overlay tests completed successfully"
+        else
+            log_info "S6-overlay tests had failures"
+        fi
+    else
+        log_error "S6-overlay test script not found"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+    fi
+}
+
 # Main test execution
 main() {
     log_info "Starting base image tests..."
@@ -198,6 +233,7 @@ main() {
     test_common_utils
     test_environment
     test_packages
+    test_s6_overlay
     
     # Print results
     echo "================================"

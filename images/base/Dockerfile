@@ -93,7 +93,7 @@ RUN touch ~/.sudo_as_admin_successful
 FROM base AS test-standard
 USER root
 COPY tests/ /tests/
-RUN chmod +x /tests/test.sh
+RUN chmod +x /tests/test.sh /tests/test-s6-overlay.sh || true
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN /tests/test.sh
@@ -131,7 +131,7 @@ USER $USERNAME
 FROM dind-setup AS test-dind
 USER root
 COPY tests/ /tests/
-RUN chmod +x /tests/test.sh
+RUN chmod +x /tests/test.sh /tests/test-s6-overlay.sh || true
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN /tests/test.sh
