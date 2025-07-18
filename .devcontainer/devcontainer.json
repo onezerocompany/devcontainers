@@ -2,6 +2,7 @@
   "name": "devcontainers",
   "image": "ghcr.io/onezerocompany/devcontainer",
   "remoteUser": "zero",
+  "overrideCommand": false,
   "customizations": {
     "vscode": {
       "settings": {

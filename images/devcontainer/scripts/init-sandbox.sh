@@ -230,34 +230,56 @@ EOF
 
     # Start Blocky using s6-rc (s6-overlay v3) - must be available
     echo "    🔧 Starting DNS-based sandbox..."
-    # In s6-overlay v3, services are managed with s6-rc
-    # Remove the down file from the service definition
-    sudoIf rm -f /etc/s6-overlay/s6-rc.d/blocky/down
-    # Start blocky service using s6-rc (try both PATH and /command location)
-    S6_RC_CMD="s6-rc"
-    if ! command -v s6-rc >/dev/null 2>&1 && [ -x "/command/s6-rc" ]; then
-        S6_RC_CMD="/command/s6-rc"
-    fi
-    sudoIf $S6_RC_CMD -u change blocky
-    echo "      ✓ Blocky started via s6-overlay"
-    # Give blocky a moment to start
-    sleep 1
-
-    # Update resolv.conf to use local DNS
-    sudoIf cp /etc/resolv.conf /etc/resolv.conf.backup
-    echo "nameserver 127.0.0.1" | sudoIf tee /etc/resolv.conf > /dev/null
-    echo "options ndots:0" | sudoIf tee -a /etc/resolv.conf > /dev/null
-
-    # Make resolv.conf immutable to prevent DNS bypass (if filesystem supports it)
-    if sudoIf chattr +i /etc/resolv.conf 2>/dev/null; then
-        echo "      ✓ resolv.conf made immutable"
+    
+    # Check if we're running under s6-overlay
+    BLOCKY_STARTED=false
+    if [ -d "/run/s6/services" ] || [ -d "/run/service" ]; then
+        # s6-overlay is running, use s6-rc
+        # In s6-overlay v3, services are managed with s6-rc
+        # Remove the down file from the service definition
+        sudoIf rm -f /etc/s6-overlay/s6-rc.d/blocky/down
+        # Start blocky service using s6-rc (try both PATH and /command location)
+        S6_RC_CMD="s6-rc"
+        if ! command -v s6-rc >/dev/null 2>&1 && [ -x "/command/s6-rc" ]; then
+            S6_RC_CMD="/command/s6-rc"
+        elif [ -x "/package/admin/s6-rc-0.5.6.0/command/s6-rc" ]; then
+            S6_RC_CMD="/package/admin/s6-rc-0.5.6.0/command/s6-rc"
+        fi
+        if sudoIf $S6_RC_CMD -u change blocky 2>/dev/null; then
+            echo "      ✓ Blocky started via s6-overlay"
+            BLOCKY_STARTED=true
+        else
+            echo "      ⚠ Warning: Could not start blocky service via s6-rc"
+            echo "      ⚠ DNS filtering will not be active in this session"
+        fi
     else
-        echo "      ⚠ Warning: Cannot make resolv.conf immutable (filesystem doesn't support chattr)"
+        # s6-overlay not detected
+        echo "      ⚠ Warning: s6-overlay not detected"
+        echo "      ⚠ DNS filtering requires s6-overlay to be running as init"
+        echo "      ⚠ Consider using 'overrideCommand: false' in devcontainer.json"
     fi
+    
+    # Only configure DNS if blocky was started successfully
+    if [ "$BLOCKY_STARTED" = true ]; then
+        # Give blocky a moment to start
+        sleep 1
 
-    echo "      ✓ DNS-based sandbox initialized"
-  echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"
-    echo "      ✓ Configuration locked (immutable)"
+        # Update resolv.conf to use local DNS
+        sudoIf cp /etc/resolv.conf /etc/resolv.conf.backup
+        echo "nameserver 127.0.0.1" | sudoIf tee /etc/resolv.conf > /dev/null
+        echo "options ndots:0" | sudoIf tee -a /etc/resolv.conf > /dev/null
+
+        # Make resolv.conf immutable to prevent DNS bypass (if filesystem supports it)
+        if sudoIf chattr +i /etc/resolv.conf 2>/dev/null; then
+            echo "      ✓ resolv.conf made immutable"
+        else
+            echo "      ⚠ Warning: Cannot make resolv.conf immutable (filesystem doesn't support chattr)"
+        fi
+
+        echo "      ✓ DNS-based sandbox initialized"
+        echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"
+        echo "      ✓ Configuration locked (immutable)"
+    fi
 else
     echo "  🔓 Sandbox mode is disabled"
 fi
