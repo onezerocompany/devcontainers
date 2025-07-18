@@ -15,14 +15,12 @@
     }
   },
   "postCreateCommand": "post-create",
-  "postAttachCommand": "post-attach",
-  // Optional: Enable sandbox mode
   "containerEnv": {
-    "SANDBOX_ENABLED": "false",
+    "SANDBOX_ENABLED": "true",
     "SANDBOX_ALLOWED_DOMAINS": ""
   },
-  // DIND configuration - privileged mode is required for Docker daemon
-  "runArgs": [
-    "--privileged"
+  "capAdd": [
+    "NET_ADMIN",
+    "NET_RAW"
   ]
 }

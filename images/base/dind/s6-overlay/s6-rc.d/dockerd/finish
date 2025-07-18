@@ -1,0 +1,8 @@
+#!/command/execlineb -S1
+# Clean up Docker resources on exit
+if { test ${1} -ne 0 }
+if { test ${1} -ne 256 }
+# Log the exit status
+foreground { redirfd -w 1 /var/log/dockerd-finish.log echo "dockerd exited with status ${1}" }
+# Give Docker time to cleanup
+s6-sleep 2

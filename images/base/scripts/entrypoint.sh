@@ -13,12 +13,12 @@ USERNAME="${USERNAME:-zero}"
 echo "🚀 Initializing container..."
 echo
 
+# s6-overlay will manage services automatically
+echo "  🔧 System services managed by s6-overlay"
+
 # Docker-in-Docker specific initialization
 if detect_dind; then
     echo "  🐳 Docker-in-Docker mode detected"
-    
-    # Start supervisor for Docker daemon
-    sudoIf /usr/bin/supervisord -c /etc/supervisor/supervisord.conf -n >> /dev/null 2>&1 &
     
     # Wait for Docker to start
     echo "  🔄 Starting Docker daemon..."

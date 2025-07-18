@@ -11,6 +11,9 @@ ARG USER_GID=$USER_UID
 
 USER root
 
+# Copy s6-overlay service definitions
+COPY s6-overlay/ /etc/s6-overlay/
+
 # Copy and run setup scripts
 COPY scripts/setup-sandbox.sh /tmp/devcontainer-scripts/
 RUN chmod +x /tmp/devcontainer-scripts/*.sh && \
@@ -67,5 +70,7 @@ RUN /tests/test.sh
 
 # Clean final stage (inherits from main, not test)
 FROM main AS final
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Configure s6-overlay
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+ENTRYPOINT ["/init", "/usr/local/bin/entrypoint.sh"]
 CMD []

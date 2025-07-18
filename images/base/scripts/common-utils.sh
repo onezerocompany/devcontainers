@@ -91,8 +91,8 @@ fix_docker_permissions() {
 detect_dind() {
     # Check 1: Docker daemon binary exists
     if command -v dockerd >/dev/null 2>&1; then
-        # Check 2: Supervisor config for Docker exists
-        if [ -f "/etc/supervisor/conf.d/dockerd.conf" ] || [ -f "/etc/supervisor/supervisord.conf" ]; then
+        # Check 2: s6-overlay service for Docker exists
+        if [ -d "/etc/s6-overlay/s6-rc.d/dockerd" ] || [ -f "/etc/s6-overlay/s6-rc.d/dockerd/type" ]; then
             return 0
         fi
         # Check 3: Running in container with Docker capabilities

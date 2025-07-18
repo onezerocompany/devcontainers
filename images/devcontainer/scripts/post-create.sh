@@ -6,9 +6,44 @@ echo
 
 source /usr/local/bin/common-utils.sh
 
-# Install project-specific mise tools if .mise.toml exists
-if command -v mise &> /dev/null && [ -f ".mise.toml" ]; then
+# Check for mise configuration files in all possible locations
+# Order matters - more specific files take precedence
+MISE_CONFIG_FILES=(
+    ".mise.local.toml"
+    "mise.local.toml"
+    ".mise.\${MISE_ENV}.toml"  # Will be evaluated if MISE_ENV is set
+    "mise.\${MISE_ENV}.toml"    # Will be evaluated if MISE_ENV is set
+    ".mise.toml"
+    ".mise/config.toml"
+    "mise.toml"
+    "mise/config.toml"
+    ".config/mise.toml"
+    ".config/mise/config.toml"
+    ".tool-versions"  # Legacy asdf format
+)
+
+# Function to check if any mise config exists
+has_mise_config() {
+    for config in "${MISE_CONFIG_FILES[@]}"; do
+        # Expand environment variables in config name
+        expanded_config=$(eval echo "$config")
+        if [ -f "$expanded_config" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Install project-specific mise tools if any config exists
+if command -v mise &> /dev/null && has_mise_config; then
     echo "  📦 Installing project-specific tools..."
+    # List which config files were found
+    for config in "${MISE_CONFIG_FILES[@]}"; do
+        expanded_config=$(eval echo "$config")
+        if [ -f "$expanded_config" ]; then
+            echo "    📄 Found: $expanded_config"
+        fi
+    done
     # Suppress TERM warnings by setting a minimal TERM if not set
     if [ -z "$TERM" ]; then
         export TERM=dumb
@@ -16,7 +51,7 @@ if command -v mise &> /dev/null && [ -f ".mise.toml" ]; then
     mise trust --all 2>&1 || true
     mise install --yes 2>&1 || true
     echo "    ✓ Project tools installed"
-elif [ -f ".mise.toml" ]; then
+elif has_mise_config; then
     echo "  ⚠️  Warning: mise not found, skipping project tool installation"
 fi
 

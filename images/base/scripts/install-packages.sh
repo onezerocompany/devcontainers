@@ -101,8 +101,32 @@ $APT_CMD install -y \
      gnome-keyring \
      python3-minimal
 
-echo "  🔧 Installing supervisor and iptables..."
-$APT_CMD install -y supervisor iptables
+echo "  🔧 Installing s6-overlay and iptables..."
+# Install s6-overlay v3 (latest stable)
+S6_OVERLAY_VERSION="v3.2.0.2"
+ARCH=$(dpkg --print-architecture)
+case $ARCH in
+    amd64) S6_ARCH="x86_64" ;;
+    arm64) S6_ARCH="aarch64" ;;
+    armhf) S6_ARCH="armhf" ;;
+    *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+# Download s6-overlay
+echo "    Downloading s6-overlay ${S6_OVERLAY_VERSION} for ${S6_ARCH}..."
+wget -q -O /tmp/s6-overlay-noarch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz"
+wget -q -O /tmp/s6-overlay-arch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz"
+
+# Extract s6-overlay to root
+echo "    Installing s6-overlay..."
+tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+tar -C / -Jxpf /tmp/s6-overlay-arch.tar.xz
+
+# Clean up
+rm -f /tmp/s6-overlay-*.tar.xz
+
+# Install iptables
+$APT_CMD install -y iptables
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 # Install modern CLI tools

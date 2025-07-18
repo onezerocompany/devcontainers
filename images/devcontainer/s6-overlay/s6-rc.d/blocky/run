@@ -1,0 +1,5 @@
+#!/command/execlineb -P
+# Run blocky with proper user and logging
+s6-setuidgid blocky
+fdmove -c 2 1
+/usr/local/bin/blocky --config /etc/blocky/config.yml

@@ -224,10 +224,6 @@ hostsFile:
 prometheus:
   enable: false
   path: /metrics
-
-# Health check
-health:
-  httpPort: 4000
 EOF
 
     # Set proper permissions
@@ -236,16 +232,27 @@ EOF
     # Make configuration immutable
     sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null || true
 
-    # Start Blocky
+    # Start Blocky using s6-svc
     echo "    🔧 Starting DNS-based sandbox..."
-    if command -v systemctl &> /dev/null; then
-        systemctl daemon-reload
-        systemctl enable blocky
-        systemctl start blocky
+    if [ -d "/etc/s6-overlay/s6-rc.d/blocky" ]; then
+        # Remove the down file to allow the service to start
+        sudoIf rm -f /run/service/blocky/down
+        # Start blocky service
+        if sudoIf s6-svc -u /run/service/blocky 2>/dev/null; then
+            echo "      ✓ Blocky started via s6-overlay"
+            # Give blocky a moment to start
+            sleep 1
+        else
+            echo "      ⚠️  s6-svc failed, falling back to direct execution"
+            # Fallback for environments without s6
+            sudoIf su -s /bin/bash blocky -c "nohup /usr/local/bin/blocky --config /etc/blocky/config.yml > /var/log/blocky.out.log 2> /var/log/blocky.err.log &"
+            sleep 1  # Give blocky a moment to start
+        fi
     else
-        # For containers without systemd
-        su -s /bin/bash blocky -c "/usr/local/bin/blocky --config /etc/blocky/config.yml" &
-        echo $! > /var/run/blocky.pid
+        echo "      ⚠️  s6-overlay service not found, falling back to direct execution"
+        # Fallback for environments without s6
+        sudoIf su -s /bin/bash blocky -c "nohup /usr/local/bin/blocky --config /etc/blocky/config.yml > /var/log/blocky.out.log 2> /var/log/blocky.err.log &"
+        sleep 1  # Give blocky a moment to start
     fi
 
     # Update resolv.conf to use local DNS

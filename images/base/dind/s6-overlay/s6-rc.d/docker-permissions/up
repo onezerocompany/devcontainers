@@ -1,0 +1,9 @@
+#!/command/execlineb -P
+# Wait for Docker socket to be available
+foreground {
+  loopwhilex
+  if { s6-test ! -S /var/run/docker.sock }
+  s6-sleep 1
+}
+# Fix Docker socket permissions
+chmod 666 /var/run/docker.sock

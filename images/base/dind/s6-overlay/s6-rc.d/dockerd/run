@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+# Run dockerd with proper logging
+fdmove -c 2 1
+/usr/local/bin/dockerd

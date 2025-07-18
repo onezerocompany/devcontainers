@@ -48,6 +48,9 @@ COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY scripts/common-utils.sh /usr/local/bin/common-utils.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/common-utils.sh
 
+# Create s6-overlay service directories
+RUN mkdir -p /etc/s6-overlay/s6-rc.d
+
 WORKDIR /home/$USERNAME
 USER $USERNAME
 
@@ -88,7 +91,9 @@ RUN /tests/test.sh
 
 # Standard stage - no Docker-in-Docker (clean, inherits from base)
 FROM base AS standard
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Configure s6-overlay
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+ENTRYPOINT ["/init", "/usr/local/bin/entrypoint.sh"]
 CMD []
 
 # Pre-DIND stage with Docker setup
@@ -104,8 +109,8 @@ RUN bash /tmp/install-docker.sh && rm /tmp/install-docker.sh
 COPY dind/modprobe /usr/local/bin/ 
 RUN chmod +x /usr/local/bin/modprobe
 
-# Copy supervisor configuration
-COPY dind/supervisor/ /etc/supervisor/conf.d/
+# Copy s6-overlay service definitions
+COPY dind/s6-overlay/ /etc/s6-overlay/
 
 # Create Docker volume
 VOLUME /var/lib/docker
@@ -124,5 +129,7 @@ RUN /tests/test.sh
 
 # Docker-in-Docker stage (clean, inherits from dind-setup)
 FROM dind-setup AS dind
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Configure s6-overlay
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+ENTRYPOINT ["/init", "/usr/local/bin/entrypoint.sh"]
 CMD []
