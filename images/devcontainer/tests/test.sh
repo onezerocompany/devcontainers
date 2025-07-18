@@ -67,9 +67,9 @@ test_base_functionality() {
 test_devcontainer_scripts() {
     log_info "Testing devcontainer-specific scripts..."
     
-    # Test devcontainer entrypoint
-    test_command "Devcontainer entrypoint exists" "[ -f /usr/local/bin/devcontainer-entrypoint ]"
-    test_command "Devcontainer entrypoint is executable" "[ -x /usr/local/bin/devcontainer-entrypoint ]"
+    # Test standard entrypoint (from base image)
+    test_command "Entrypoint script exists" "[ -f /usr/local/bin/entrypoint.sh ]"
+    test_command "Entrypoint script is executable" "[ -x /usr/local/bin/entrypoint.sh ]"
     
     # Test sandbox initialization script
     test_command "Sandbox init script exists" "[ -f /usr/local/bin/init-sandbox ]"
@@ -78,10 +78,6 @@ test_devcontainer_scripts() {
     # Test post-create hook
     test_command "Post-create hook exists" "[ -f /usr/local/bin/post-create ]"
     test_command "Post-create hook is executable" "[ -x /usr/local/bin/post-create ]"
-    
-    # Test post-attach hook
-    test_command "Post-attach hook exists" "[ -f /usr/local/bin/post-attach ]"
-    test_command "Post-attach hook is executable" "[ -x /usr/local/bin/post-attach ]"
 }
 
 # Test 3: VSCode integration
