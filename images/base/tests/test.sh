@@ -190,8 +190,12 @@ test_s6_overlay() {
     
     # Run the dedicated s6-overlay test script
     if [ -f "/tests/test-s6-overlay.sh" ]; then
-        # Make sure the script is executable
-        chmod +x /tests/test-s6-overlay.sh
+        # Check if script is executable (no need to chmod as it's already done in Dockerfile)
+        if [ ! -x "/tests/test-s6-overlay.sh" ]; then
+            log_error "S6-overlay test script not executable"
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+            return
+        fi
         
         # Run s6 tests and capture results
         local s6_output=$(/tests/test-s6-overlay.sh 2>&1)
