@@ -232,18 +232,19 @@ EOF
     # Make configuration immutable
     sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null || true
 
-    # Start Blocky using s6-svc
+    # Start Blocky using s6-rc (s6-overlay v3)
     echo "    🔧 Starting DNS-based sandbox..."
     if [ -d "/etc/s6-overlay/s6-rc.d/blocky" ]; then
-        # Remove the down file to allow the service to start
-        sudoIf rm -f /run/service/blocky/down
-        # Start blocky service
-        if sudoIf s6-svc -u /run/service/blocky 2>/dev/null; then
+        # In s6-overlay v3, services are managed with s6-rc
+        # Remove the down file from the service definition
+        sudoIf rm -f /etc/s6-overlay/s6-rc.d/blocky/down
+        # Start blocky service using s6-rc
+        if sudoIf s6-rc -u change blocky 2>/dev/null; then
             echo "      ✓ Blocky started via s6-overlay"
             # Give blocky a moment to start
             sleep 1
         else
-            echo "      ⚠️  s6-svc failed, falling back to direct execution"
+            echo "      ⚠️  s6-rc failed, falling back to direct execution"
             # Fallback for environments without s6
             sudoIf su -s /bin/bash blocky -c "nohup /usr/local/bin/blocky --config /etc/blocky/config.yml > /var/log/blocky.out.log 2> /var/log/blocky.err.log &"
             sleep 1  # Give blocky a moment to start
