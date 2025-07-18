@@ -1,6 +1,6 @@
 {
   "name": "devcontainers",
-  "image": "ghcr.io/onezerocompany/devcontainer:dind",
+  "dockerFile": "../images/devcontainer/Dockerfile",
   "remoteUser": "zero",
   // VS Code specific settings
   "customizations": {

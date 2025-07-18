@@ -49,22 +49,18 @@ tar -xzf /tmp/blocky.tar.gz -C /usr/local/bin blocky
 chmod +x /usr/local/bin/blocky
 rm -f /tmp/blocky.tar.gz
 
-# Create systemd service (or supervisor config for containers)
-cat > /etc/systemd/system/blocky.service <<'EOF'
-[Unit]
-Description=Blocky DNS Proxy
-After=network.target
-
-[Service]
-Type=simple
-User=blocky
-Group=blocky
-ExecStart=/usr/local/bin/blocky --config /etc/blocky/config.yml
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
+# Create supervisor config for Blocky
+mkdir -p /etc/supervisor/conf.d
+cat > /etc/supervisor/conf.d/blocky.conf <<'EOF'
+[program:blocky]
+command=/usr/local/bin/blocky --config /etc/blocky/config.yml
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/blocky.err.log
+stdout_logfile=/var/log/blocky.out.log
+user=blocky
+group=blocky
+priority=10
 EOF
 
 # Create directory for scripts
