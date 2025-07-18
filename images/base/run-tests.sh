@@ -123,7 +123,7 @@ run_s6_tests() {
 # Clean up
 cleanup() {
     log_info "Cleaning up test images..."
-    docker rmi devcontainer-base:test-standard devcontainer-base:test-dind >/dev/null 2>&1 || true
+    docker rmi devcontainer-base:test-standard devcontainer-base:test-dind >/dev/null 2>&1
 }
 
 # Main execution

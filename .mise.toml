@@ -1,3 +1,4 @@
 [tools]
+claude = "latest"
 claude-code = "latest"
 node = "lts"

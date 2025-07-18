@@ -6,18 +6,14 @@ USERNAME="${USERNAME:-zero}"
 echo "Installing sandbox packages..."
 apt-get update
 
-# Use apt-fast if available, otherwise fall back to apt-get
-if command -v apt-fast >/dev/null 2>&1; then
-    APT_CMD="apt-fast"
-else
-    APT_CMD="apt-get"
-fi
+# Use apt-fast - it must be available
+APT_CMD="apt-fast"
 
 # Install Blocky - a lightweight DNS proxy with filtering capabilities
 echo "  Installing Blocky DNS proxy..."
 
 # Create blocky user and directories
-adduser --system --no-create-home --group blocky || true
+adduser --system --no-create-home --group blocky
 mkdir -p /etc/blocky /var/lib/blocky
 chown -R blocky:blocky /etc/blocky /var/lib/blocky
 
@@ -35,14 +31,7 @@ BLOCKY_TARBALL="blocky_${BLOCKY_VERSION}_Linux_${BLOCKY_ARCH}.tar.gz"
 BLOCKY_URL="https://github.com/0xERR0R/blocky/releases/download/${BLOCKY_VERSION}/${BLOCKY_TARBALL}"
 
 echo "Downloading Blocky from: ${BLOCKY_URL}"
-if ! wget -q -O /tmp/blocky.tar.gz "${BLOCKY_URL}"; then
-    echo "Failed to download Blocky ${BLOCKY_VERSION} for ${BLOCKY_ARCH}. Trying with verbose output..."
-    wget -O /tmp/blocky.tar.gz "${BLOCKY_URL}" || {
-        echo "ERROR: Failed to download Blocky."
-        echo "Attempted URL: ${BLOCKY_URL}"
-        exit 1
-    }
-fi
+wget -O /tmp/blocky.tar.gz "${BLOCKY_URL}"
 
 # Extract blocky binary from tarball
 tar -xzf /tmp/blocky.tar.gz -C /usr/local/bin blocky

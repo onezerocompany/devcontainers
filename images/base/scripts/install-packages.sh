@@ -7,14 +7,15 @@ apt-get update -y
 # Install basic requirements
 apt-get install -y curl wget software-properties-common
 
-# Try to install apt-fast manually without PPA
+# Install apt-fast - fail if it doesn't work
 echo "📦 Installing package manager optimizations..."
 mkdir -p /etc/bash_completion.d
-if wget -O /usr/local/sbin/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast" 2>/dev/null && \
-    chmod +x /usr/local/sbin/apt-fast && \
-    wget -O /etc/bash_completion.d/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/completions/bash/apt-fast" 2>/dev/null; then
-     # Create apt-fast configuration
-     cat > /etc/apt-fast.conf << 'EOF'
+wget -O /usr/local/sbin/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast"
+chmod +x /usr/local/sbin/apt-fast
+wget -O /etc/bash_completion.d/apt-fast "https://raw.githubusercontent.com/ilikenwf/apt-fast/master/completions/bash/apt-fast"
+
+# Create apt-fast configuration
+cat > /etc/apt-fast.conf << 'EOF'
 # apt-fast configuration
 _APTMGR=apt-get
 DOWNLOADBEFORE=true
@@ -27,28 +28,20 @@ DLLIST='/tmp/apt-fast.list'
 _DOWNLOADER='aria2c --no-conf -c -j ${_MAXNUM} -x ${_MAXCONPERSRV} -s ${_SPLITCON} -i ${DLLIST} --min-split-size=${_MINSPLITSZ} --stream-piece-selector=${_PIECEALGO} --connect-timeout=60 --timeout=600 --max-connection-per-server=16'
 APTCACHE=/var/cache/apt/apt-fast
 EOF
-     
-     # Install aria2 for parallel downloads
-     if apt-get install -y aria2; then
-          echo "  ✅ apt-fast installed successfully."
-          APT_CMD="apt-fast"
-     else
-          echo "  ⚠️ Failed to install aria2, falling back to apt-get."
-          APT_CMD="apt-get"
-     fi
-else
-     echo "  ⚠️ Failed to download apt-fast, using standard apt-get."
-     APT_CMD="apt-get"
-fi
 
-# Optionally try to add git PPA for newer git version (but don't fail if it doesn't work)
+# Install aria2 for parallel downloads
+apt-get install -y aria2
+echo "  ✅ apt-fast installed successfully."
+APT_CMD="apt-fast"
+
+# Add git PPA for newer git version
 echo "🔧 Adding package repositories..."
-add-apt-repository -y ppa:git-core/ppa 2>/dev/null || echo "  ⚠️ Could not add git PPA, will use default version."
-apt-get update -y || true
+add-apt-repository -y ppa:git-core/ppa
+apt-get update -y
 
-# Split upgrade and install to avoid QEMU issues on ARM64
+# Upgrade system packages
 echo "📦 Installing system packages..."
-$APT_CMD upgrade -y || true
+$APT_CMD upgrade -y
 
 # Install packages in smaller groups to reduce memory pressure
 echo "  📦 Installing basic tools..."

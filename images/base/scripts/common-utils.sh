@@ -46,8 +46,11 @@ execute_command() {
             # Get the user's default shell from /etc/passwd
             USER_SHELL=$(getent passwd $(whoami) | cut -d: -f7)
             echo "[EXECUTE_COMMAND] User shell from passwd: $USER_SHELL" >> /tmp/entrypoint.log
-            # Fall back to /bin/zsh if shell lookup fails
-            USER_SHELL=${USER_SHELL:-/bin/zsh}
+            # Fail if shell lookup fails
+            if [ -z "$USER_SHELL" ]; then
+                echo "Error: Could not determine user shell" >&2
+                exit 1
+            fi
             echo "[EXECUTE_COMMAND] Final shell choice: $USER_SHELL" >> /tmp/entrypoint.log
             exec $USER_SHELL -l
         else
@@ -99,11 +102,6 @@ detect_dind() {
         if [ -f "/.dockerenv" ]; then
             return 0
         fi
-    fi
-    
-    # Check 4: Legacy environment variable (fallback)
-    if [ "${IS_DIND:-false}" = "true" ]; then
-        return 0
     fi
     
     return 1
@@ -208,27 +206,15 @@ install_js_dependencies() {
             ;;
             
         "node")
-            if command -v "$package_manager" &> /dev/null; then
-                echo "    Installing dependencies with $package_manager..."
-                case "$package_manager" in
-                    "bun") bun install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
-                    "pnpm") pnpm install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
-                    "yarn") yarn install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
-                    "npm") npm install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
-                esac
-                echo "    ✓ Dependencies installed with $package_manager"
-            else
-                echo "    ⚠️  Warning: $package_manager not found"
-                # Try fallback to npm if available
-                if [ "$package_manager" != "npm" ] && command -v npm &> /dev/null; then
-                    echo "    Falling back to npm..."
-                    npm install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies"
-                    echo "    ✓ Dependencies installed with npm"
-                else
-                    echo "    ⚠️  Warning: No supported package manager found"
-                    return 1
-                fi
-            fi
+            echo "    Installing dependencies with $package_manager..."
+            case "$package_manager" in
+                "bun") bun install ;;
+                "pnpm") pnpm install ;;
+                "yarn") yarn install ;;
+                "npm") npm install ;;
+                *) echo "Unsupported package manager: $package_manager"; exit 1 ;;
+            esac
+            echo "    ✓ Dependencies installed with $package_manager"
             ;;
     esac
     

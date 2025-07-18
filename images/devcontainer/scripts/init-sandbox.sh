@@ -3,16 +3,8 @@
 
 set -e
 
-# Source common utilities from runtime location
-if [ -f "/usr/local/bin/common-utils.sh" ]; then
-    source "/usr/local/bin/common-utils.sh"
-else
-    # Fallback for build-time usage
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    if [ -f "$SCRIPT_DIR/../../base/scripts/common-utils.sh" ]; then
-        source "$SCRIPT_DIR/../../base/scripts/common-utils.sh"
-    fi
-fi
+# Source common utilities - must be available
+source "/usr/local/bin/common-utils.sh"
 
 # Define the state file location (only writable by root)
 SANDBOX_STATE_FILE="/var/lib/devcontainer-sandbox/enabled"
@@ -230,31 +222,22 @@ EOF
     sudoIf chown -R blocky:blocky /etc/blocky
 
     # Make configuration immutable
-    sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null || true
+    sudoIf chattr +i /etc/blocky/config.yml
 
-    # Start Blocky using s6-rc (s6-overlay v3)
+    # Start Blocky using s6-rc (s6-overlay v3) - must be available
     echo "    🔧 Starting DNS-based sandbox..."
-    if [ -d "/etc/s6-overlay/s6-rc.d/blocky" ]; then
-        # In s6-overlay v3, services are managed with s6-rc
-        # Remove the down file from the service definition
-        sudoIf rm -f /etc/s6-overlay/s6-rc.d/blocky/down
-        # Start blocky service using s6-rc
-        if sudoIf s6-rc -u change blocky 2>/dev/null; then
-            echo "      ✓ Blocky started via s6-overlay"
-            # Give blocky a moment to start
-            sleep 1
-        else
-            echo "      ⚠️  s6-rc failed, falling back to direct execution"
-            # Fallback for environments without s6
-            sudoIf su -s /bin/bash blocky -c "nohup /usr/local/bin/blocky --config /etc/blocky/config.yml > /var/log/blocky.out.log 2> /var/log/blocky.err.log &"
-            sleep 1  # Give blocky a moment to start
-        fi
-    else
-        echo "      ⚠️  s6-overlay service not found, falling back to direct execution"
-        # Fallback for environments without s6
-        sudoIf su -s /bin/bash blocky -c "nohup /usr/local/bin/blocky --config /etc/blocky/config.yml > /var/log/blocky.out.log 2> /var/log/blocky.err.log &"
-        sleep 1  # Give blocky a moment to start
+    # In s6-overlay v3, services are managed with s6-rc
+    # Remove the down file from the service definition
+    sudoIf rm -f /etc/s6-overlay/s6-rc.d/blocky/down
+    # Start blocky service using s6-rc (try both PATH and /command location)
+    S6_RC_CMD="s6-rc"
+    if ! command -v s6-rc >/dev/null 2>&1 && [ -x "/command/s6-rc" ]; then
+        S6_RC_CMD="/command/s6-rc"
     fi
+    sudoIf $S6_RC_CMD -u change blocky
+    echo "      ✓ Blocky started via s6-overlay"
+    # Give blocky a moment to start
+    sleep 1
 
     # Update resolv.conf to use local DNS
     sudoIf cp /etc/resolv.conf /etc/resolv.conf.backup
@@ -262,7 +245,7 @@ EOF
     echo "options ndots:0" | sudoIf tee -a /etc/resolv.conf > /dev/null
 
     # Make resolv.conf immutable to prevent DNS bypass
-    sudoIf chattr +i /etc/resolv.conf 2>/dev/null || true
+    sudoIf chattr +i /etc/resolv.conf
 
     echo "      ✓ DNS-based sandbox initialized"
     echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"

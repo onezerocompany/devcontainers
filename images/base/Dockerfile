@@ -77,12 +77,8 @@ RUN mkdir -p ~/.cache/mise && \
 COPY --chown=$USERNAME:$USERNAME global-mise.toml /home/$USERNAME/.mise.toml
 
 # Install tools using mise configuration
-# Add retry logic for mise install to handle network timeouts
-RUN for i in 1 2 3; do \
-        echo "Attempt $i: Installing mise tools..." && \
-        mise install && break || \
-        (echo "Failed attempt $i, retrying in 5 seconds..." && sleep 5); \
-    done
+# Install mise tools
+RUN mise install
 
 # Copy starship configuration after mise has installed starship
 COPY --chown=$USERNAME:$USERNAME starship.toml /home/$USERNAME/.config/starship.toml
