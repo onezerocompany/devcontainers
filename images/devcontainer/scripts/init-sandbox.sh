@@ -132,7 +132,7 @@ for domain in "${CUSTOM_DOMAINS[@]}"; do
 done
 
     # Generate Blocky configuration
-    cat > /etc/blocky/config.yml <<EOF
+    sudoIf tee /etc/blocky/config.yml > /dev/null <<EOF
 # Blocky DNS Filter Configuration
 # Generated at $(date)
 
@@ -191,13 +191,13 @@ EOF
 for domain in "${ALL_DOMAINS[@]}"; do
     # Skip CIDR blocks for domain allowlist
     if [[ ! "$domain" =~ / ]]; then
-        echo "      - |" >> /etc/blocky/config.yml
-        echo "        $domain" >> /etc/blocky/config.yml
+        echo "      - |" | sudoIf tee -a /etc/blocky/config.yml > /dev/null
+        echo "        $domain" | sudoIf tee -a /etc/blocky/config.yml > /dev/null
     fi
 done
 
 # Continue configuration
-cat >> /etc/blocky/config.yml <<EOF
+sudoIf tee -a /etc/blocky/config.yml > /dev/null <<EOF
 
   # Default deny - block everything not explicitly allowed
   denylists:
@@ -231,10 +231,10 @@ health:
 EOF
 
     # Set proper permissions
-    chown -R blocky:blocky /etc/blocky
+    sudoIf chown -R blocky:blocky /etc/blocky
 
     # Make configuration immutable
-    chattr +i /etc/blocky/config.yml 2>/dev/null || true
+    sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null || true
 
     # Start Blocky
     echo "    🔧 Starting DNS-based sandbox..."
@@ -249,12 +249,12 @@ EOF
     fi
 
     # Update resolv.conf to use local DNS
-    cp /etc/resolv.conf /etc/resolv.conf.backup
-    echo "nameserver 127.0.0.1" > /etc/resolv.conf
-    echo "options ndots:0" >> /etc/resolv.conf
+    sudoIf cp /etc/resolv.conf /etc/resolv.conf.backup
+    echo "nameserver 127.0.0.1" | sudoIf tee /etc/resolv.conf > /dev/null
+    echo "options ndots:0" | sudoIf tee -a /etc/resolv.conf > /dev/null
 
     # Make resolv.conf immutable to prevent DNS bypass
-    chattr +i /etc/resolv.conf 2>/dev/null || true
+    sudoIf chattr +i /etc/resolv.conf 2>/dev/null || true
 
     echo "      ✓ DNS-based sandbox initialized"
     echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"
