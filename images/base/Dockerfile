@@ -55,12 +55,10 @@ WORKDIR /home/$USERNAME
 USER $USERNAME
 
 # Install mise as non-root user
-# Try multiple times with fallback to alternative URL
+# Try multiple times in case of transient network issues
 RUN for i in 1 2 3; do \
         echo "Attempt $i: Downloading mise installer..." && \
-        (curl -fsSL https://mise.run | sh) && break || \
-        (echo "Primary URL failed, trying alternative..." && \
-         curl -fsSL https://mise.jdx.dev/install.sh | sh) && break || \
+        curl -fsSL https://mise.run | sh && break || \
         (echo "Failed attempt $i, retrying in 5 seconds..." && sleep 5); \
     done
 
