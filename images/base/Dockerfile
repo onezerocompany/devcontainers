@@ -55,7 +55,14 @@ WORKDIR /home/$USERNAME
 USER $USERNAME
 
 # Install mise as non-root user
-RUN curl -fsSL https://mise.run | sh
+# Try multiple times with fallback to alternative URL
+RUN for i in 1 2 3; do \
+        echo "Attempt $i: Downloading mise installer..." && \
+        (curl -fsSL https://mise.run | sh) && break || \
+        (echo "Primary URL failed, trying alternative..." && \
+         curl -fsSL https://mise.jdx.dev/install.sh | sh) && break || \
+        (echo "Failed attempt $i, retrying in 5 seconds..." && sleep 5); \
+    done
 
 # Setup node lts using mise global
 RUN mise use -g node@lts
