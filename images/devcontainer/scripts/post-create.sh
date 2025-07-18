@@ -50,6 +50,7 @@ if command -v mise &> /dev/null && has_mise_config; then
     fi
     mise trust --all 2>&1
     mise install --yes 2>&1
+    echo
     echo "    ✓ Project tools installed"
 elif has_mise_config; then
     echo "  ⚠️  Warning: mise not found, skipping project tool installation"

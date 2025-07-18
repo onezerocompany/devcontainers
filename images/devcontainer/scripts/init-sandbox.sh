@@ -221,8 +221,12 @@ EOF
     # Set proper permissions
     sudoIf chown -R blocky:blocky /etc/blocky
 
-    # Make configuration immutable
-    sudoIf chattr +i /etc/blocky/config.yml
+    # Make configuration immutable (if filesystem supports it)
+    if sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null; then
+        echo "      ✓ Configuration file made immutable"
+    else
+        echo "      ⚠ Warning: Cannot make config immutable (filesystem doesn't support chattr)"
+    fi
 
     # Start Blocky using s6-rc (s6-overlay v3) - must be available
     echo "    🔧 Starting DNS-based sandbox..."
@@ -244,11 +248,15 @@ EOF
     echo "nameserver 127.0.0.1" | sudoIf tee /etc/resolv.conf > /dev/null
     echo "options ndots:0" | sudoIf tee -a /etc/resolv.conf > /dev/null
 
-    # Make resolv.conf immutable to prevent DNS bypass
-    sudoIf chattr +i /etc/resolv.conf
+    # Make resolv.conf immutable to prevent DNS bypass (if filesystem supports it)
+    if sudoIf chattr +i /etc/resolv.conf 2>/dev/null; then
+        echo "      ✓ resolv.conf made immutable"
+    else
+        echo "      ⚠ Warning: Cannot make resolv.conf immutable (filesystem doesn't support chattr)"
+    fi
 
     echo "      ✓ DNS-based sandbox initialized"
-    echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"
+  echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"
     echo "      ✓ Configuration locked (immutable)"
 else
     echo "  🔓 Sandbox mode is disabled"
