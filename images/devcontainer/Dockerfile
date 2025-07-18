@@ -41,14 +41,8 @@ RUN rm -rf /tmp/devcontainer-scripts
 COPY scripts/init-sandbox.sh /usr/local/bin/init-sandbox
 RUN chmod +x /usr/local/bin/init-sandbox
 
-COPY scripts/devcontainer-entrypoint.sh /usr/local/bin/devcontainer-entrypoint
-RUN chmod +x /usr/local/bin/devcontainer-entrypoint
-
-COPY scripts/hooks/post-create.sh /usr/local/bin/post-create
+COPY scripts/post-create.sh /usr/local/bin/post-create
 RUN chmod +x /usr/local/bin/post-create
-
-COPY scripts/hooks/post-attach.sh /usr/local/bin/post-attach
-RUN chmod +x /usr/local/bin/post-attach
 
 # Switch to user for user-specific setup
 USER $USERNAME
@@ -73,5 +67,5 @@ RUN /tests/test.sh
 
 # Clean final stage (inherits from main, not test)
 FROM main AS final
-ENTRYPOINT ["/usr/local/bin/devcontainer-entrypoint"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []

@@ -126,3 +126,111 @@ init_docker_if_needed() {
         fi
     fi
 }
+
+# JavaScript runtime detection utility
+detect_js_runtime() {
+    local runtime=""
+    local package_manager=""
+    
+    # Check for Bun
+    if [ -f "bun.lockb" ] || [ -f "bun.lock" ] || [ -f "bunfig.toml" ]; then
+        runtime="bun"
+        package_manager="bun"
+    # Check for Deno
+    elif [ -f "deno.json" ] || [ -f "deno.jsonc" ] || [ -f "import_map.json" ]; then
+        runtime="deno"
+        package_manager="deno"
+    # Check for Node.js
+    elif [ -f "package.json" ]; then
+        runtime="node"
+        
+        # Determine package manager for Node.js projects
+        if [ -f "bun.lockb" ] || [ -f "bun.lock" ]; then
+            package_manager="bun"
+        elif [ -f "pnpm-lock.yaml" ]; then
+            package_manager="pnpm"
+        elif [ -f "yarn.lock" ]; then
+            package_manager="yarn"
+        elif [ -f "package-lock.json" ]; then
+            package_manager="npm"
+        else
+            package_manager="npm"  # Default to npm if no lock file
+        fi
+    fi
+    
+    # Output results
+    if [ -n "$runtime" ]; then
+        echo "RUNTIME=$runtime"
+        echo "PACKAGE_MANAGER=$package_manager"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Install JavaScript dependencies based on detected runtime
+install_js_dependencies() {
+    local runtime=""
+    local package_manager=""
+    
+    # Source the detection results
+    eval "$(detect_js_runtime)"
+    
+    if [ -z "$runtime" ]; then
+        return 1
+    fi
+    
+    echo "  📦 Detected $runtime project..."
+    
+    case "$runtime" in
+        "bun")
+            if command -v bun &> /dev/null; then
+                echo "    Installing dependencies with Bun..."
+                bun install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies"
+                echo "    ✓ Bun dependencies installed"
+            else
+                echo "    ⚠️  Warning: Bun not found, skipping dependency installation"
+                return 1
+            fi
+            ;;
+            
+        "deno")
+            if command -v deno &> /dev/null; then
+                echo "    Caching dependencies with Deno..."
+                if [ -f "deno.json" ] || [ -f "deno.jsonc" ]; then
+                    deno cache --reload --lock=deno.lock $(find . -name "*.ts" -o -name "*.js" -o -name "*.tsx" -o -name "*.jsx" | head -10) 2>&1 || echo "    ⚠️  Warning: Failed to cache some dependencies"
+                fi
+                echo "    ✓ Deno dependencies cached"
+            else
+                echo "    ⚠️  Warning: Deno not found, skipping dependency caching"
+                return 1
+            fi
+            ;;
+            
+        "node")
+            if command -v "$package_manager" &> /dev/null; then
+                echo "    Installing dependencies with $package_manager..."
+                case "$package_manager" in
+                    "bun") bun install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
+                    "pnpm") pnpm install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
+                    "yarn") yarn install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
+                    "npm") npm install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies" ;;
+                esac
+                echo "    ✓ Dependencies installed with $package_manager"
+            else
+                echo "    ⚠️  Warning: $package_manager not found"
+                # Try fallback to npm if available
+                if [ "$package_manager" != "npm" ] && command -v npm &> /dev/null; then
+                    echo "    Falling back to npm..."
+                    npm install 2>&1 || echo "    ⚠️  Warning: Failed to install dependencies"
+                    echo "    ✓ Dependencies installed with npm"
+                else
+                    echo "    ⚠️  Warning: No supported package manager found"
+                    return 1
+                fi
+            fi
+            ;;
+    esac
+    
+    return 0
+}
