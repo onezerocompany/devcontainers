@@ -102,8 +102,8 @@ $APT_CMD install -y \
      python3-minimal
 
 echo "  🔧 Installing s6-overlay and iptables..."
-# Install s6-overlay v3 (latest stable)
-S6_OVERLAY_VERSION="v3.2.0.2"
+# Install s6-overlay v3 (latest stable) following official documentation
+S6_OVERLAY_VERSION="v3.2.1.0"
 ARCH=$(dpkg --print-architecture)
 case $ARCH in
     amd64) S6_ARCH="x86_64" ;;
@@ -112,12 +112,12 @@ case $ARCH in
     *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
 
-# Download s6-overlay
+# Download s6-overlay following official documentation method
 echo "    Downloading s6-overlay ${S6_OVERLAY_VERSION} for ${S6_ARCH}..."
 wget -q -O /tmp/s6-overlay-noarch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz"
 wget -q -O /tmp/s6-overlay-arch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz"
 
-# Extract s6-overlay to root
+# Extract s6-overlay to root (only the two required packages)
 echo "    Installing s6-overlay..."
 tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
 tar -C / -Jxpf /tmp/s6-overlay-arch.tar.xz

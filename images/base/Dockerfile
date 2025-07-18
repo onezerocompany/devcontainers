@@ -100,8 +100,10 @@ RUN /tests/test.sh
 
 # Standard stage - no Docker-in-Docker (clean, inherits from base)
 FROM base AS standard
-# Configure s6-overlay
+# Configure s6-overlay following best practices
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+ENV S6_VERBOSITY=1
+ENV S6_STAGE2_HOOK=""
 ENTRYPOINT ["/init", "/usr/local/bin/entrypoint.sh"]
 CMD []
 
@@ -138,7 +140,9 @@ RUN /tests/test.sh
 
 # Docker-in-Docker stage (clean, inherits from dind-setup)
 FROM dind-setup AS dind
-# Configure s6-overlay
+# Configure s6-overlay following best practices
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+ENV S6_VERBOSITY=1
+ENV S6_STAGE2_HOOK=""
 ENTRYPOINT ["/init", "/usr/local/bin/entrypoint.sh"]
 CMD []
