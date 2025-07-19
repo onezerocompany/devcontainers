@@ -1,5 +1,0 @@
-#!/command/execlineb -P
-# Create log directory if it doesn't exist
-if { s6-mkdir -p /var/log/services/blocky }
-# Run s6-log with rotation
-s6-log -b -- n10 s1000000 t /var/log/services/blocky

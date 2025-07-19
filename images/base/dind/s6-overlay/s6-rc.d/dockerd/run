@@ -1,3 +1,0 @@
-#!/command/execlineb -P
-# Run dockerd with proper logging
-/usr/local/bin/dockerd
