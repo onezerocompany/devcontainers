@@ -276,7 +276,9 @@ jobs:
           file: ./images/runner/Dockerfile
           platforms: linux/amd64,linux/arm64
           target: test
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:latest
 
       - name: Build and push runner image
         uses: docker/build-push-action@v5
@@ -288,8 +290,10 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner,mode=max
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:buildcache-runner
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.RUNNER_IMAGE_NAME }}:latest
+          cache-to: type=inline
           target: final
           
   # Build the settings generator image
