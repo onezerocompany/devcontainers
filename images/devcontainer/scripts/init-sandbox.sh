@@ -228,11 +228,12 @@ EOF
     sudoIf mkdir -p /var/log/services/blocky
     sudoIf chown -R blocky:blocky /var/log/services/blocky
 
-    # Make configuration immutable (if filesystem supports it)
-    if sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null; then
-        echo "      ✓ Configuration file made immutable"
+    # Make configuration immutable using bind mount
+    if sudoIf mount --bind /etc/blocky/config.yml /etc/blocky/config.yml 2>/dev/null && \
+       sudoIf mount -o remount,ro,bind /etc/blocky/config.yml 2>/dev/null; then
+        echo "      ✓ Configuration file protected with read-only bind mount"
     else
-        echo "      ⚠ Warning: Cannot make config immutable (filesystem doesn't support chattr)"
+        echo "      ⚠ Warning: Cannot create read-only bind mount for config file"
     fi
 
     # Start Blocky using s6-rc (s6-overlay v3) - must be available
@@ -276,16 +277,17 @@ EOF
         echo "nameserver 127.0.0.1" | sudoIf tee /etc/resolv.conf > /dev/null
         echo "options ndots:0" | sudoIf tee -a /etc/resolv.conf > /dev/null
 
-        # Make resolv.conf immutable to prevent DNS bypass (if filesystem supports it)
-        if sudoIf chattr +i /etc/resolv.conf 2>/dev/null; then
-            echo "      ✓ resolv.conf made immutable"
+        # Make resolv.conf immutable to prevent DNS bypass using bind mount
+        if sudoIf mount --bind /etc/resolv.conf /etc/resolv.conf 2>/dev/null && \
+           sudoIf mount -o remount,ro,bind /etc/resolv.conf 2>/dev/null; then
+            echo "      ✓ resolv.conf protected with read-only bind mount"
         else
-            echo "      ⚠ Warning: Cannot make resolv.conf immutable (filesystem doesn't support chattr)"
+            echo "      ⚠ Warning: Cannot create read-only bind mount for resolv.conf"
         fi
 
         echo "      ✓ DNS-based sandbox initialized"
         echo "      ✓ Allowed domains: ${#ALL_DOMAINS[@]}"
-        echo "      ✓ Configuration locked (immutable)"
+        echo "      ✓ Configuration protected (read-only bind mounts)"
     fi
 else
     echo "  🔓 Sandbox mode is disabled"
