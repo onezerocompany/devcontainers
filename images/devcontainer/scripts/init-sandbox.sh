@@ -3,8 +3,14 @@
 
 set -e
 
-# Source common utilities - must be available
-source "/usr/local/bin/common-utils.sh"
+# Define required functions directly
+sudoIf() {
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo "$@"
+    else
+        "$@"
+    fi
+}
 
 # Define the state file location (only writable by root)
 SANDBOX_STATE_FILE="/var/lib/devcontainer-sandbox/enabled"

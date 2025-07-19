@@ -4,7 +4,13 @@ set -e
 echo "🚀 Setting up development environment..."
 echo
 
-source /usr/local/bin/common-utils.sh
+# Define required functions directly
+add_to_path() {
+    local dir="$1"
+    if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
+        export PATH="$dir:$PATH"
+    fi
+}
 
 # Check for mise configuration files in all possible locations
 # Order matters - more specific files take precedence

@@ -147,15 +147,13 @@ test_docker_functionality() {
     fi
 }
 
-# Test 6: Common utilities functionality
-test_common_utils() {
-    log_info "Testing common utilities..."
+# Test 6: Script functionality (common utilities now integrated)
+test_script_functionality() {
+    log_info "Testing script functionality..."
     
-    # Test common utilities script exists
-    test_command "Common utilities script exists" "[ -f /usr/local/bin/common-utils.sh ]"
-    
-    # Test sourcing common utilities works
-    test_command "Common utilities can be sourced and functions are available" "source /usr/local/bin/common-utils.sh && declare -f add_to_path"
+    # Test that entrypoint script has required functions
+    test_command "Entrypoint script contains sudoIf function" "grep -q 'sudoIf()' /usr/local/bin/entrypoint.sh"
+    test_command "Entrypoint script contains execute_command function" "grep -q 'execute_command()' /usr/local/bin/entrypoint.sh"
 }
 
 # Test 7: Environment variables
@@ -234,7 +232,7 @@ main() {
     test_shell_setup
     test_entrypoint
     test_docker_functionality
-    test_common_utils
+    test_script_functionality
     test_environment
     test_packages
     test_s6_overlay

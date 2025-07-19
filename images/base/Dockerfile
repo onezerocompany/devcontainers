@@ -26,6 +26,21 @@ RUN chmod +x /tmp/install-packages.sh && \
     /tmp/install-packages.sh && \
     rm /tmp/install-packages.sh
 
+# Install s6-overlay
+ARG S6_OVERLAY_VERSION=3.1.6.2
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+RUN apt-get update && apt-get install -y --no-install-recommends xz-utils && \
+    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
+    rm /tmp/s6-overlay-noarch.tar.xz && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Add architecture-specific s6-overlay
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ]; then S6_ARCH="x86_64"; \
+    elif [ "$ARCH" = "arm64" ]; then S6_ARCH="aarch64"; \
+    else echo "Unsupported architecture: $ARCH" && exit 1; fi && \
+    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" | tar -C / -Jx
+
 # Create user with configurable name
 RUN groupadd --gid $USER_GID $USERNAME && \
     useradd --uid $USER_UID --gid $USER_GID -m -s /bin/zsh $USERNAME && \
@@ -43,10 +58,9 @@ RUN mkdir -p /home/$USERNAME/.local/bin && \
     mkdir -p /home/$USERNAME/.local/share && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-# Copy unified entrypoint and common utilities as root
+# Copy unified entrypoint as root
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY scripts/common-utils.sh /usr/local/bin/common-utils.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/common-utils.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Create s6-overlay service directories
 RUN mkdir -p /etc/s6-overlay/s6-rc.d

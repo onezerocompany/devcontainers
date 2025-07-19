@@ -140,7 +140,6 @@ These tools are installed globally for the user during the image build process u
 - **configure-shells.sh**: Shell configuration setup for bash and zsh
 - **install-packages.sh**: Package installation script
 - **install-docker.sh**: Docker installation (DIND only)
-- **common-utils.sh**: Shared utilities for path management and Docker functions
 - **modprobe**: Kernel module loading wrapper (DIND only)
 
 ### Volumes

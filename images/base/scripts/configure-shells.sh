@@ -4,9 +4,7 @@ set -e
 # Script to configure shell environments for both bash and zsh
 # Usage: configure-shells.sh <username>
 
-# Source common utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common-utils.sh"
+# Script is self-contained - no external dependencies
 
 USERNAME=$1
 

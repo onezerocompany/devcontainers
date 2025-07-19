@@ -1,7 +1,42 @@
 #!/bin/bash
 
-# Source common utilities
-source "/usr/local/bin/common-utils.sh"
+# Define required functions directly
+add_to_path() {
+    local dir="$1"
+    if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
+        export PATH="$dir:$PATH"
+    fi
+}
+
+configure_path() {
+    local path_line="export PATH=\"\$HOME/.local/bin:\$PATH\""
+    
+    # Add to bash configs
+    if [ -f "$HOME/.bashrc" ]; then
+        grep -qF "$path_line" "$HOME/.bashrc" || echo "$path_line" >> "$HOME/.bashrc"
+    fi
+    
+    # Add to zsh configs
+    if [ -f "$HOME/.zshenv" ]; then
+        grep -qF "$path_line" "$HOME/.zshenv" || echo "$path_line" >> "$HOME/.zshenv"
+    fi
+}
+
+wait_for_docker() {
+    # Wait for Docker daemon to be available
+    local max_tries=30
+    local wait_time=1
+    local count=0
+    
+    while ! docker version &>/dev/null; do
+        count=$((count + 1))
+        if [ $count -ge $max_tries ]; then
+            echo "Docker daemon not available after ${max_tries} attempts"
+            return 1
+        fi
+        sleep $wait_time
+    done
+}
 
 USER=${USER:-zero}
 INSTALL_DIR=${INSTALL_DIR:-/home/${USER}/.vscode-install}
