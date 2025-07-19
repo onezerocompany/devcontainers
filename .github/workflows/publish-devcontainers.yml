@@ -8,11 +8,14 @@ on:
     paths:
       - 'features/**'
       - 'templates/**'
+      - '.github/workflows/publish-devcontainers.yml'
   release:
     types: [published]
 
 jobs:
-  publish:
+  # Feature: Starship
+  publish-feature-starship:
+    name: Publish Starship Feature
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,7 +32,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish Features
+      - name: Publish Starship Feature
         uses: devcontainers/action@v1
         with:
           publish-features: "true"
@@ -41,7 +44,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish Templates
+  # Template: Base
+  publish-template-base:
+    name: Publish Base Template
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Base Template
         uses: devcontainers/action@v1
         with:
           publish-templates: "true"
