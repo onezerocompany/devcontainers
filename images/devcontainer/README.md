@@ -31,7 +31,7 @@ devcontainer:latest
 - **Initialization Detection**: Creates `/tmp/.devcontainer-init-complete` marker when ready
 
 ### Security Sandbox
-- **Network Filtering**: IPSet-based firewall restricting outbound connections
+- **Network Filtering**: DNS-based filtering using Blocky DNS proxy
 - **Allowed Domains**:
   - Anthropic/Claude APIs
   - GitHub and related services
@@ -166,6 +166,9 @@ init-sandbox
 ### Requirements
 - Container must have `NET_ADMIN` capability
 - Run with `--cap-add=NET_ADMIN` when starting container
+- For DNS-based filtering to work properly, s6-overlay must be running as the init system
+  - In devcontainer.json, set `"overrideCommand": false` to use s6-overlay as init
+  - Without s6-overlay as init, DNS filtering will not be active
 
 ### Allowed Connections
 - All loopback traffic

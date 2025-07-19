@@ -14,8 +14,8 @@ echo "  Installing Blocky DNS proxy..."
 
 # Create blocky user and directories
 adduser --system --no-create-home --group blocky
-mkdir -p /etc/blocky /var/lib/blocky
-chown -R blocky:blocky /etc/blocky /var/lib/blocky
+mkdir -p /etc/blocky /var/lib/blocky /var/log/services/blocky
+chown -R blocky:blocky /etc/blocky /var/lib/blocky /var/log/services/blocky
 
 # Download Blocky binary (latest stable)
 BLOCKY_VERSION="v0.26.2"
@@ -37,6 +37,9 @@ wget -O /tmp/blocky.tar.gz "${BLOCKY_URL}"
 tar -xzf /tmp/blocky.tar.gz -C /usr/local/bin blocky
 chmod +x /usr/local/bin/blocky
 rm -f /tmp/blocky.tar.gz
+
+# Set capability to allow blocky to bind to port 53
+setcap 'cap_net_bind_service=+ep' /usr/local/bin/blocky
 
 # Copy s6-overlay service definitions for blocky
 # (The actual service definitions are copied during Docker build)

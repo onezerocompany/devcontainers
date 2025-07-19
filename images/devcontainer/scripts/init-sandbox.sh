@@ -59,8 +59,8 @@ if [ "$SANDBOX_ENABLED" = "true" ]; then
         export SANDBOX_ALLOWED_DOMAINS
     fi
 
-# Default allowed domains (same as current sandbox defaults)
-DEFAULT_ALLOWED_DOMAINS=(
+    # Default allowed domains (same as current sandbox defaults)
+    DEFAULT_ALLOWED_DOMAINS=(
     # Anthropic/Claude
     "anthropic.com"
     "*.anthropic.com"
@@ -109,19 +109,19 @@ DEFAULT_ALLOWED_DOMAINS=(
     "::1/128"
     "fc00::/7"
     "fe80::/10"
-)
+    )
 
     # Parse custom allowed domains
     IFS=',' read -ra CUSTOM_DOMAINS <<< "${SANDBOX_ALLOWED_DOMAINS:-}"
 
-# Combine default and custom domains
-ALL_DOMAINS=("${DEFAULT_ALLOWED_DOMAINS[@]}")
-for domain in "${CUSTOM_DOMAINS[@]}"; do
-    domain=$(echo "$domain" | xargs)  # Trim whitespace
-    if [ -n "$domain" ]; then
-        ALL_DOMAINS+=("$domain")
-    fi
-done
+    # Combine default and custom domains
+    ALL_DOMAINS=("${DEFAULT_ALLOWED_DOMAINS[@]}")
+    for domain in "${CUSTOM_DOMAINS[@]}"; do
+        domain=$(echo "$domain" | xargs)  # Trim whitespace
+        if [ -n "$domain" ]; then
+            ALL_DOMAINS+=("$domain")
+        fi
+    done
 
     # Generate Blocky configuration
     sudoIf tee /etc/blocky/config.yml > /dev/null <<EOF
@@ -129,12 +129,13 @@ done
 # Generated at $(date)
 
 # Upstream DNS servers
-upstream:
-  default:
-    - 1.1.1.1
-    - 1.0.0.1
-    - 2606:4700:4700::1111
-    - 2606:4700:4700::1001
+upstreams:
+  groups:
+    default:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
 
 # Port configuration
 ports:
@@ -179,17 +180,17 @@ blocking:
     default:
 EOF
 
-# Add allowed domains to configuration
-for domain in "${ALL_DOMAINS[@]}"; do
-    # Skip CIDR blocks for domain allowlist
-    if [[ ! "$domain" =~ / ]]; then
-        echo "      - |" | sudoIf tee -a /etc/blocky/config.yml > /dev/null
-        echo "        $domain" | sudoIf tee -a /etc/blocky/config.yml > /dev/null
-    fi
-done
+    # Add allowed domains to configuration
+    for domain in "${ALL_DOMAINS[@]}"; do
+        # Skip CIDR blocks for domain allowlist
+        if [[ ! "$domain" =~ / ]]; then
+            echo "      - |" | sudoIf tee -a /etc/blocky/config.yml > /dev/null
+            echo "        $domain" | sudoIf tee -a /etc/blocky/config.yml > /dev/null
+        fi
+    done
 
-# Continue configuration
-sudoIf tee -a /etc/blocky/config.yml > /dev/null <<EOF
+    # Continue configuration
+    sudoIf tee -a /etc/blocky/config.yml > /dev/null <<EOF
 
   # Default deny - block everything not explicitly allowed
   denylists:
@@ -200,16 +201,18 @@ sudoIf tee -a /etc/blocky/config.yml > /dev/null <<EOF
 
 # Client settings
 clientLookup:
-  upstream: 127.0.0.1
+  upstream: default
   singleNameOrder:
     - 2
     - 1
 
 # Performance settings
 hostsFile:
-  filePath: /etc/hosts
+  sources:
+    - /etc/hosts
   hostsTTL: 60m
-  refreshPeriod: 30m
+  loading:
+    refreshPeriod: 30m
   filterLoopback: true
 
 # Prometheus metrics
@@ -220,6 +223,10 @@ EOF
 
     # Set proper permissions
     sudoIf chown -R blocky:blocky /etc/blocky
+    
+    # Ensure log directory exists (in case it wasn't created during setup)
+    sudoIf mkdir -p /var/log/services/blocky
+    sudoIf chown -R blocky:blocky /var/log/services/blocky
 
     # Make configuration immutable (if filesystem supports it)
     if sudoIf chattr +i /etc/blocky/config.yml 2>/dev/null; then
