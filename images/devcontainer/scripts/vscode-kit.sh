@@ -63,8 +63,6 @@ if [ "$arch" == "unsupported" ]; then
   exit 1
 fi
 
-# wait_for_docker is available from common-utils.sh
-
 install() {
   echo "Installing vscode and vscode-web tools for $arch..."
 
