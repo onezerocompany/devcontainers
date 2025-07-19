@@ -40,7 +40,7 @@ jobs:
         uses: devcontainers/action@v1
         with:
           publish-features: "true"
-          base-path-to-features: "./features/src"
+          base-path-to-features: "./features/src/${{ matrix.feature }}"
           generate-docs: "true"
           disable-repo-tagging: false
           oci-registry: ghcr.io
@@ -76,7 +76,7 @@ jobs:
         uses: devcontainers/action@v1
         with:
           publish-templates: "true"
-          base-path-to-templates: "./templates"
+          base-path-to-templates: "./templates/${{ matrix.template }}"
           generate-docs: "true"
           disable-repo-tagging: false
           oci-registry: ghcr.io
