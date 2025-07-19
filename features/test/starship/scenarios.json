@@ -1,0 +1,30 @@
+{
+    "default": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "starship": {}
+        }
+    },
+    "with_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "starship": {
+                "version": "v1.17.1"
+            }
+        }
+    },
+    "ubuntu": {
+        "image": "ubuntu:22.04",
+        "features": {
+            "starship": {}
+        },
+        "remoteUser": "root"
+    },
+    "alpine": {
+        "image": "alpine:latest",
+        "features": {
+            "starship": {}
+        },
+        "remoteUser": "root"
+    }
+}
