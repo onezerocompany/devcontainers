@@ -15,16 +15,12 @@ on:
 jobs:
   # Publish all features
   publish-features:
-    name: Publish Feature - ${{ matrix.feature }}
+    name: Publish All Features
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
       pull-requests: write
-    strategy:
-      fail-fast: false
-      matrix:
-        feature: [starship] # Add more features here, e.g. [starship, another-feature, ...]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,11 +36,11 @@ jobs:
         uses: devcontainers/action@v1
         with:
           publish-features: "true"
-          base-path-to-features: "./features/src/${{ matrix.feature }}"
+          base-path-to-features: "./features/src"
           generate-docs: "true"
           disable-repo-tagging: false
           oci-registry: ghcr.io
-          features-namespace: onezerocompany/feature
+          features-namespace: onezerocompany/features
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
