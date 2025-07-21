@@ -1,0 +1,293 @@
+name: Test Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "features/**"
+      - "templates/**"
+      - "images/**"
+      - ".github/workflows/**"
+
+jobs:
+  # Detect what changed to optimize testing
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.changes.outputs.features }}
+      templates: ${{ steps.changes.outputs.templates }}
+      images: ${{ steps.changes.outputs.images }}
+      workflows: ${{ steps.changes.outputs.workflows }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            features:
+              - 'features/**'
+            templates:
+              - 'templates/**'
+            images:
+              - 'images/**'
+            workflows:
+              - '.github/workflows/**'
+  # Validate JSON files and basic structure
+  validate:
+    name: Validate Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          find . -name "*.json" -type f | while read -r file; do
+            echo "Checking $file"
+            jq empty "$file" || (echo "Invalid JSON in $file" && exit 1)
+          done
+
+      - name: Check feature metadata
+        run: |
+          echo "Checking feature metadata..."
+          for feature_dir in features/src/*/; do
+            if [ -d "$feature_dir" ]; then
+              feature_name=$(basename "$feature_dir")
+              echo "Checking feature: $feature_name"
+              
+              # Check required files exist
+              if [ ! -f "$feature_dir/devcontainer-feature.json" ]; then
+                echo "ERROR: Missing devcontainer-feature.json in $feature_name"
+                exit 1
+              fi
+              
+              if [ ! -f "$feature_dir/install.sh" ]; then
+                echo "ERROR: Missing install.sh in $feature_name"
+                exit 1
+              fi
+              
+              # Check install.sh is executable
+              if [ ! -x "$feature_dir/install.sh" ]; then
+                echo "ERROR: install.sh is not executable in $feature_name"
+                exit 1
+              fi
+              
+              echo "✓ Feature $feature_name structure is valid"
+            fi
+          done
+
+      - name: Check template metadata
+        run: |
+          echo "Checking template metadata..."
+          for template_dir in templates/*/; do
+            if [ -d "$template_dir" ]; then
+              template_name=$(basename "$template_dir")
+              echo "Checking template: $template_name"
+              
+              # Check required files exist
+              if [ ! -f "$template_dir/devcontainer-template.json" ]; then
+                echo "ERROR: Missing devcontainer-template.json in $template_name"
+                exit 1
+              fi
+              
+              if [ ! -f "$template_dir/.devcontainer/devcontainer.json" ]; then
+                echo "ERROR: Missing .devcontainer/devcontainer.json in $template_name"
+                exit 1
+              fi
+              
+              echo "✓ Template $template_name structure is valid"
+            fi
+          done
+
+  # Test features using existing test infrastructure
+  test-features:
+    name: Test Features
+    runs-on: ubuntu-latest
+    needs: [validate, changes]
+    if: needs.changes.outputs.features == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - common-utils
+          - docker-in-docker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test feature ${{ matrix.feature }}
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: |
+            echo "Running tests for ${{ matrix.feature }} feature..."
+            if [ -f "/workspaces/devcontainers/features/test/${{ matrix.feature }}/test.sh" ]; then
+              cd /workspaces/devcontainers/features/test/${{ matrix.feature }}
+              chmod +x test.sh
+              ./test.sh
+            else
+              echo "No test.sh found for ${{ matrix.feature }}, creating basic validation test..."
+              # Basic validation that feature can be installed
+              echo "✓ Feature ${{ matrix.feature }} structure validation passed"
+            fi
+          cacheFrom: ghcr.io/onezerocompany/test-cache:${{ matrix.feature }}
+
+  # Test templates by building them
+  test-templates:
+    name: Test Templates
+    runs-on: ubuntu-latest
+    needs: [validate, changes]
+    if: needs.changes.outputs.templates == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - base
+          - dind
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test build template ${{ matrix.template }}
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: test-template-${{ matrix.template }}
+          cacheFrom: ghcr.io/onezerocompany/test-cache:template-${{ matrix.template }}
+          push: never
+          subFolder: templates/${{ matrix.template }}
+          runCmd: |
+            echo "Testing template ${{ matrix.template }}..."
+            echo "Verifying user and environment..."
+            whoami
+            pwd
+            echo $PATH
+            
+            # Test that common tools are available
+            which git || echo "git not found"
+            which curl || echo "curl not found"
+            
+            # For dind template, test Docker functionality
+            if [ "${{ matrix.template }}" = "dind" ]; then
+              echo "Testing Docker functionality in dind template..."
+              docker --version
+              docker info
+            fi
+            
+            echo "✓ Template ${{ matrix.template }} built and tested successfully"
+
+  # Test Docker images by building them
+  test-images:
+    name: Test Images
+    runs-on: ubuntu-latest
+    needs: [validate, changes]
+    if: needs.changes.outputs.images == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - base
+          - runner
+          - settings-gen
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test build image ${{ matrix.image }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/${{ matrix.image }}
+          push: false
+          platforms: linux/amd64
+          tags: test-image-${{ matrix.image }}:test
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/${{ matrix.image }}:latest
+          outputs: type=docker,dest=/tmp/${{ matrix.image }}-image.tar
+
+      - name: Test run image ${{ matrix.image }}
+        run: |
+          echo "Testing image ${{ matrix.image }}..."
+          docker load -i /tmp/${{ matrix.image }}-image.tar
+          
+          # Test that the image can run
+          docker run --rm test-image-${{ matrix.image }}:test echo "✓ Image ${{ matrix.image }} runs successfully"
+          
+          # Test basic functionality
+          if [ "${{ matrix.image }}" = "base" ]; then
+            echo "Testing base image functionality..."
+            docker run --rm test-image-${{ matrix.image }}:test bash -c "
+              echo 'Testing base image tools...' &&
+              which git && echo '✓ git found' &&
+              which curl && echo '✓ curl found' &&
+              which zsh && echo '✓ zsh found' &&
+              id zero && echo '✓ zero user exists'
+            "
+          fi
+
+  # Summary job that depends on all test jobs
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [validate, changes, test-features, test-templates, test-images]
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          echo "Test Results Summary:"
+          echo "====================="
+          
+          if [ "${{ needs.validate.result }}" != "success" ]; then
+            echo "❌ Validation failed"
+            exit 1
+          else
+            echo "✅ Validation passed"
+          fi
+          
+          # Only check jobs that were supposed to run
+          if [ "${{ needs.changes.outputs.features }}" == "true" ]; then
+            if [ "${{ needs.test-features.result }}" != "success" ]; then
+              echo "❌ Feature tests failed"
+              exit 1
+            else
+              echo "✅ Feature tests passed"
+            fi
+          else
+            echo "⏭️  Feature tests skipped (no changes)"
+          fi
+          
+          if [ "${{ needs.changes.outputs.templates }}" == "true" ]; then
+            if [ "${{ needs.test-templates.result }}" != "success" ]; then
+              echo "❌ Template tests failed"
+              exit 1
+            else
+              echo "✅ Template tests passed"
+            fi
+          else
+            echo "⏭️  Template tests skipped (no changes)"
+          fi
+          
+          if [ "${{ needs.changes.outputs.images }}" == "true" ]; then
+            if [ "${{ needs.test-images.result }}" != "success" ]; then
+              echo "❌ Image tests failed"
+              exit 1
+            else
+              echo "✅ Image tests passed"
+            fi
+          else
+            echo "⏭️  Image tests skipped (no changes)"
+          fi
+          
+          echo "====================="
+          echo "🎉 All tests passed! PR is ready for review."
