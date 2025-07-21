@@ -211,6 +211,7 @@ jobs:
           # Create a temporary directory for testing
           TEMP_DIR=$(mktemp -d)
           cp -r templates/${{ matrix.template }}/* $TEMP_DIR/
+          cp -r templates/${{ matrix.template }}/.devcontainer $TEMP_DIR/ 2>/dev/null || echo "No .devcontainer directory to copy"
           cd $TEMP_DIR
           
           # Modify devcontainer.json to use local features instead of published ones
