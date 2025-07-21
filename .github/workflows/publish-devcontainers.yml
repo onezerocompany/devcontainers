@@ -72,7 +72,7 @@ jobs:
           generate-docs: "true"
           disable-repo-tagging: false
           oci-registry: ghcr.io
-          templates-namespace: onezerocompany/devcontainer
+          templates-namespace: onezerocompany/templates
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -104,7 +104,7 @@ jobs:
       - name: Pre-build base template
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ghcr.io/onezerocompany/devcontainer-base
-          cacheFrom: ghcr.io/onezerocompany/devcontainer-base
+          imageName: ghcr.io/onezerocompany/devcontainer/base
+          cacheFrom: ghcr.io/onezerocompany/devcontainer/base
           push: always
           subFolder: templates/base

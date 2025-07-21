@@ -1,9 +1,10 @@
 {
-  "id": "base",
+  "id": "dind",
   "version": "1.0.0",
-  "name": "OneZero Base Dev Container",
+  "name": "OneZero Docker-in-Docker Dev Container",
   "platforms": ["linux/amd64", "linux/arm64"],
-  "keywords": ["onezero", "base"],
+  "keywords": ["onezero", "dind"],
+  "features": {},
   "options": {
     "variant": {
       "type": "string",
