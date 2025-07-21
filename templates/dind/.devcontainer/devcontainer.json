@@ -10,18 +10,16 @@
     }
   ],
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:1.0.0": {
-      "networkTools": true,
-      "systemTools": true,
-      "textTools": true,
-      "bashCompletion": true
-    },
-    "ghcr.io/onezerocompany/features/modern-shell:1.2.1": {
+    "ghcr.io/onezerocompany/features/common-utils:2.0.0": {
       "defaultShell": "zsh",
       "installStarship": true,
       "installZoxide": true,
       "installEza": true,
       "installBat": true,
+      "webDevBundle": true,
+      "networkingBundle": true,
+      "utilitiesBundle": true,
+      "containersBundle": true,
       "configureForRoot": true
     },
     "ghcr.io/onezerocompany/features/docker-in-docker:1.0.1": {
