@@ -16,73 +16,79 @@ echo "Installing Sandbox Network Filter..."
 # Install required packages
 echo "Installing required packages..."
 apt-get update
-apt-get install -y iptables iptables-persistent dnsutils netfilter-persistent
+apt-get install -y iptables iptables-persistent dnsmasq-base bind9-dnsutils netfilter-persistent
 
 # Create sandbox directories
 mkdir -p /usr/local/share/sandbox
 mkdir -p /etc/sandbox
 
-# Create domain resolver script
-cat > /usr/local/share/sandbox/domain-resolver.sh << 'EOF'
+# Create DNS filtering configuration
+cat > /usr/local/share/sandbox/setup-dns-filter.sh << 'EOF'
 #!/bin/bash
-# Domain to IP resolution with caching
+# Setup DNS-based domain filtering
 set -e
 
-CACHE_DIR="/var/cache/sandbox-domains"
-mkdir -p "$CACHE_DIR"
+ALLOWED_DOMAINS="$1"
+BLOCKED_DOMAINS="$2"
+DEFAULT_POLICY="$3"
 
-resolve_domain() {
+echo "Setting up DNS-based domain filtering..."
+
+# Create hosts file entries for blocked domains
+HOSTS_FILE="/etc/hosts.sandbox"
+cp /etc/hosts "$HOSTS_FILE"
+
+# Function to add domain blocking to hosts file
+block_domain() {
     local domain="$1"
-    local cache_file="$CACHE_DIR/${domain}"
+    # Remove wildcard prefix for hosts file
+    local host_domain="${domain#\*.}"
     
-    # Remove wildcard prefix for resolution
-    local resolve_domain="${domain#\*.}"
+    # Add main domain and www subdomain
+    echo "127.0.0.1 $host_domain" >> "$HOSTS_FILE"
+    echo "127.0.0.1 www.$host_domain" >> "$HOSTS_FILE"
     
-    # Check cache (valid for 1 hour)
-    if [ -f "$cache_file" ] && [ $(($(date +%s) - $(stat -c %Y "$cache_file"))) -lt 3600 ]; then
-        cat "$cache_file"
-        return
-    fi
-    
-    # Resolve domain to IPs
-    local ips=$(dig +short "$resolve_domain" A | grep -E '^[0-9.]+$' | sort -u)
-    if [ -n "$ips" ]; then
-        echo "$ips" | tee "$cache_file"
+    # If it's a wildcard, add a few common subdomains
+    if [[ "$domain" == *.* ]]; then
+        echo "127.0.0.1 api.$host_domain" >> "$HOSTS_FILE"
+        echo "127.0.0.1 m.$host_domain" >> "$HOSTS_FILE"
+        echo "127.0.0.1 mobile.$host_domain" >> "$HOSTS_FILE"
     fi
 }
 
-# Main resolver function
-case "$1" in
-    resolve)
-        resolve_domain "$2"
-        ;;
-    clear-cache)
-        rm -rf "$CACHE_DIR"/*
-        echo "Cache cleared"
-        ;;
-    *)
-        echo "Usage: $0 {resolve|clear-cache} [domain]"
-        exit 1
-        ;;
-esac
+# Process blocked domains
+if [ -n "$BLOCKED_DOMAINS" ]; then
+    echo "Processing blocked domains: $BLOCKED_DOMAINS"
+    IFS=',' read -ra DOMAINS <<< "$BLOCKED_DOMAINS"
+    for domain in "${DOMAINS[@]}"; do
+        domain=$(echo "$domain" | xargs) # trim whitespace
+        if [ -n "$domain" ]; then
+            echo "  Blocking domain: $domain"
+            block_domain "$domain"
+        fi
+    done
+fi
+
+# Replace system hosts file with filtered version
+cp "$HOSTS_FILE" /etc/hosts
+
+echo "DNS filtering configured"
 EOF
 
-chmod +x /usr/local/share/sandbox/domain-resolver.sh
+chmod +x /usr/local/share/sandbox/setup-dns-filter.sh
 
-# Create iptables rule management script
+# Create iptables rule management script 
 cat > /usr/local/share/sandbox/setup-rules.sh << 'EOF'
 #!/bin/bash
 # Setup iptables rules for sandbox network filtering
 set -e
 
-ALLOWED_DOMAINS="${1:-}"
-BLOCKED_DOMAINS="${2:-}"
+ALLOW_DOCKER_NETWORKS="${1:-true}"
+ALLOW_LOCALHOST="${2:-true}"
 DEFAULT_POLICY="${3:-block}"
-ALLOW_DOCKER_NETWORKS="${4:-true}"
-ALLOW_LOCALHOST="${5:-true}"
-LOG_BLOCKED="${6:-true}"
+LOG_BLOCKED="${4:-true}"
 
-echo "Setting up sandbox network filtering rules..."
+echo "Setting up basic network filtering rules..."
 
 # Clear existing sandbox rules
 iptables -t filter -F SANDBOX_OUTPUT 2>/dev/null || true
@@ -97,68 +103,30 @@ if [ "$ALLOW_LOCALHOST" = "true" ]; then
     iptables -t filter -A SANDBOX_OUTPUT -d ::1/128 -j ACCEPT
 fi
 
-# Allow Docker networks if enabled
+# Allow Docker networks if enabled (critical for container communication)
 if [ "$ALLOW_DOCKER_NETWORKS" = "true" ]; then
     # Docker default networks
     iptables -t filter -A SANDBOX_OUTPUT -d 172.16.0.0/12 -j ACCEPT
     iptables -t filter -A SANDBOX_OUTPUT -d 10.0.0.0/8 -j ACCEPT
     iptables -t filter -A SANDBOX_OUTPUT -d 192.168.0.0/16 -j ACCEPT
-    # Docker bridge network
-    iptables -t filter -A SANDBOX_OUTPUT -o docker0 -j ACCEPT
+    # Allow established connections (important for Docker services)
+    iptables -t filter -A SANDBOX_OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 fi
 
-# Process allowed domains
-if [ -n "$ALLOWED_DOMAINS" ]; then
-    echo "Processing allowed domains: $ALLOWED_DOMAINS"
-    IFS=',' read -ra DOMAINS <<< "$ALLOWED_DOMAINS"
-    for domain in "${DOMAINS[@]}"; do
-        domain=$(echo "$domain" | xargs) # trim whitespace
-        if [ -n "$domain" ]; then
-            echo "  Allowing domain: $domain"
-            ips=$(/usr/local/share/sandbox/domain-resolver.sh resolve "$domain" 2>/dev/null || true)
-            if [ -n "$ips" ]; then
-                while IFS= read -r ip; do
-                    if [ -n "$ip" ]; then
-                        iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
-                    fi
-                done <<< "$ips"
-            fi
-        fi
-    done
-fi
+# Allow DNS queries (needed for name resolution)
+iptables -t filter -A SANDBOX_OUTPUT -p udp --dport 53 -j ACCEPT
+iptables -t filter -A SANDBOX_OUTPUT -p tcp --dport 53 -j ACCEPT
 
-# Process blocked domains  
-if [ -n "$BLOCKED_DOMAINS" ]; then
-    echo "Processing blocked domains: $BLOCKED_DOMAINS"
-    IFS=',' read -ra DOMAINS <<< "$BLOCKED_DOMAINS"
-    for domain in "${DOMAINS[@]}"; do
-        domain=$(echo "$domain" | xargs) # trim whitespace
-        if [ -n "$domain" ]; then
-            echo "  Blocking domain: $domain"
-            ips=$(/usr/local/share/sandbox/domain-resolver.sh resolve "$domain" 2>/dev/null || true)
-            if [ -n "$ips" ]; then
-                while IFS= read -r ip; do
-                    if [ -n "$ip" ]; then
-                        if [ "$LOG_BLOCKED" = "true" ]; then
-                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED: " --log-level 4
-                        fi
-                        iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
-                    fi
-                done <<< "$ips"
-            fi
-        fi
-    done
-fi
-
-# Apply default policy
+# Apply default policy for external traffic
 if [ "$DEFAULT_POLICY" = "block" ]; then
-    echo "Setting default policy to BLOCK"
+    echo "Setting default policy to BLOCK external traffic"
+    # Block external networks (not local/docker networks)
     if [ "$LOG_BLOCKED" = "true" ]; then
-        iptables -t filter -A SANDBOX_OUTPUT -j LOG --log-prefix "SANDBOX_DEFAULT_BLOCKED: " --log-level 4
+        iptables -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j LOG --log-prefix "SANDBOX_BLOCKED: " --log-level 4
     fi
-    iptables -t filter -A SANDBOX_OUTPUT -j REJECT --reject-with icmp-host-unreachable
+    iptables -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j REJECT --reject-with icmp-host-unreachable
 else
-    echo "Setting default policy to ALLOW"
+    echo "Setting default policy to ALLOW external traffic"
     iptables -t filter -A SANDBOX_OUTPUT -j ACCEPT
 fi
 
@@ -166,7 +134,7 @@ fi
 iptables -t filter -C OUTPUT -j SANDBOX_OUTPUT 2>/dev/null || \
     iptables -t filter -A OUTPUT -j SANDBOX_OUTPUT
 
-echo "Sandbox network filtering rules configured"
+echo "Basic network filtering rules configured"
 EOF
 
 chmod +x /usr/local/share/sandbox/setup-rules.sh
@@ -183,10 +151,11 @@ IMMUTABLE_CONFIG="$IMMUTABLE_CONFIG"
 LOG_BLOCKED="$LOG_BLOCKED"
 EOF
 
-# Setup initial rules
-/usr/local/share/sandbox/setup-rules.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY" "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$LOG_BLOCKED"
+# Setup initial rules and DNS filtering
+/usr/local/share/sandbox/setup-dns-filter.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY"
+/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED"
 
-# Create startup script that runs the rules setup
+# Create startup script that runs the filtering setup
 cat > /usr/local/share/sandbox/sandbox-init.sh << 'EOF'
 #!/bin/bash
 # Initialize sandbox network filtering on container startup
@@ -197,17 +166,22 @@ if [ -f /etc/sandbox/config ]; then
     source /etc/sandbox/config
 fi
 
-# Setup rules
-/usr/local/share/sandbox/setup-rules.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY" "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$LOG_BLOCKED"
+# Setup DNS filtering
+/usr/local/share/sandbox/setup-dns-filter.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY"
+
+# Setup iptables rules
+/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED"
 
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
-    echo "Making iptables configuration immutable..."
+    echo "Making configuration immutable..."
     # Save current rules
     iptables-save > /etc/iptables/rules.v4
     # Make config files read-only
     chmod 444 /etc/sandbox/config
     chattr +i /etc/sandbox/config 2>/dev/null || true
+    # Protect hosts file
+    chattr +i /etc/hosts 2>/dev/null || true
 fi
 
 echo "Sandbox network filtering initialized"

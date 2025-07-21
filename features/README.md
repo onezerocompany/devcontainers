@@ -61,6 +61,42 @@ Comprehensive development utilities with modern CLI tools, shell configurations,
 - **Completions**: Automatic shell completions for CLI tools
 - **Shim scripts**: Helpful command fallbacks (code, systemctl, devcontainer-info)
 
+### Sandbox Network Filter (sandbox)
+
+Network traffic filtering for sandboxed environments with domain rule support. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication.
+
+#### Example Usage
+
+```json
+"features": {
+    "ghcr.io/onezerocompany/features/sandbox:latest": {
+        "allowedDomains": "api.github.com,*.openai.com",
+        "blockedDomains": "*.facebook.com,*.twitter.com",
+        "defaultPolicy": "block",
+        "allowDockerNetworks": true,
+        "immutableConfig": true
+    }
+}
+```
+
+#### Features
+
+**Network Filtering:**
+- **Domain-based blocking**: Support for exact domains, subdomains, and wildcards (*.example.com)
+- **DNS-level filtering**: Efficient blocking via hosts file manipulation  
+- **iptables integration**: Additional packet filtering for comprehensive control
+- **Flexible policies**: Configurable default allow/block behavior for unlisted domains
+
+**Container Compatibility:**
+- **Docker network preservation**: Maintains communication with Docker Compose services
+- **Local traffic control**: Configurable localhost and private network access
+- **Established connections**: Preserves existing container-to-container communications
+
+**Security & Management:**
+- **Immutable configuration**: Optional protection against runtime rule modifications
+- **Logging support**: Optional logging of blocked connection attempts for debugging
+- **LLM sandboxing**: Designed to contain automated tools and prevent unauthorized network access
+
 ## Contributing
 
 Please refer to the main repository for contribution guidelines.

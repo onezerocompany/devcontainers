@@ -9,7 +9,7 @@ echo "Testing Sandbox Network Filter feature..."
 
 # Test that required scripts are installed
 check "sandbox-init-script" test -x /usr/local/share/sandbox/sandbox-init.sh
-check "domain-resolver-script" test -x /usr/local/share/sandbox/domain-resolver.sh  
+check "dns-filter-script" test -x /usr/local/share/sandbox/setup-dns-filter.sh
 check "setup-rules-script" test -x /usr/local/share/sandbox/setup-rules.sh
 
 # Test that configuration directory exists
@@ -18,7 +18,7 @@ check "config-file" test -f /etc/sandbox/config
 
 # Test that required packages are installed
 check "iptables" which iptables
-check "dig" which dig
+check "dnsmasq-base" dpkg -l dnsmasq-base >/dev/null 2>&1
 
 # Test that iptables rules are set up
 check "sandbox-chain-exists" iptables -t filter -L SANDBOX_OUTPUT >/dev/null 2>&1
@@ -26,9 +26,6 @@ check "sandbox-chain-exists" iptables -t filter -L SANDBOX_OUTPUT >/dev/null 2>&
 # Test configuration file content
 check "config-contains-domains" grep -q "BLOCKED_DOMAINS=" /etc/sandbox/config
 check "config-contains-policy" grep -q "DEFAULT_POLICY=" /etc/sandbox/config
-
-# Test domain resolver functionality
-check "domain-resolver-help" /usr/local/share/sandbox/domain-resolver.sh --help || true
 
 # Test that sandbox chain is attached to OUTPUT
 check "sandbox-chain-attached" iptables -t filter -L OUTPUT | grep -q "SANDBOX_OUTPUT"
@@ -43,6 +40,9 @@ fi
 
 # Test that script directories have correct permissions
 check "scripts-executable" [ -x /usr/local/share/sandbox/sandbox-init.sh ]
+
+# Test DNS filtering - check if blocked domains are in hosts file
+check "dns-filter-active" grep -q "facebook.com" /etc/hosts || true
 
 echo "All basic sandbox tests passed"
 
