@@ -108,8 +108,10 @@ jobs:
           tags: |
             ghcr.io/onezerocompany/base:latest
             ghcr.io/onezerocompany/base:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/base:buildcache
+            type=registry,ref=ghcr.io/onezerocompany/base:latest
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/base:buildcache,mode=max
 
   # Build runner Docker image
   publish-runner:
@@ -144,8 +146,10 @@ jobs:
           tags: |
             ghcr.io/onezerocompany/runner:latest
             ghcr.io/onezerocompany/runner:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/runner:buildcache
+            type=registry,ref=ghcr.io/onezerocompany/runner:latest
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/runner:buildcache,mode=max
 
   # Build settings-gen Docker image
   publish-settings-gen:
@@ -179,8 +183,10 @@ jobs:
           tags: |
             ghcr.io/onezerocompany/settings-gen:latest
             ghcr.io/onezerocompany/settings-gen:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/settings-gen:buildcache
+            type=registry,ref=ghcr.io/onezerocompany/settings-gen:latest
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/settings-gen:buildcache,mode=max
 
   # Pre-build dev container images
   prebuild:
@@ -191,6 +197,7 @@ jobs:
       contents: read
       packages: write
     strategy:
+      fail-fast: false
       matrix:
         template:
           - base
