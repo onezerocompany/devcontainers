@@ -23,8 +23,8 @@ check "jq" which jq
 check "yq" which yq
 check "dasel" which dasel
 check "postgresql-client" which psql
-check "mysql-client" which mysql
 check "sqlite3" which sqlite3
+check "redis-cli" which redis-cli
 
 # Test networking bundle tools
 check "curl" which curl
