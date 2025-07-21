@@ -54,13 +54,13 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && mkdir -p /home/runner/.cache \
     && mkdir -p /home/runner/.local/share \
     && mkdir -p /home/runner/.config \
-    && cp -r /home/zero/.local/bin/* /home/runner/.local/bin/ \
-    && cp -r /home/zero/.local/share/* /home/runner/.local/share/ \
-    && cp -r /home/zero/.cache/* /home/runner/.cache/ \
-    && cp /home/zero/.mise.toml /home/runner/.mise.toml \
+    && if [ -d /home/zero/.local/bin ] && [ "$(ls -A /home/zero/.local/bin)" ]; then cp -r /home/zero/.local/bin/* /home/runner/.local/bin/; fi \
+    && if [ -d /home/zero/.local/share ] && [ "$(ls -A /home/zero/.local/share)" ]; then cp -r /home/zero/.local/share/* /home/runner/.local/share/; fi \
+    && if [ -d /home/zero/.cache ] && [ "$(ls -A /home/zero/.cache)" ]; then cp -r /home/zero/.cache/* /home/runner/.cache/; fi \
+    && if [ -f /home/zero/.mise.toml ]; then cp /home/zero/.mise.toml /home/runner/.mise.toml; fi \
     && if [ -f /home/zero/.config/starship.toml ]; then cp /home/zero/.config/starship.toml /home/runner/.config/starship.toml; fi \
     && chown -R runner:runner /home/runner \
-    && chmod +x /home/runner/.local/bin/mise
+    && if [ -f /home/runner/.local/bin/mise ]; then chmod +x /home/runner/.local/bin/mise; fi
 
 # Set up mise environment variables for runner user
 ENV MISE_CACHE_DIR=/home/runner/.cache/mise
@@ -70,9 +70,11 @@ ENV MISE_YES=1
 
 WORKDIR /home/runner
 
-# Switch to runner user and activate mise tools
+# Switch to runner user and activate mise tools if available
 USER runner
-RUN /bin/bash -c 'eval "$(/home/runner/.local/bin/mise activate bash)" && /home/runner/.local/bin/mise install && /home/runner/.local/bin/mise reshim'
+RUN if [ -f /home/runner/.local/bin/mise ]; then \
+        /bin/bash -c 'eval "$(/home/runner/.local/bin/mise activate bash)" && /home/runner/.local/bin/mise install && /home/runner/.local/bin/mise reshim'; \
+    fi
 
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
