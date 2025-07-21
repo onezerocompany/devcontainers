@@ -6,7 +6,6 @@ echo "  📝 Installing text and utility tools..."
 
 apt-get install -y \
     less \
-    tree \
     ncdu \
     man-db \
     apt-transport-https
