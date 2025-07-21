@@ -167,10 +167,20 @@ jobs:
             mkdir -p .devcontainer/features
             cp -r ../../../features/src/${{ matrix.feature }} .devcontainer/features/
             
-            # Extract the scenario configuration and modify to use local feature
+            # Extract the scenario configuration and modify to use local feature with minimal options
+            # For testing, we'll disable features that require external downloads
             jq ".\"$SCENARIO_KEY\"" scenarios.json | \
             jq --arg feature "${{ matrix.feature }}" \
-              '.features = {("./features/" + $feature): .features[$feature]}' > .devcontainer/devcontainer.json
+              '.features = {("./features/" + $feature): (.features[$feature] + {
+                "installStarship": false,
+                "installZoxide": false, 
+                "installEza": false,
+                "installBat": false,
+                "webDevBundle": false,
+                "networkingBundle": false,
+                "utilitiesBundle": false,
+                "containersBundle": false
+              })}' > .devcontainer/devcontainer.json
             
             echo "Generated .devcontainer/devcontainer.json:"
             cat .devcontainer/devcontainer.json
