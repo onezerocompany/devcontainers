@@ -1,9 +1,0 @@
-# Zsh profile for login shells
-
-# Path configuration
-export PATH="$HOME/.local/bin:$PATH"
-
-# Mise environment for login shells
-if [ -f "$HOME/.local/bin/mise" ]; then
-    eval "$($HOME/.local/bin/mise activate zsh --shims)"
-fi

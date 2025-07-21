@@ -1,0 +1,81 @@
+{
+  "default": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {}
+    }
+  },
+  "bash-shell": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "defaultShell": "bash"
+      }
+    }
+  },
+  "minimal": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "installStarship": false,
+        "installZoxide": false,
+        "installEza": false,
+        "webDevBundle": false,
+        "utilitiesBundle": false
+      }
+    }
+  },
+  "no-root-config": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "configureForRoot": false
+      }
+    }
+  },
+  "containers-bundle": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "containersBundle": true
+      }
+    }
+  },
+  "bundles-only": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "installStarship": false,
+        "installZoxide": false,
+        "installEza": false,
+        "installBat": false,
+        "webDevBundle": true,
+        "networkingBundle": true,
+        "utilitiesBundle": true
+      }
+    }
+  },
+  "security-focused": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "installSshServer": false,
+        "installBuildTools": false,
+        "installKubernetesTools": false,
+        "installPodman": false,
+        "containersBundle": true,
+        "networkingBundle": true
+      }
+    }
+  },
+  "custom-motd": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "motdText": "Welcome to Development Environment!",
+        "installShims": false,
+        "installCompletions": false
+      }
+    }
+  }
+}

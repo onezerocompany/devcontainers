@@ -1,29 +1,110 @@
 {
   "id": "common-utils",
   "name": "Common Utilities",
-  "version": "1.0.0",
-  "description": "Installs essential system utilities: network tools, system monitoring, text processing, and development utilities",
+  "version": "2.0.0",
+  "description": "Comprehensive development utilities with modern CLI tools, shell configurations, and customizable tool bundles. Includes modern shell tools (starship, zoxide, eza, bat), web development tools, networking utilities, container tools, and system utilities with granular configuration options.",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/common-utils",
   "options": {
-    "networkTools": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install network utilities (openssh-client, iproute2, net-tools, rsync)"
+    "defaultShell": {
+      "type": "string",
+      "enum": ["zsh", "bash"],
+      "default": "zsh",
+      "description": "Default shell to set for the user"
     },
-    "systemTools": {
+    "installStarship": {
       "type": "boolean",
       "default": true,
-      "description": "Install system monitoring tools (htop, lsof, procps, strace)"
+      "description": "Install Starship cross-shell prompt"
     },
-    "textTools": {
+    "installZoxide": {
       "type": "boolean",
       "default": true,
-      "description": "Install text processing tools (less, tree, ncdu, man-db)"
+      "description": "Install zoxide (smarter cd command)"
     },
-    "bashCompletion": {
+    "installEza": {
       "type": "boolean",
       "default": true,
-      "description": "Install bash-completion for enhanced shell completion"
+      "description": "Install eza (modern ls replacement)"
+    },
+    "installBat": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install bat (modern cat with syntax highlighting)"
+    },
+    "webDevBundle": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install web development bundle (httpie, jq, yq, dasel, gron, miller, hq, config tools)"
+    },
+    "networkingBundle": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install networking bundle (ssh, nmap, curl, wget, iperf3, tcpdump, network tools)"
+    },
+    "containersBundle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install containers bundle (docker, podman, k9s, kubectl, helm, dive, container tools)"
+    },
+    "utilitiesBundle": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install utilities bundle (git, lazygit, fd, ripgrep, database clients, system tools)"
+    },
+    "configureForRoot": {
+      "type": "boolean",
+      "default": true,
+      "description": "Also configure shells for root user"
+    },
+    "installCompletions": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install shell completions for CLI tools"
+    },
+    "installMotd": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install custom Message of the Day (MOTD)"
+    },
+    "motdText": {
+      "type": "string",
+      "default": "",
+      "description": "Custom text to display in MOTD (leave empty for default OneZero banner)"
+    },
+    "installShims": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install shim scripts (code, systemctl, devcontainer-info)"
+    },
+    "installBuildTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install build tools (build-essential, cmake, pkg-config) in utilities bundle"
+    },
+    "installDatabaseClients": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install database clients (postgresql, mysql, sqlite3, redis, mongodb) in web-dev bundle"
+    },
+    "installGitHubCli": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install GitHub CLI tools (gh, glab) in utilities bundle"
+    },
+    "installKubernetesTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Kubernetes tools (kubectl, k9s, helm) in containers bundle"
+    },
+    "installPodman": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Podman and related tools (buildah, skopeo) in containers bundle"
+    },
+    "installSshServer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install OpenSSH server (security consideration) in networking bundle"
     }
   }
 }

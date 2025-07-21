@@ -3,8 +3,8 @@
 set -e
 
 # Script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FEATURE_DIR="$(dirname "$SCRIPT_DIR")"
+UTILS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FEATURE_DIR="$(dirname "$UTILS_SCRIPT_DIR")"
 CONFIGS_DIR="${FEATURE_DIR}/configs"
 
 # Configuration markers
