@@ -154,19 +154,26 @@ jobs:
 
           # Create a test devcontainer.json based on the scenario
           if [ -f "scenarios.json" ]; then
-            echo "Found scenarios.json, extracting scenarios to test"
+            echo "Found scenarios.json, creating a proper test environment"
             
             # Get first scenario key for testing (since we're only testing "default" scenario currently)
             SCENARIO_KEY=$(jq -r 'keys[0]' scenarios.json)
             echo "Testing scenario: $SCENARIO_KEY"
             
+            # Create a proper .devcontainer directory structure
+            mkdir -p .devcontainer
+            
+            # Copy local feature to a location that devcontainer CLI can access
+            mkdir -p .devcontainer/features
+            cp -r ../../../features/src/${{ matrix.feature }} .devcontainer/features/
+            
             # Extract the scenario configuration and modify to use local feature
             jq ".\"$SCENARIO_KEY\"" scenarios.json | \
             jq --arg feature "${{ matrix.feature }}" \
-              '.features = {("../../../features/src/" + $feature): .features[$feature]}' > .devcontainer.json
+              '.features = {("./features/" + $feature): .features[$feature]}' > .devcontainer/devcontainer.json
             
-            echo "Generated .devcontainer.json:"
-            cat .devcontainer.json
+            echo "Generated .devcontainer/devcontainer.json:"
+            cat .devcontainer/devcontainer.json
             
             # Test that the feature can be built
             devcontainer build --workspace-folder .
@@ -194,6 +201,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
       - name: Test build template ${{ matrix.template }}
         run: |
           echo "Testing template ${{ matrix.template }}..."
@@ -207,8 +217,12 @@ jobs:
           if [ -f ".devcontainer/devcontainer.json" ]; then
             echo "Modifying devcontainer.json to use local features..."
             
+            # Copy local features to the template directory
+            mkdir -p .devcontainer/features
+            cp -r ${GITHUB_WORKSPACE}/features/src/* .devcontainer/features/
+            
             # Replace ghcr.io/onezerocompany/features/common-utils with local path
-            sed -i 's|"ghcr.io/onezerocompany/features/common-utils:[^"]*"|"../../../features/src/common-utils"|g' .devcontainer/devcontainer.json
+            sed -i 's|"ghcr.io/onezerocompany/features/common-utils:[^"]*"|"./features/common-utils"|g' .devcontainer/devcontainer.json
             
             echo "Modified devcontainer.json:"
             cat .devcontainer/devcontainer.json
