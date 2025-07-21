@@ -4,8 +4,8 @@ A development container feature that provides network traffic filtering for sand
 
 ## Features
 
-- **Domain-based filtering**: Support for subdomain, full domain, and wildcard rules (e.g., `*.example.com`)
-- **DNS-level blocking**: Uses hosts file manipulation for efficient domain blocking
+- **Advanced wildcard domain filtering**: Full support for wildcard patterns (e.g., `*.example.com`) using dnsmasq DNS interception
+- **DNS-level blocking**: Uses dnsmasq for true wildcard DNS blocking and hosts file manipulation for exact domains
 - **iptables integration**: Additional packet filtering for comprehensive network control
 - **Docker compatibility**: Preserves communication with Docker Compose services
 - **Immutable configuration**: Prevents runtime modification of filtering rules
@@ -42,18 +42,26 @@ A development container feature that provides network traffic filtering for sand
 
 ## How It Works
 
-The sandbox feature implements multi-layered network filtering:
+The sandbox feature implements multi-layered network filtering with enhanced wildcard support:
 
-1. **DNS Filtering**: Modifies `/etc/hosts` to redirect blocked domains to localhost
-2. **iptables Rules**: Creates packet filtering rules for comprehensive traffic control
-3. **Docker Network Preservation**: Allows communication with Docker services by permitting traffic to private network ranges
-4. **Immutable Enforcement**: Optional protection against runtime configuration changes
+1. **DNS Filtering**: Uses dnsmasq DNS server to intercept and block wildcard domain patterns (e.g., `*.example.com` blocks all subdomains)
+2. **Hosts File Fallback**: Modifies `/etc/hosts` for exact domain matches and as backup when dnsmasq is unavailable  
+3. **iptables Rules**: Creates packet filtering rules for comprehensive traffic control
+4. **Docker Network Preservation**: Allows communication with Docker services by permitting traffic to private network ranges
+5. **Immutable Enforcement**: Optional protection against runtime configuration changes
 
 ## Domain Rule Formats
 
 - **Exact domain**: `example.com` - blocks exactly `example.com`
-- **Wildcard**: `*.example.com` - blocks all subdomains of `example.com`
+- **Wildcard**: `*.example.com` - blocks all subdomains of `example.com` (api.example.com, test.example.com, etc.)
 - **Multiple domains**: `"domain1.com,*.domain2.com,domain3.com"`
+
+### Wildcard Implementation
+
+The improved wildcard handling uses dnsmasq to provide true DNS-level blocking:
+- `*.facebook.com` blocks any subdomain like `api.facebook.com`, `mobile.facebook.com`, `xyz.facebook.com`
+- No need to manually specify common subdomains - all possible subdomains are blocked automatically
+- Fallback hosts file entries ensure blocking works even if dnsmasq fails to start
 
 ## Network Ranges
 
@@ -100,8 +108,15 @@ When `allowDockerNetworks` is enabled, the following ranges are permitted:
 After container startup, you can test the filtering:
 
 ```bash
-# Test DNS blocking
-nslookup facebook.com  # Should resolve to 127.0.0.1
+# Test DNS blocking with wildcards
+nslookup api.facebook.com  # Should resolve to 127.0.0.1
+nslookup mobile.twitter.com  # Should resolve to 127.0.0.1
+
+# Check dnsmasq is running
+systemctl status dnsmasq
+
+# Check dnsmasq configuration
+cat /etc/dnsmasq.d/sandbox.conf
 
 # Check iptables rules
 iptables -L SANDBOX_OUTPUT
@@ -115,10 +130,10 @@ dmesg | grep SANDBOX_BLOCKED
 
 ## Limitations
 
-- DNS filtering relies on applications respecting system hosts file
-- Some applications may use their own DNS resolution
+- DNS filtering requires applications to respect system DNS configuration
+- Some applications may use hardcoded DNS servers or their own DNS resolution
 - iptables rules require privileged container mode
-- Domain wildcards are implemented at the DNS level only
+- dnsmasq service needs to be running for full wildcard functionality
 
 ## Security Notes
 

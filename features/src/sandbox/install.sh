@@ -16,7 +16,7 @@ echo "Installing Sandbox Network Filter..."
 # Install required packages
 echo "Installing required packages..."
 apt-get update
-apt-get install -y iptables iptables-persistent dnsmasq-base bind9-dnsutils netfilter-persistent
+apt-get install -y iptables iptables-persistent dnsmasq bind9-dnsutils netfilter-persistent
 
 # Create sandbox directories
 mkdir -p /usr/local/share/sandbox
@@ -25,38 +25,85 @@ mkdir -p /etc/sandbox
 # Create DNS filtering configuration
 cat > /usr/local/share/sandbox/setup-dns-filter.sh << 'EOF'
 #!/bin/bash
-# Setup DNS-based domain filtering
+# Setup DNS-based domain filtering with proper wildcard support
 set -e
 
 ALLOWED_DOMAINS="$1"
 BLOCKED_DOMAINS="$2"
 DEFAULT_POLICY="$3"
 
-echo "Setting up DNS-based domain filtering..."
+echo "Setting up DNS-based domain filtering with dnsmasq..."
 
-# Create hosts file entries for blocked domains
+# Stop dnsmasq if running
+systemctl stop dnsmasq 2>/dev/null || true
+
+# Backup original resolv.conf
+cp /etc/resolv.conf /etc/resolv.conf.sandbox.backup 2>/dev/null || true
+
+# Create dnsmasq configuration for sandbox
+cat > /etc/dnsmasq.d/sandbox.conf << 'DNSMASQ_EOF'
+# Sandbox network filter DNS configuration
+# Listen only on localhost
+interface=lo
+bind-interfaces
+
+# Don't read /etc/hosts for DNS resolution
+no-hosts
+
+# Set cache size
+cache-size=1000
+
+# Log queries for debugging (optional)
+log-queries
+
+# Forward to upstream DNS servers
+server=8.8.8.8
+server=8.8.4.4
+server=1.1.1.1
+DNSMASQ_EOF
+
+# Create hosts file entries for exact domain matches (fallback)
 HOSTS_FILE="/etc/hosts.sandbox"
 cp /etc/hosts "$HOSTS_FILE"
 
-# Function to add domain blocking to hosts file
+# Function to add domain blocking 
 block_domain() {
     local domain="$1"
-    # Remove wildcard prefix for hosts file
-    local host_domain="${domain#\*.}"
     
-    # Add main domain and www subdomain
-    echo "127.0.0.1 $host_domain" >> "$HOSTS_FILE"
-    echo "127.0.0.1 www.$host_domain" >> "$HOSTS_FILE"
-    
-    # If it's a wildcard, add a few common subdomains
     if [[ "$domain" == *.* ]]; then
-        echo "127.0.0.1 api.$host_domain" >> "$HOSTS_FILE"
-        echo "127.0.0.1 m.$host_domain" >> "$HOSTS_FILE"
-        echo "127.0.0.1 mobile.$host_domain" >> "$HOSTS_FILE"
+        # This is a wildcard domain - configure dnsmasq to block it
+        local base_domain="${domain#\*.}"
+        echo "# Block wildcard domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
+        echo "address=/$base_domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+        
+        # Also add to hosts file for fallback
+        echo "127.0.0.1 $base_domain" >> "$HOSTS_FILE"
+        echo "127.0.0.1 www.$base_domain" >> "$HOSTS_FILE"
+    else
+        # Exact domain match - add to both dnsmasq and hosts
+        echo "# Block exact domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
+        echo "address=/$domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+        echo "127.0.0.1 $domain" >> "$HOSTS_FILE"
     fi
 }
 
-# Process blocked domains
+# Function to allow domain (override blocking)
+allow_domain() {
+    local domain="$1"
+    
+    if [[ "$domain" == *.* ]]; then
+        # This is a wildcard allow - remove any blocking rules
+        local base_domain="${domain#\*.}"
+        echo "# Allow wildcard domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
+        # Don't add address= rule for allowed domains - let them resolve normally
+    else
+        # Exact domain allow
+        echo "# Allow exact domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
+        # Don't add address= rule for allowed domains
+    fi
+}
+
+# Process blocked domains first
 if [ -n "$BLOCKED_DOMAINS" ]; then
     echo "Processing blocked domains: $BLOCKED_DOMAINS"
     IFS=',' read -ra DOMAINS <<< "$BLOCKED_DOMAINS"
@@ -69,10 +116,48 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
     done
 fi
 
+# Process allowed domains (these can override blocked domains)
+if [ -n "$ALLOWED_DOMAINS" ]; then
+    echo "Processing allowed domains: $ALLOWED_DOMAINS"
+    IFS=',' read -ra DOMAINS <<< "$ALLOWED_DOMAINS"
+    for domain in "${DOMAINS[@]}"; do
+        domain=$(echo "$domain" | xargs) # trim whitespace
+        if [ -n "$domain" ]; then
+            echo "  Allowing domain: $domain"
+            allow_domain "$domain"
+        fi
+    done
+fi
+
+# Handle default policy
+if [ "$DEFAULT_POLICY" = "block" ]; then
+    echo "Setting default DNS policy to block unknown domains"
+    # For default block policy, we'll rely on iptables to block unknown external IPs
+    # DNS resolution will work, but iptables will block the connections
+else
+    echo "Setting default DNS policy to allow unknown domains"
+    # Allow all other domains to resolve normally
+fi
+
 # Replace system hosts file with filtered version
 cp "$HOSTS_FILE" /etc/hosts
 
-echo "DNS filtering configured"
+# Configure system to use local dnsmasq
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf  # fallback
+
+# Start dnsmasq
+systemctl start dnsmasq
+systemctl enable dnsmasq 2>/dev/null || true
+
+# Test dnsmasq is working
+if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
+    echo "Warning: dnsmasq failed to start, falling back to hosts file only"
+    # Restore original resolv.conf if dnsmasq fails
+    cp /etc/resolv.conf.sandbox.backup /etc/resolv.conf 2>/dev/null || true
+fi
+
+echo "DNS filtering configured with proper wildcard support"
 EOF
 
 chmod +x /usr/local/share/sandbox/setup-dns-filter.sh
@@ -172,6 +257,14 @@ fi
 # Setup iptables rules
 /usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED"
 
+# Ensure dnsmasq is running for DNS filtering
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl start dnsmasq 2>/dev/null || true
+    if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
+        echo "Warning: dnsmasq is not running - wildcard DNS blocking may not work properly"
+    fi
+fi
+
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     echo "Making configuration immutable..."
@@ -182,9 +275,11 @@ if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     chattr +i /etc/sandbox/config 2>/dev/null || true
     # Protect hosts file
     chattr +i /etc/hosts 2>/dev/null || true
+    # Protect dnsmasq configuration
+    chattr +i /etc/dnsmasq.d/sandbox.conf 2>/dev/null || true
 fi
 
-echo "Sandbox network filtering initialized"
+echo "Sandbox network filtering initialized with proper wildcard support"
 EOF
 
 chmod +x /usr/local/share/sandbox/sandbox-init.sh

@@ -46,6 +46,15 @@
       }
     }
   },
+  "wildcard-test": {
+    "image": "debian:bookworm",
+    "features": {
+      "sandbox": {
+        "blockedDomains": "*.facebook.com,*.twitter.com,*.example.com",
+        "defaultPolicy": "block"
+      }
+    }
+  },
   "logging-disabled": {
     "image": "debian:bookworm",
     "features": {

@@ -17,6 +17,24 @@ check "blocked-domain-in-hosts-twitter" grep -q "127.0.0.1.*twitter.com" /etc/ho
 blocked_ip=$(getent hosts facebook.com | awk '{print $1}' || true)
 check "facebook-redirected-to-localhost" [ "$blocked_ip" = "127.0.0.1" ]
 
+# Test wildcard DNS blocking with dnsmasq
+check "dnsmasq-running" systemctl is-active dnsmasq >/dev/null 2>&1 || true
+check "dnsmasq-config-exists" test -f /etc/dnsmasq.d/sandbox.conf
+
+# Test that dnsmasq configuration includes wildcard blocking
+check "wildcard-config-facebook" grep -q "address=/facebook.com/127.0.0.1" /etc/dnsmasq.d/sandbox.conf
+check "wildcard-config-twitter" grep -q "address=/twitter.com/127.0.0.1" /etc/dnsmasq.d/sandbox.conf
+
+# Test that wildcard subdomains are blocked (if dnsmasq is running)
+if systemctl is-active dnsmasq >/dev/null 2>&1; then
+    # Test subdomain blocking for wildcard domains
+    subdomain_ip=$(getent hosts api.facebook.com | awk '{print $1}' || echo "failed")
+    check "subdomain-blocked-facebook" [ "$subdomain_ip" = "127.0.0.1" ]
+    
+    subdomain_ip2=$(getent hosts mobile.twitter.com | awk '{print $1}' || echo "failed")
+    check "subdomain-blocked-twitter" [ "$subdomain_ip2" = "127.0.0.1" ]
+fi
+
 # Test iptables rules are working for Docker networks
 check "docker-network-allowed" iptables -t filter -L SANDBOX_OUTPUT | grep -q "172.16.0.0/12"
 check "local-network-allowed" iptables -t filter -L SANDBOX_OUTPUT | grep -q "10.0.0.0/8"

@@ -18,7 +18,7 @@ check "config-file" test -f /etc/sandbox/config
 
 # Test that required packages are installed
 check "iptables" which iptables
-check "dnsmasq-base" dpkg -l dnsmasq-base >/dev/null 2>&1
+check "dnsmasq" dpkg -l dnsmasq >/dev/null 2>&1
 
 # Test that iptables rules are set up
 check "sandbox-chain-exists" iptables -t filter -L SANDBOX_OUTPUT >/dev/null 2>&1
