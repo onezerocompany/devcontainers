@@ -2,6 +2,12 @@
   "image": "ghcr.io/onezerocompany/base",
   "remoteUser": "zero",
   "features": {
+    "ghcr.io/onezerocompany/features/common-utils:latest": {
+      "installNetworkTools": true,
+      "installSystemTools": true,
+      "installTextTools": true,
+      "installBashCompletion": true
+    },
     "ghcr.io/onezerocompany/features/modern-shell:latest": {
       "defaultShell": "zsh",
       "installStarship": true,

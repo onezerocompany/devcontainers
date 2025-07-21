@@ -1,0 +1,30 @@
+{
+  "id": "common-utils",
+  "name": "Common Utilities",
+  "version": "1.0.0",
+  "description": "Installs essential system utilities: network tools, system monitoring, text processing, and development utilities",
+  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/common-utils",
+  "options": {
+    "installNetworkTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install network utilities (openssh-client, iproute2, net-tools, rsync)"
+    },
+    "installSystemTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install system monitoring tools (htop, lsof, procps, strace)"
+    },
+    "installTextTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install text processing tools (less, tree, ncdu, man-db)"
+    },
+    "installBashCompletion": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install bash-completion for enhanced shell completion"
+    }
+  },
+  "installsAfter": ["ghcr.io/devcontainers/features/common-utils"]
+}
