@@ -1,0 +1,57 @@
+{
+  "default": {
+    "image": "debian:bookworm",
+    "features": {
+      "sandbox": {}
+    }
+  },
+  "allow-policy": {
+    "image": "debian:bookworm",
+    "features": {
+      "sandbox": {
+        "defaultPolicy": "allow",
+        "blockedDomains": "*.example.com,badsite.com"
+      }
+    }
+  },
+  "custom-domains": {
+    "image": "debian:bookworm", 
+    "features": {
+      "sandbox": {
+        "allowedDomains": "*.github.com,api.openai.com,*.googleapis.com",
+        "blockedDomains": "*.facebook.com,*.twitter.com",
+        "defaultPolicy": "block"
+      }
+    }
+  },
+  "docker-enabled": {
+    "image": "debian:bookworm",
+    "features": {
+      "sandbox": {
+        "allowDockerNetworks": true,
+        "allowLocalhost": true
+      }
+    }
+  },
+  "strict-mode": {
+    "image": "debian:bookworm",
+    "features": {
+      "sandbox": {
+        "allowedDomains": "api.github.com",
+        "blockedDomains": "",
+        "defaultPolicy": "block",
+        "allowDockerNetworks": false,
+        "allowLocalhost": false,
+        "immutableConfig": true
+      }
+    }
+  },
+  "logging-disabled": {
+    "image": "debian:bookworm",
+    "features": {
+      "sandbox": {
+        "logBlocked": false
+      }
+    }
+  }
+}
