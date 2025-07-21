@@ -75,7 +75,7 @@ RUN mkdir -p ~/.local/bin && \
     ARCH=$(dpkg --print-architecture) && \
     if [ "$ARCH" = "amd64" ]; then ARCH="x64"; fi && \
     if [ "$ARCH" = "arm64" ]; then ARCH="arm64"; fi && \
-    MISE_VERSION=$(curl -s https://api.github.com/repos/jdx/mise/releases/latest | grep '"tag_name"' | cut -d'"' -f4) && \
+    MISE_VERSION=$(curl -s https://api.github.com/repos/jdx/mise/releases/latest | jq -r '.tag_name') && \
     echo "Installing mise ${MISE_VERSION} for ${ARCH}..." && \
     curl -fsSL "https://github.com/jdx/mise/releases/download/${MISE_VERSION}/mise-${MISE_VERSION}-linux-${ARCH}" -o ~/.local/bin/mise && \
     chmod +x ~/.local/bin/mise && \
