@@ -1,0 +1,34 @@
+{
+  "default": {
+    "image": "debian:bookworm",
+    "features": {
+      "modern-shell": {}
+    }
+  },
+  "bash-shell": {
+    "image": "debian:bookworm",
+    "features": {
+      "modern-shell": {
+        "defaultShell": "bash"
+      }
+    }
+  },
+  "minimal": {
+    "image": "debian:bookworm",
+    "features": {
+      "modern-shell": {
+        "installStarship": false,
+        "installZoxide": false,
+        "installEza": false
+      }
+    }
+  },
+  "no-root-config": {
+    "image": "debian:bookworm",
+    "features": {
+      "modern-shell": {
+        "configureForRoot": false
+      }
+    }
+  }
+}

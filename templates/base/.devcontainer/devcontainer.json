@@ -1,18 +1,14 @@
 {
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
+  "image": "ghcr.io/onezerocompany/base",
+  "remoteUser": "zero",
   "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": "true",
-      "username": "zero",
-      "userUid": "1000",
-      "userGid": "1000",
-      "upgradePackages": "true"
-    },
-    "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/onezerocompany/feature/starship:1": {}
-  },
-  "remoteUser": "zero"
+    "ghcr.io/onezerocompany/features/modern-shell:latest": {
+      "defaultShell": "zsh",
+      "installStarship": true,
+      "installZoxide": true,
+      "installEza": true,
+      "installBat": true,
+      "configureForRoot": true
+    }
+  }
 }

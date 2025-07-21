@@ -1,0 +1,15 @@
+# Bash configuration for devcontainer with modern tools
+
+# Path configuration
+export PATH="$HOME/.local/bin:$PATH"
+
+# Tool activation: Mise (runtime version manager)
+if [ -f "$HOME/.local/bin/mise" ]; then
+    eval "$($HOME/.local/bin/mise activate bash)"
+fi
+
+# Modern CLI tools aliases
+{{EZA_ALIASES}}
+{{BAT_ALIASES}}
+{{STARSHIP_INIT}}
+{{ZOXIDE_INIT}}

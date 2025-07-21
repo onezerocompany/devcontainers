@@ -3,12 +3,5 @@
   "version": "1.0.0",
   "name": "OneZero Base Dev Container",
   "platforms": ["linux/amd64", "linux/arm64"],
-  "keywords": ["onezero", "base"],
-  "options": {
-    "variant": {
-      "type": "string",
-      "default": "stable",
-      "description": "The base image to use for the development container."
-    }
-  }
+  "keywords": ["onezero", "base"]
 }

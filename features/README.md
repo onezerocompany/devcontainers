@@ -1,55 +1,55 @@
-# Starship Prompt (starship)
+# OneZero Dev Container Features
 
-A minimal, blazing-fast, and infinitely customizable prompt for any shell.
+A collection of features for development containers.
 
-## Example Usage
+## Available Features
 
-```json
-"features": {
-    "ghcr.io/onezerocompany/devcontainers/features/starship:1": {}
-}
-```
+### Docker-in-Docker (docker-in-docker)
 
-## Options
+Enables Docker inside a Dev Container by installing the Docker CLI and enabling the Docker daemon.
 
-| Options Id | Description | Type | Default Value |
-|-----|-----|-----|-----|
-| version | Version of Starship to install. Use 'latest' for the most recent version. | string | latest |
-| configPath | Path to a custom starship.toml configuration file | string | - |
-
-## Default Configuration
-
-This feature includes a default configuration that provides a clean, minimal prompt with:
-- A purple "dev" badge
-- Username display
-- Current directory on the right side
-- Special formatting for git repositories
-
-## Custom Configuration
-
-To use a custom Starship configuration, provide a path to your configuration file:
+#### Example Usage
 
 ```json
 "features": {
-    "ghcr.io/onezerocompany/devcontainers/features/starship:1": {
-        "configPath": ".devcontainer/starship.toml"
+    "ghcr.io/onezerocompany/features/docker-in-docker:latest": {
+        "version": "latest",
+        "moby": false
     }
 }
 ```
 
-## Supported Shells
+### Modern Shell Tools (modern-shell)
 
-This feature automatically configures Starship for:
-- Bash
-- Zsh
+Installs and configures modern CLI tools including zsh, starship prompt, zoxide, eza, and bat.
 
-## OS Support
+#### Example Usage
 
-This feature supports:
-- Debian/Ubuntu
-- Alpine Linux
-- Other Linux distributions with bash/zsh
+```json
+"features": {
+    "ghcr.io/onezerocompany/features/modern-shell:latest": {
+        "defaultShell": "zsh",
+        "installStarship": true,
+        "installZoxide": true,
+        "installEza": true,
+        "installBat": true,
+        "configureForRoot": true
+    }
+}
+```
 
----
+#### Features
 
-_Note: This file was auto-generated from the devcontainer-feature.json. Add additional notes to a `NOTES.md`._
+- **Starship**: A minimal, blazing-fast, and infinitely customizable prompt
+- **Zoxide**: A smarter cd command that learns your habits
+- **Eza**: A modern replacement for ls with colors and git integration
+- **Bat**: A cat clone with syntax highlighting and line numbers
+- **Shell configurations**: Pre-configured bashrc and zshrc with useful aliases
+
+## Contributing
+
+Please refer to the main repository for contribution guidelines.
+
+## License
+
+See the main repository for license information.

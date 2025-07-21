@@ -1,0 +1,9 @@
+# Zsh environment configuration (all shells)
+
+# Path configuration
+export PATH="$HOME/.local/bin:$PATH"
+
+# Mise shims for non-interactive shells
+if [ -f "$HOME/.local/bin/mise" ]; then
+    eval "$($HOME/.local/bin/mise activate zsh --shims)"
+fi

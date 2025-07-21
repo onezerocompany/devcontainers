@@ -13,9 +13,6 @@ $APT_CMD install -y \
     sudo \
     nano \
     vim \
-    zsh \
     zip \
     jq \
-    lsb-release \
-    bat \
-    fzf
+    lsb-release

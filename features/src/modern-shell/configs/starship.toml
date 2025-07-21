@@ -1,4 +1,4 @@
-# ~/.config/starship.toml
+# Starship configuration for devcontainer
 
 add_newline = true
 format = "[](fg:purple)[dev ](bg:purple fg:white)$username "

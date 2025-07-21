@@ -18,7 +18,6 @@ ENV MISE_DATA_DIR=$HOME/.local/share/mise
 ENV PATH="$HOME/.local/bin:${PATH}"
 ENV MISE_TRUSTED_CONFIG_PATHS="/"
 ENV MISE_YES=1
-ENV SHELL=/bin/zsh
 
 # System preparation
 COPY scripts/system/system-prep.sh /tmp/
@@ -48,9 +47,6 @@ RUN chmod +x /tmp/dev-tools.sh && APT_CMD=apt-fast /tmp/dev-tools.sh && rm /tmp/
 COPY scripts/tools/container-tools.sh /tmp/
 RUN chmod +x /tmp/container-tools.sh && APT_CMD=apt-fast /tmp/container-tools.sh && rm /tmp/container-tools.sh
 
-# Modern CLI tools
-COPY scripts/tools/modern-cli.sh /tmp/
-RUN chmod +x /tmp/modern-cli.sh && /tmp/modern-cli.sh && rm /tmp/modern-cli.sh
 
 # Cleanup
 COPY scripts/system/cleanup.sh /tmp/
@@ -59,14 +55,9 @@ RUN chmod +x /tmp/cleanup.sh && /tmp/cleanup.sh && rm /tmp/cleanup.sh
 
 # Create user with configurable name
 RUN groupadd --gid $USER_GID $USERNAME && \
-    useradd --uid $USER_UID --gid $USER_GID -m -s /bin/zsh $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m -s /bin/bash $USERNAME && \
     echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
-# Set up shell configurations for both bash and zsh
-COPY scripts/shell/configure-shells.sh configs/starship.toml /tmp/
-RUN chmod +x /tmp/configure-shells.sh && \
-    /tmp/configure-shells.sh $USERNAME && \
-    rm /tmp/configure-shells.sh
 
 # Create necessary directories for the user before switching
 RUN mkdir -p /home/$USERNAME/.local/bin && \
@@ -107,8 +98,6 @@ COPY --chown=$USERNAME:$USERNAME configs/global-mise.toml /home/$USERNAME/.mise.
 # Install mise tools
 RUN mise install
 
-# Copy starship configuration after mise has installed starship
-COPY --chown=$USERNAME:$USERNAME configs/starship.toml /home/$USERNAME/.config/starship.toml
 
 RUN touch ~/.sudo_as_admin_successful
 
