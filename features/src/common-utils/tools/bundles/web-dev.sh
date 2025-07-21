@@ -14,7 +14,6 @@ install_webdev_bundle() {
     apt-get install -y \
         httpie \
         jq \
-        yq \
         xmlstarlet \
         nginx \
         apache2-utils
@@ -28,74 +27,86 @@ install_webdev_bundle() {
             redis-tools
     fi
 
-# Install modern config tools
-echo "📦 Installing config processing tools..."
+    # Install yq binary (not available as package)
+    echo "📦 Installing yq..."
+    YQ_VERSION="4.43.1"
+    ARCH=$(dpkg --print-architecture)
+    case $ARCH in
+        amd64) YQ_ARCH="amd64" ;;
+        arm64) YQ_ARCH="arm64" ;;
+        *) echo "Unsupported architecture for yq: $ARCH"; YQ_ARCH="amd64" ;;
+    esac
+    curl -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${YQ_ARCH}" -o /usr/local/bin/yq
+    chmod +x /usr/local/bin/yq
 
-# Install dasel (universal config query tool)
-DASEL_VERSION="2.8.1"
-ARCH=$(dpkg --print-architecture)
-case $ARCH in
-    amd64) DASEL_ARCH="amd64" ;;
-    arm64) DASEL_ARCH="arm64" ;;
-    *) echo "Unsupported architecture for dasel: $ARCH"; return 0 ;;
-esac
-curl -L "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_${DASEL_ARCH}" -o /usr/local/bin/dasel
-chmod +x /usr/local/bin/dasel
+    # Install modern config tools
+    echo "📦 Installing config processing tools..."
 
-# Install yj (YAML/TOML/JSON/HCL converter)
-YJ_VERSION="5.1.0"
-case $ARCH in
-    amd64) YJ_ARCH="amd64" ;;
-    arm64) YJ_ARCH="arm64" ;;
-    *) echo "Unsupported architecture for yj: $ARCH"; return 0 ;;
-esac
-curl -L "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}" -o /usr/local/bin/yj
-chmod +x /usr/local/bin/yj
+    # Install dasel (universal config query tool)
+    DASEL_VERSION="2.8.1"
+    ARCH=$(dpkg --print-architecture)
+    case $ARCH in
+        amd64) DASEL_ARCH="amd64" ;;
+        arm64) DASEL_ARCH="arm64" ;;
+        *) echo "Unsupported architecture for dasel: $ARCH"; return 0 ;;
+    esac
+    curl -L "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_${DASEL_ARCH}" -o /usr/local/bin/dasel
+    chmod +x /usr/local/bin/dasel
 
-# Install gron (make JSON greppable)
-GRON_VERSION="0.7.1"
-case $ARCH in
-    amd64) GRON_ARCH="amd64" ;;
-    arm64) GRON_ARCH="arm64" ;;
-    *) echo "Unsupported architecture for gron: $ARCH"; return 0 ;;
-esac
-curl -L "https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}-${GRON_VERSION}.tgz" -o /tmp/gron.tgz
-tar -xzf /tmp/gron.tgz -C /tmp
-mv /tmp/gron /usr/local/bin/
-chmod +x /usr/local/bin/gron
-rm -f /tmp/gron.tgz
+    # Install yj (YAML/TOML/JSON/HCL converter)
+    YJ_VERSION="5.1.0"
+    case $ARCH in
+        amd64) YJ_ARCH="amd64" ;;
+        arm64) YJ_ARCH="arm64" ;;
+        *) echo "Unsupported architecture for yj: $ARCH"; return 0 ;;
+    esac
+    curl -L "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}" -o /usr/local/bin/yj
+    chmod +x /usr/local/bin/yj
 
-# Install miller (data processing tool)
-MILLER_VERSION="6.12.0"
-case $ARCH in
-    amd64) MILLER_ARCH="amd64" ;;
-    arm64) MILLER_ARCH="arm64" ;;
-    *) echo "Unsupported architecture for miller: $ARCH"; return 0 ;;
-esac
-curl -L "https://github.com/johnkerl/miller/releases/download/v${MILLER_VERSION}/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}.tar.gz" -o /tmp/miller.tar.gz
-tar -xzf /tmp/miller.tar.gz -C /tmp
-mv "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}/mlr" /usr/local/bin/
-chmod +x /usr/local/bin/mlr
-rm -rf /tmp/miller*
+    # Install gron (make JSON greppable)
+    GRON_VERSION="0.7.1"
+    case $ARCH in
+        amd64) GRON_ARCH="amd64" ;;
+        arm64) GRON_ARCH="arm64" ;;
+        *) echo "Unsupported architecture for gron: $ARCH"; return 0 ;;
+    esac
+    curl -L "https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}-${GRON_VERSION}.tgz" -o /tmp/gron.tgz
+    tar -xzf /tmp/gron.tgz -C /tmp
+    mv /tmp/gron /usr/local/bin/
+    chmod +x /usr/local/bin/gron
+    rm -f /tmp/gron.tgz
 
-# Install hq (HTML processor)
-HQ_VERSION="1.0.0"
-case $ARCH in
-    amd64) HQ_ARCH="x86_64" ;;
-    arm64) HQ_ARCH="aarch64" ;;
-    *) echo "Unsupported architecture for hq: $ARCH"; return 0 ;;
-esac
-curl -L "https://github.com/orf/hq/releases/download/v${HQ_VERSION}/hq-${HQ_ARCH}-unknown-linux-musl.tar.gz" -o /tmp/hq.tar.gz
-tar -xzf /tmp/hq.tar.gz -C /tmp
-mv /tmp/hq /usr/local/bin/
-chmod +x /usr/local/bin/hq
-rm -f /tmp/hq.tar.gz
+    # Install miller (data processing tool)
+    MILLER_VERSION="6.12.0"
+    case $ARCH in
+        amd64) MILLER_ARCH="amd64" ;;
+        arm64) MILLER_ARCH="arm64" ;;
+        *) echo "Unsupported architecture for miller: $ARCH"; return 0 ;;
+    esac
+    curl -L "https://github.com/johnkerl/miller/releases/download/v${MILLER_VERSION}/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}.tar.gz" -o /tmp/miller.tar.gz
+    tar -xzf /tmp/miller.tar.gz -C /tmp
+    mv "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}/mlr" /usr/local/bin/
+    chmod +x /usr/local/bin/mlr
+    rm -rf /tmp/miller*
 
-# Install httpstat (HTTP request statistics)
-curl -L https://raw.githubusercontent.com/reorx/httpstat/master/httpstat.py -o /usr/local/bin/httpstat
-chmod +x /usr/local/bin/httpstat
+    # Install hq (HTML processor)
+    HQ_VERSION="1.0.0"
+    case $ARCH in
+        amd64) HQ_ARCH="x86_64" ;;
+        arm64) HQ_ARCH="aarch64" ;;
+        *) echo "Unsupported architecture for hq: $ARCH"; return 0 ;;
+    esac
+    curl -L "https://github.com/orf/hq/releases/download/v${HQ_VERSION}/hq-${HQ_ARCH}-unknown-linux-musl.tar.gz" -o /tmp/hq.tar.gz
+    tar -xzf /tmp/hq.tar.gz -C /tmp
+    mv /tmp/hq /usr/local/bin/
+    chmod +x /usr/local/bin/hq
+    rm -f /tmp/hq.tar.gz
 
-    echo "✓ Web development bundle installed"
+    # Install httpstat (HTTP request statistics)
+    curl -L https://raw.githubusercontent.com/reorx/httpstat/master/httpstat.py -o /usr/local/bin/httpstat
+    chmod +x /usr/local/bin/httpstat
+
+    echo "✅ Web development bundle installed"
 }
 
 # ========================================
