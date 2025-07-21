@@ -43,9 +43,6 @@ RUN chmod +x /tmp/build-tools.sh && APT_CMD=apt-fast /tmp/build-tools.sh && rm /
 COPY scripts/development/dev-tools.sh /tmp/
 RUN chmod +x /tmp/dev-tools.sh && APT_CMD=apt-fast /tmp/dev-tools.sh && rm /tmp/dev-tools.sh
 
-# Container tools
-COPY scripts/tools/container-tools.sh /tmp/
-RUN chmod +x /tmp/container-tools.sh && APT_CMD=apt-fast /tmp/container-tools.sh && rm /tmp/container-tools.sh
 
 
 # Cleanup
