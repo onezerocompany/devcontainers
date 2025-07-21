@@ -3,12 +3,12 @@
   "remoteUser": "zero",
   "features": {
     "ghcr.io/onezerocompany/features/common-utils:1.0.0": {
-      "installNetworkTools": true,
-      "installSystemTools": true,
-      "installTextTools": true,
-      "installBashCompletion": true
+      "networkTools": true,
+      "systemTools": true,
+      "textTools": true,
+      "bashCompletion": true
     },
-    "ghcr.io/onezerocompany/features/modern-shell:1.2.0": {
+    "ghcr.io/onezerocompany/features/modern-shell:1.2.1": {
       "defaultShell": "zsh",
       "installStarship": true,
       "installZoxide": true,

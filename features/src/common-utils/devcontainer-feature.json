@@ -5,26 +5,25 @@
   "description": "Installs essential system utilities: network tools, system monitoring, text processing, and development utilities",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/common-utils",
   "options": {
-    "installNetworkTools": {
+    "networkTools": {
       "type": "boolean",
       "default": true,
       "description": "Install network utilities (openssh-client, iproute2, net-tools, rsync)"
     },
-    "installSystemTools": {
+    "systemTools": {
       "type": "boolean",
       "default": true,
       "description": "Install system monitoring tools (htop, lsof, procps, strace)"
     },
-    "installTextTools": {
+    "textTools": {
       "type": "boolean",
       "default": true,
       "description": "Install text processing tools (less, tree, ncdu, man-db)"
     },
-    "installBashCompletion": {
+    "bashCompletion": {
       "type": "boolean",
       "default": true,
       "description": "Install bash-completion for enhanced shell completion"
     }
   }
 }
-

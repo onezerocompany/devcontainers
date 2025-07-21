@@ -7,3 +7,6 @@ echo "🧹 Cleaning up..."
 # Remove package lists to reduce image size
 apt-get clean
 rm -rf /var/lib/apt/lists/*
+
+# Cleanup /tmp
+rm -rf /tmp/*
