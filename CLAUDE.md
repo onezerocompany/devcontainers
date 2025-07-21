@@ -11,9 +11,8 @@ This is a devcontainers repository that provides reusable features, images, and 
 The repository consists of three main component types:
 
 1. **Features** (`/features/src/`): Installable components that add functionality to containers
-   - `common-utils`: System utilities (network tools, monitoring, text processing)
+   - `common-utils`: Comprehensive development utilities with modern CLI tools, shell configurations, and tool bundles (zsh, starship, zoxide, eza, bat, web-dev, networking, containers, utilities)
    - `docker-in-docker`: Docker daemon support inside containers
-   - `modern-shell`: Modern CLI tools (zsh, starship, zoxide, eza, bat)
 
 2. **Images** (`/images/`): Base Docker images
    - `base`: Main development container with essential dev tools

@@ -7,7 +7,7 @@ set -e
 
 install_webdev_bundle() {
     local install_database_clients="${1:-true}"
-    
+
     echo "🌐 Installing web development bundle..."
 
     # Install core web development tools
@@ -18,16 +18,14 @@ install_webdev_bundle() {
         xmlstarlet \
         nginx \
         apache2-utils
-    
+
     # Install database clients if enabled
     if [ "$install_database_clients" = "true" ]; then
         echo "  Installing database clients..."
         apt-get install -y \
             postgresql-client \
-            mysql-client \
             sqlite3 \
-            redis-tools \
-            mongodb-clients
+            redis-tools
     fi
 
 # Install modern config tools
@@ -108,17 +106,17 @@ chmod +x /usr/local/bin/httpstat
 setup_webdev_for_user() {
     local user_home="$1"
     local username="$2"
-    
+
     echo "  Setting up web dev tools for $username..."
-    
+
     # Create directories
     mkdir -p "$user_home/.config"
     mkdir -p "$user_home/.local/share/bash-completion/completions"
     mkdir -p "$user_home/.local/share/zsh/site-functions"
-    
+
     # Setup httpie config directory
     mkdir -p "$user_home/.config/httpie"
-    
+
     # Create default httpie config if it doesn't exist
     if [ ! -f "$user_home/.config/httpie/config.json" ]; then
         cat > "$user_home/.config/httpie/config.json" << 'EOF'
@@ -130,13 +128,13 @@ setup_webdev_for_user() {
 }
 EOF
     fi
-    
+
     # Set proper ownership
     if [ "$username" != "root" ]; then
         chown -R "$username:$username" "$user_home/.config" 2>/dev/null || true
         chown -R "$username:$username" "$user_home/.local" 2>/dev/null || true
     fi
-    
+
     echo "    ✓ Web dev tools configured for $username"
 }
 
