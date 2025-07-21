@@ -88,23 +88,47 @@ build_content() {
     # Add base content
     content=$(cat "$temp_file")
     
-    # Add tool-specific content
+    # Replace placeholders with actual content
+    # Mise aliases (always included since Mise is in the base configuration)
+    if [ -f "$CONFIGS_DIR/aliases/mise.sh" ]; then
+        local mise_aliases=$(cat "$CONFIGS_DIR/aliases/mise.sh")
+        content=$(echo "$content" | sed "s|{{MISE_ALIASES}}|$mise_aliases|g")
+    else
+        content=$(echo "$content" | sed "s|{{MISE_ALIASES}}||g")
+    fi
+    
     if [ "$INSTALL_EZA" = "true" ] && [ -f "$CONFIGS_DIR/aliases/eza.sh" ]; then
-        content="${content}"$'\n\n'"$(cat "$CONFIGS_DIR/aliases/eza.sh")"
+        local eza_aliases=$(cat "$CONFIGS_DIR/aliases/eza.sh")
+        content=$(echo "$content" | sed "s|{{EZA_ALIASES}}|$eza_aliases|g")
+    else
+        content=$(echo "$content" | sed "s|{{EZA_ALIASES}}||g")
     fi
     
     if [ "$INSTALL_BAT" = "true" ] && [ -f "$CONFIGS_DIR/aliases/bat.sh" ]; then
-        content="${content}"$'\n\n'"$(cat "$CONFIGS_DIR/aliases/bat.sh")"
+        local bat_aliases=$(cat "$CONFIGS_DIR/aliases/bat.sh")
+        content=$(echo "$content" | sed "s|{{BAT_ALIASES}}|$bat_aliases|g")
+    else
+        content=$(echo "$content" | sed "s|{{BAT_ALIASES}}||g")
     fi
     
     if [ "$INSTALL_STARSHIP" = "true" ] && [ -f "$CONFIGS_DIR/init/starship.sh" ]; then
         local starship_init=$(cat "$CONFIGS_DIR/init/starship.sh" | sed "s/{{SHELL}}/$shell/g")
-        content="${content}"$'\n\n'"${starship_init}"
+        content=$(echo "$content" | sed "s|{{STARSHIP_INIT}}|$starship_init|g")
+    else
+        content=$(echo "$content" | sed "s|{{STARSHIP_INIT}}||g")
     fi
     
     if [ "$INSTALL_ZOXIDE" = "true" ] && [ -f "$CONFIGS_DIR/init/zoxide.sh" ]; then
         local zoxide_init=$(cat "$CONFIGS_DIR/init/zoxide.sh" | sed "s/{{SHELL}}/$shell/g")
-        content="${content}"$'\n\n'"${zoxide_init}"
+        content=$(echo "$content" | sed "s|{{ZOXIDE_INIT}}|$zoxide_init|g")
+    else
+        content=$(echo "$content" | sed "s|{{ZOXIDE_INIT}}||g")
+    fi
+    
+    # Add MOTD display
+    if [ -f "$CONFIGS_DIR/motd/motd.sh" ]; then
+        local motd_display="[ -f ~/.config/modern-shell-motd.sh ] && ~/.config/modern-shell-motd.sh"
+        content=$(echo "$content" | sed "s|{{MOTD_DISPLAY}}|$motd_display|g")
     fi
     
     # Clean up placeholders that weren't replaced
@@ -160,6 +184,14 @@ if [ "$INSTALL_STARSHIP" = "true" ] && [ -f "$CONFIGS_DIR/starship.toml" ]; then
     
     cp "$CONFIGS_DIR/starship.toml" "$HOME_DIR/.config/starship.toml"
     echo "  Installed starship configuration"
+fi
+
+# Copy MOTD script
+if [ -f "$CONFIGS_DIR/motd/motd.sh" ]; then
+    mkdir -p "$HOME_DIR/.config"
+    cp "$CONFIGS_DIR/motd/motd.sh" "$HOME_DIR/.config/modern-shell-motd.sh"
+    chmod +x "$HOME_DIR/.config/modern-shell-motd.sh"
+    echo "  Installed MOTD script"
 fi
 
 # Set proper ownership

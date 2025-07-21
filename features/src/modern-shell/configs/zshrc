@@ -7,6 +7,12 @@ export PATH="$HOME/.local/bin:$PATH"
 autoload -Uz compinit
 compinit
 
+# Display MOTD on interactive shell startup
+if [[ -o interactive ]] && [ -z "$MOTD_SHOWN" ]; then
+    export MOTD_SHOWN=1
+    {{MOTD_DISPLAY}}
+fi
+
 # Tool activation: Mise (runtime version manager)
 if [ -f "$HOME/.local/bin/mise" ]; then
     eval "$($HOME/.local/bin/mise activate zsh)"
@@ -15,6 +21,7 @@ if [ -f "$HOME/.local/bin/mise" ]; then
 fi
 
 # Modern CLI tools aliases
+{{MISE_ALIASES}}
 {{EZA_ALIASES}}
 {{BAT_ALIASES}}
 {{STARSHIP_INIT}}
