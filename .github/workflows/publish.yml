@@ -222,7 +222,9 @@ jobs:
       - name: Pre-build ${{ matrix.template }} template
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ghcr.io/onezerocompany/devcontainer/${{ matrix.template }}
-          cacheFrom: ghcr.io/onezerocompany/devcontainer/${{ matrix.template }}
+          imageName: ghcr.io/onezerocompany/devcontainer-${{ matrix.template }}
+          cacheFrom: ghcr.io/onezerocompany/devcontainer-${{ matrix.template }}
           push: always
           subFolder: templates/${{ matrix.template }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
