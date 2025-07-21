@@ -37,5 +37,5 @@
       "description": "Also configure shells for root user"
     }
   },
-  "installsAfter": ["ghcr.io/devcontainers/features/common-utils", "ghcr.io/onezerocompany/features/common-utils"]
+  "installsAfter": ["ghcr.io/onezerocompany/features/common-utils"]
 }
