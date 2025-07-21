@@ -93,3 +93,8 @@ All images and features support both `linux/amd64` and `linux/arm64`. The CI use
 3. Modern shell tools are configured for both user and root
 4. Features should be composable and work independently
 5. Always bump versions when making any changes to features or templates
+
+## Workflow and Best Practices
+
+- **CI/CD Verification:**
+  - Don't assume you've fixed something until you've confirmed the check-suites have completed successfully on GitHub
