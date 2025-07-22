@@ -92,5 +92,23 @@
         "motd": false
       }
     }
+  },
+  "config-system": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {}
+    }
+  },
+  "minimal-config": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "starship": false,
+        "zoxide": false,
+        "eza": false,
+        "webDev": false,
+        "utilities": false
+      }
+    }
   }
 }

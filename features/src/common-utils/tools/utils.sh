@@ -8,8 +8,14 @@ FEATURE_DIR="$(dirname "$UTILS_SCRIPT_DIR")"
 CONFIGS_DIR="${FEATURE_DIR}/configs"
 
 # Configuration markers
-MARKER_START="# >>> Modern Shell Tools - START >>>"
-MARKER_END="# <<< Modern Shell Tools - END <<<"
+MARKER_START="# >>> common-utils - START >>>"
+MARKER_END="# <<< common-utils - END <<<"
+
+# Temporary configuration files
+TMP_BASHRC="/tmp/tmp_bashrc"
+TMP_ZSHRC="/tmp/tmp_zshrc"
+TMP_ZSHENV="/tmp/tmp_zshenv"
+TMP_BASH_PROFILE="/tmp/tmp_bash_profile"
 
 # Helper function to check if our config is already added
 is_configured() {
@@ -72,6 +78,64 @@ update_config() {
     else
         echo "  No configuration needed for $(basename "$file")"
     fi
+}
+
+# Initialize temporary configuration files
+init_tmp_config_files() {
+    echo "🔧 Initializing temporary configuration files..."
+    
+    # Clear/create temporary files
+    > "$TMP_BASHRC"
+    > "$TMP_ZSHRC"  
+    > "$TMP_ZSHENV"
+    > "$TMP_BASH_PROFILE"
+    
+    echo "  Created temporary config files"
+}
+
+# Inject tmp file content into user shell file between markers
+inject_tmp_to_user_config() {
+    local tmp_file=$1
+    local user_file=$2
+    local shell_name=$3
+    
+    # Skip if tmp file doesn't exist or is empty
+    if [ ! -f "$tmp_file" ] || [ ! -s "$tmp_file" ]; then
+        echo "  No configuration for $(basename "$user_file")"
+        return
+    fi
+    
+    # Create user file if it doesn't exist
+    if [ ! -f "$user_file" ]; then
+        touch "$user_file"
+    fi
+    
+    # Remove existing marked content first
+    remove_marked_content "$user_file"
+    
+    # Add newline if file doesn't end with one
+    if [ -s "$user_file" ] && [ "$(tail -c 1 "$user_file")" != "" ]; then
+        echo "" >> "$user_file"
+    fi
+    
+    # Append tmp file content with markers
+    {
+        echo ""
+        echo "$MARKER_START"
+        echo "# Added by common-utils feature for $shell_name"
+        echo "# $(date)"
+        cat "$tmp_file"
+        echo "$MARKER_END"
+    } >> "$user_file"
+    
+    echo "  Injected $(basename "$tmp_file") content into $(basename "$user_file")"
+}
+
+# Clean up temporary configuration files
+cleanup_tmp_config_files() {
+    echo "🧹 Cleaning up temporary configuration files..."
+    rm -f "$TMP_BASHRC" "$TMP_ZSHRC" "$TMP_ZSHENV" "$TMP_BASH_PROFILE"
+    echo "  Cleaned up temporary files"
 }
 
 # Helper function to build shell configuration content from templates
@@ -164,7 +228,7 @@ build_shell_config() {
     echo "$content"
 }
 
-# Configure shell files for a user
+# Configure shell files for a user using tmp files
 configure_user_shells() {
     local user=$1
     local home_dir=$2
@@ -184,33 +248,29 @@ configure_user_shells() {
     [ -f "$home_dir/.zshenv" ] && echo "  Found existing .zshenv"
     [ -f "$home_dir/.zprofile" ] && echo "  Found existing .zprofile"
     
-    # Configure bash
-    if [ -f "$CONFIGS_DIR/bashrc" ]; then
-        bashrc_content=$(build_shell_config "$CONFIGS_DIR/bashrc" "bash" "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd")
-        update_config "$home_dir/.bashrc" "$bashrc_content"
+    # Initialize temporary configuration files
+    init_tmp_config_files
+    
+    # Add template content to tmp files for static configurations
+    if [ -f "$CONFIGS_DIR/bash_profile" ]; then
+        cat "$CONFIGS_DIR/bash_profile" >> "$TMP_BASH_PROFILE"
     fi
     
-    if [ -f "$CONFIGS_DIR/bash_profile" ]; then
-        bash_profile_content=$(cat "$CONFIGS_DIR/bash_profile")
-        update_config "$home_dir/.bash_profile" "$bash_profile_content"
+    if [ -f "$CONFIGS_DIR/zshenv" ]; then
+        cat "$CONFIGS_DIR/zshenv" >> "$TMP_ZSHENV"
     fi
+    
+    # Note: Individual tool scripts should have already written to tmp files
+    # We now inject the tmp file content into user shell files
+    
+    # Configure bash
+    inject_tmp_to_user_config "$TMP_BASHRC" "$home_dir/.bashrc" "bash"
+    inject_tmp_to_user_config "$TMP_BASH_PROFILE" "$home_dir/.bash_profile" "bash"
     
     # Configure zsh (only if zsh is installed)
     if command -v zsh >/dev/null 2>&1; then
-        if [ -f "$CONFIGS_DIR/zshrc" ]; then
-            zshrc_content=$(build_shell_config "$CONFIGS_DIR/zshrc" "zsh" "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd")
-            update_config "$home_dir/.zshrc" "$zshrc_content"
-        fi
-        
-        if [ -f "$CONFIGS_DIR/zshenv" ]; then
-            zshenv_content=$(cat "$CONFIGS_DIR/zshenv")
-            update_config "$home_dir/.zshenv" "$zshenv_content"
-        fi
-        
-        if [ -f "$CONFIGS_DIR/zprofile" ]; then
-            zprofile_content=$(cat "$CONFIGS_DIR/zprofile")
-            update_config "$home_dir/.zprofile" "$zprofile_content"
-        fi
+        inject_tmp_to_user_config "$TMP_ZSHRC" "$home_dir/.zshrc" "zsh"
+        inject_tmp_to_user_config "$TMP_ZSHENV" "$home_dir/.zshenv" "zsh"
     else
         echo "  Skipping zsh configuration (zsh not installed)"
     fi
@@ -292,6 +352,9 @@ configure_tools() {
     
     # Fix ownership
     fix_ownership "$user" "$home_dir"
+    
+    # Clean up temporary files
+    cleanup_tmp_config_files
     
     echo "✅ Shell configuration completed for $user"
 }

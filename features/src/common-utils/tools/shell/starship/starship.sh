@@ -26,38 +26,32 @@ fi
 # STARSHIP CONFIGURATION
 # ========================================
 
-# Function to add starship initialization to shell config files
+# Function to add starship initialization to temporary config files
 configure_starship_init() {
-    local config_file="$1"
-    local shell_name="$2"
-    local marker_start="# >>> Starship init - START >>>"
-    local marker_end="# <<< Starship init - END <<<"
+    local shell_name="$1"
     
-    # Check if already configured
-    if [ -f "$config_file" ] && grep -q "$marker_start" "$config_file"; then
-        return 0
-    fi
-    
-    # Create file if it doesn't exist
-    if [ ! -f "$config_file" ]; then
-        touch "$config_file"
-    fi
-    
-    # Add newline if file doesn't end with one
-    if [ -s "$config_file" ] && [ "$(tail -c 1 "$config_file")" != "" ]; then
-        echo "" >> "$config_file"
-    fi
-    
-    # Append starship initialization
-    cat >> "$config_file" << EOF
-
-$marker_start
+    # Define starship init content
+    local starship_content=$(cat << 'EOF'
 # Starship - Cross-shell prompt (interactive shells only)
-if command -v starship >/dev/null 2>&1 && [[ \$- == *i* ]]; then
-    eval "\$(starship init $shell_name)"
+if command -v starship >/dev/null 2>&1 && [[ $- == *i* ]]; then
+    eval "$(starship init SHELL_PLACEHOLDER)"
 fi
-$marker_end
 EOF
+)
+    
+    # Replace shell placeholder
+    starship_content=$(echo "$starship_content" | sed "s/SHELL_PLACEHOLDER/$shell_name/g")
+    
+    # Append to appropriate tmp files
+    if [ "$shell_name" = "bash" ]; then
+        echo "" >> /tmp/tmp_bashrc
+        echo "$starship_content" >> /tmp/tmp_bashrc
+        echo "" >> /tmp/tmp_bashrc
+    elif [ "$shell_name" = "zsh" ]; then
+        echo "" >> /tmp/tmp_zshrc
+        echo "$starship_content" >> /tmp/tmp_zshrc
+        echo "" >> /tmp/tmp_zshrc
+    fi
 }
 
 # Function to install starship configuration
@@ -92,3 +86,10 @@ if command -v starship >/dev/null 2>&1 && [[ \$- == *i* ]]; then
 fi
 EOF
 }
+
+# Configure starship for both bash and zsh when script runs
+if command -v starship >/dev/null 2>&1; then
+    echo "  Writing starship configuration to temporary files..."
+    configure_starship_init "bash"
+    configure_starship_init "zsh"
+fi

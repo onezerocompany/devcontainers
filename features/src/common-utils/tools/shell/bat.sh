@@ -31,35 +31,23 @@ fi
 # BAT CONFIGURATION
 # ========================================
 
-# Function to add bat aliases to shell config files
+# Function to add bat aliases to temporary config files
 configure_bat_aliases() {
-    local config_file="$1"
-    local marker_start="# >>> Bat aliases - START >>>"
-    local marker_end="# <<< Bat aliases - END <<<"
-    
-    # Check if already configured
-    if [ -f "$config_file" ] && grep -q "$marker_start" "$config_file"; then
-        return 0
-    fi
-    
-    # Create file if it doesn't exist
-    if [ ! -f "$config_file" ]; then
-        touch "$config_file"
-    fi
-    
-    # Add newline if file doesn't end with one
-    if [ -s "$config_file" ] && [ "$(tail -c 1 "$config_file")" != "" ]; then
-        echo "" >> "$config_file"
-    fi
-    
-    # Append bat alias
-    cat >> "$config_file" << EOF
-
-$marker_start
+    # Define bat alias content
+    local bat_content=$(cat << 'EOF'
 # Bat alias (modern cat)
 alias cat='bat --paging=never'
-$marker_end
 EOF
+)
+    
+    # Append to both bash and zsh tmp files
+    echo "" >> /tmp/tmp_bashrc
+    echo "$bat_content" >> /tmp/tmp_bashrc
+    echo "" >> /tmp/tmp_bashrc
+    
+    echo "" >> /tmp/tmp_zshrc
+    echo "$bat_content" >> /tmp/tmp_zshrc
+    echo "" >> /tmp/tmp_zshrc
 }
 
 # Get bat aliases content for template replacement
@@ -69,3 +57,9 @@ get_bat_aliases() {
 alias cat='bat --paging=never'
 EOF
 }
+
+# Configure bat aliases when script runs
+if command -v bat >/dev/null 2>&1; then
+    echo "  Writing bat aliases to temporary files..."
+    configure_bat_aliases
+fi
