@@ -6,19 +6,11 @@ set -e
 # ========================================
 
 install_networking_bundle() {
-    local install_ssh_server="${1:-false}"
-    
     echo "🌐 Installing networking bundle..."
 
     # Install core networking tools
     local networking_packages="openssh-client iproute2 net-tools netcat-openbsd nmap rsync wget curl dnsutils iputils-ping telnet tcpdump traceroute whois socat iperf3"
-    
-    # Add SSH server if enabled
-    if [ "$install_ssh_server" = "true" ]; then
-        echo "  Including SSH server..."
-        networking_packages="$networking_packages openssh-server"
-    fi
-    
+
     # Install packages
     apt-get install -y $networking_packages
 
@@ -33,13 +25,13 @@ install_networking_bundle() {
 setup_networking_for_user() {
     local user_home="$1"
     local username="$2"
-    
+
     echo "  Setting up networking tools for $username..."
-    
+
     # Create directories
     mkdir -p "$user_home/.config"
     mkdir -p "$user_home/.ssh"
-    
+
     # Create basic SSH config if it doesn't exist
     if [ ! -f "$user_home/.ssh/config" ]; then
         cat > "$user_home/.ssh/config" << 'EOF'
@@ -58,17 +50,17 @@ Host *
 EOF
         chmod 600 "$user_home/.ssh/config"
     fi
-    
+
     # Create SSH sockets directory
     mkdir -p "$user_home/.ssh/sockets"
     chmod 700 "$user_home/.ssh/sockets"
-    
+
     # Set proper ownership
     if [ "$username" != "root" ]; then
         chown -R "$username:$username" "$user_home/.ssh" 2>/dev/null || true
         chown -R "$username:$username" "$user_home/.config" 2>/dev/null || true
     fi
-    
+
     echo "    ✓ Networking tools configured for $username"
 }
 

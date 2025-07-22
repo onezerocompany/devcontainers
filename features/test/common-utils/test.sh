@@ -13,7 +13,7 @@ check "default-shell" bash -c "getent passwd $(whoami) | cut -d: -f7 | grep -q '
 
 # Test modern CLI tools are installed
 check "starship" which starship
-check "zoxide" which zoxide  
+check "zoxide" which zoxide
 check "eza" which eza
 check "bat" which bat
 
@@ -33,10 +33,9 @@ check "nmap" which nmap
 check "netcat" which nc
 check "iperf3" which iperf3
 
-# Test utilities bundle tools  
+# Test utilities bundle tools
 check "git" which git
 check "gh" which gh
-check "lazygit" which lazygit
 check "fd" which fd
 check "ripgrep" which rg
 check "htop" which htop
@@ -62,7 +61,7 @@ check "zsh-completions-dir" test -d ~/.local/share/zsh/site-functions
 
 # Test shim scripts are installed
 check "code-shim" test -x /usr/local/bin/code
-check "systemctl-shim" test -x /usr/local/bin/systemctl  
+check "systemctl-shim" test -x /usr/local/bin/systemctl
 check "devcontainer-info" test -x /usr/local/bin/devcontainer-info
 
 # Test aliases work in bash

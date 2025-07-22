@@ -4,25 +4,25 @@ set -e
 
 # Feature options
 DEFAULT_SHELL="${DEFAULTSHELL:-zsh}"
-INSTALL_STARSHIP="${INSTALLSTARSHIP:-true}"
-INSTALL_ZOXIDE="${INSTALLZOXIDE:-true}"
-INSTALL_EZA="${INSTALLEZA:-true}"
-INSTALL_BAT="${INSTALLBAT:-true}"
-INSTALL_WEBDEV_BUNDLE="${WEBDEVBUNDLE:-true}"
-INSTALL_NETWORKING_BUNDLE="${NETWORKINGBUNDLE:-true}"
-INSTALL_CONTAINERS_BUNDLE="${CONTAINERSBUNDLE:-false}"
-INSTALL_UTILITIES_BUNDLE="${UTILITIESBUNDLE:-true}"
+INSTALL_STARSHIP="${STARSHIP:-true}"
+INSTALL_ZOXIDE="${ZOXIDE:-true}"
+INSTALL_EZA="${EZA:-true}"
+INSTALL_BAT="${BAT:-true}"
+INSTALL_ZSH="${ZSH:-true}"
+INSTALL_WEBDEV_BUNDLE="${WEBDEV:-true}"
+INSTALL_NETWORKING_BUNDLE="${NETWORKING:-true}"
+INSTALL_KUBERNETES_BUNDLE="${KUBERNETES:-false}"
+INSTALL_UTILITIES_BUNDLE="${UTILITIES:-true}"
 CONFIGURE_FOR_ROOT="${CONFIGUREFORROOT:-true}"
-INSTALL_COMPLETIONS="${INSTALLCOMPLETIONS:-true}"
-INSTALL_MOTD="${INSTALLMOTD:-true}"
-INSTALL_SHIMS="${INSTALLSHIMS:-true}"
-INSTALL_BUILD_TOOLS="${INSTALLBUILDTOOLS:-true}"
-INSTALL_DATABASE_CLIENTS="${INSTALLDATABASECLIENTS:-true}"
-INSTALL_GITHUB_CLI="${INSTALLGITHUBCLI:-true}"
-INSTALL_KUBERNETES_TOOLS="${INSTALLKUBERNETESTOOLS:-true}"
-INSTALL_PODMAN="${INSTALLPODMAN:-true}"
-INSTALL_SSH_SERVER="${INSTALLSSHSERVER:-false}"
-MOTD_TEXT="${MOTDTEXT:-}"
+INSTALL_COMPLETIONS="${COMPLETIONS:-true}"
+INSTALL_MOTD="${MOTD:-true}"
+MOTD_LOGO="${MOTDLOGO:-onezero}"
+MOTD_INSTRUCTIONS="${MOTDINSTRUCTIONS:-}"
+MOTD_NOTICE="${MOTDNOTICE:-}"
+INSTALL_SHIMS="${SHIMS:-true}"
+INSTALL_BUILD_TOOLS="${BUILDTOOLS:-true}"
+INSTALL_DATABASE_CLIENTS="${DATABASECLIENTS:-true}"
+INSTALL_GITHUB_CLI="${GITHUBCLI:-true}"
 
 
 # Script directory
@@ -54,14 +54,16 @@ echo "Installing Common Utilities for user: ${USERNAME}"
 
 echo "📦 Installing required packages..."
 apt-get update
-apt-get install -y \
-    curl \
-    wget \
-    git \
-    zsh \
-    bash \
-    ca-certificates \
-    gnupg
+
+# Base packages (always install)
+BASE_PACKAGES="curl wget git bash ca-certificates gnupg"
+
+# Add zsh to packages if enabled
+if [ "${INSTALL_ZSH}" = "true" ]; then
+    BASE_PACKAGES="$BASE_PACKAGES zsh"
+fi
+
+apt-get install -y $BASE_PACKAGES
 
 # ========================================
 # MODERN CLI TOOLS INSTALLATION
@@ -105,11 +107,11 @@ if [ "${INSTALL_WEBDEV_BUNDLE}" = "true" ]; then
 fi
 
 if [ "${INSTALL_NETWORKING_BUNDLE}" = "true" ]; then
-    install_networking_bundle "$INSTALL_SSH_SERVER"
+    install_networking_bundle
 fi
 
-if [ "${INSTALL_CONTAINERS_BUNDLE}" = "true" ]; then
-    install_containers_bundle "$INSTALL_KUBERNETES_TOOLS" "$INSTALL_PODMAN"
+if [ "${INSTALL_KUBERNETES_BUNDLE}" = "true" ]; then
+    install_kubernetes_bundle
 fi
 
 if [ "${INSTALL_UTILITIES_BUNDLE}" = "true" ]; then
@@ -149,13 +151,13 @@ fi
 
 # Install MOTD if enabled
 if [ "${INSTALL_MOTD}" = "true" ] && command -v install_motd >/dev/null 2>&1; then
-    install_motd "$USER_HOME" "$MOTD_TEXT"
+    install_motd "$USER_HOME" "$MOTD_LOGO" "$MOTD_INSTRUCTIONS" "$MOTD_NOTICE"
 fi
 
 # Configure shell files with modern tools
 echo "🔧 Setting up shell configurations..."
 if command -v configure_tools >/dev/null 2>&1; then
-    configure_tools "$USERNAME" "$USER_HOME" "$INSTALL_STARSHIP" "$INSTALL_ZOXIDE" "$INSTALL_EZA" "$INSTALL_BAT"
+    configure_tools "$USERNAME" "$USER_HOME" "$INSTALL_STARSHIP" "$INSTALL_ZOXIDE" "$INSTALL_EZA" "$INSTALL_BAT" "$INSTALL_MOTD"
 fi
 
 # Setup shell completions
@@ -175,9 +177,10 @@ if [ "${INSTALL_NETWORKING_BUNDLE}" = "true" ] && [ -f "${SCRIPT_DIR}/tools/bund
     setup_networking_for_user "$USER_HOME" "$USERNAME"
 fi
 
-if [ "${INSTALL_CONTAINERS_BUNDLE}" = "true" ] && [ -f "${SCRIPT_DIR}/tools/bundles/containers.sh" ]; then
-    source "${SCRIPT_DIR}/tools/bundles/containers.sh"
-    setup_containers_for_user "$USER_HOME" "$USERNAME"
+
+if [ "${INSTALL_KUBERNETES_BUNDLE}" = "true" ] && [ -f "${SCRIPT_DIR}/tools/bundles/kubernetes.sh" ]; then
+    source "${SCRIPT_DIR}/tools/bundles/kubernetes.sh"
+    setup_kubernetes_for_user "$USER_HOME" "$USERNAME"
 fi
 
 if [ "${INSTALL_UTILITIES_BUNDLE}" = "true" ] && [ -f "${SCRIPT_DIR}/tools/bundles/utilities.sh" ]; then
@@ -191,12 +194,12 @@ if [ "${CONFIGURE_FOR_ROOT}" = "true" ] && [ "$USERNAME" != "root" ]; then
     
     # Install MOTD for root if enabled
     if [ "${INSTALL_MOTD}" = "true" ] && command -v install_motd >/dev/null 2>&1; then
-        install_motd "/root" "$MOTD_TEXT"
+        install_motd "/root" "$MOTD_LOGO" "$MOTD_INSTRUCTIONS" "$MOTD_NOTICE"
     fi
     
     # Configure shell files with modern tools for root
     if command -v configure_tools >/dev/null 2>&1; then
-        configure_tools "root" "/root" "$INSTALL_STARSHIP" "$INSTALL_ZOXIDE" "$INSTALL_EZA" "$INSTALL_BAT"
+        configure_tools "root" "/root" "$INSTALL_STARSHIP" "$INSTALL_ZOXIDE" "$INSTALL_EZA" "$INSTALL_BAT" "$INSTALL_MOTD"
     fi
     
     # Setup completions for root too
@@ -213,8 +216,9 @@ if [ "${CONFIGURE_FOR_ROOT}" = "true" ] && [ "$USERNAME" != "root" ]; then
         setup_networking_for_user "/root" "root"
     fi
     
-    if [ "${INSTALL_CONTAINERS_BUNDLE}" = "true" ] && command -v setup_containers_for_user >/dev/null 2>&1; then
-        setup_containers_for_user "/root" "root"
+    
+    if [ "${INSTALL_KUBERNETES_BUNDLE}" = "true" ] && command -v setup_kubernetes_for_user >/dev/null 2>&1; then
+        setup_kubernetes_for_user "/root" "root"
     fi
     
     if [ "${INSTALL_UTILITIES_BUNDLE}" = "true" ] && command -v setup_utilities_for_user >/dev/null 2>&1; then
@@ -229,13 +233,16 @@ fi
 echo "🐚 Setting default shell..."
 
 # Determine shell path
-if [ "${DEFAULT_SHELL}" = "zsh" ]; then
+if [ "${DEFAULT_SHELL}" = "zsh" ] && [ "${INSTALL_ZSH}" = "true" ]; then
     SHELL_PATH="/bin/zsh"
+elif [ "${DEFAULT_SHELL}" = "zsh" ] && [ "${INSTALL_ZSH}" = "false" ]; then
+    echo "Warning: defaultShell is set to 'zsh' but zsh installation is disabled, falling back to bash"
+    SHELL_PATH="/bin/bash"
 elif [ "${DEFAULT_SHELL}" = "bash" ]; then
     SHELL_PATH="/bin/bash"
 else
-    echo "Warning: Unknown shell '${DEFAULT_SHELL}', defaulting to zsh"
-    SHELL_PATH="/bin/zsh"
+    echo "Warning: Unknown shell '${DEFAULT_SHELL}', defaulting to bash"
+    SHELL_PATH="/bin/bash"
 fi
 
 # Update user's shell
@@ -246,6 +253,80 @@ fi
 # Update root's shell if configured
 if [ "${CONFIGURE_FOR_ROOT}" = "true" ]; then
     chsh -s "$SHELL_PATH" root
+fi
+
+# ========================================
+# INSTALLATION VALIDATION
+# ========================================
+
+echo "🔍 Validating installation..."
+
+# Check if requested tools were successfully installed
+validation_failed=false
+
+if [ "${INSTALL_STARSHIP}" = "true" ]; then
+    if command -v starship >/dev/null 2>&1; then
+        echo "  ✓ Starship installed and available"
+    else
+        echo "  ❌ Starship was requested but not found in PATH"
+        validation_failed=true
+    fi
+fi
+
+if [ "${INSTALL_ZOXIDE}" = "true" ]; then
+    if command -v zoxide >/dev/null 2>&1; then
+        echo "  ✓ Zoxide installed and available"
+    else
+        echo "  ❌ Zoxide was requested but not found in PATH"
+        validation_failed=true
+    fi
+fi
+
+if [ "${INSTALL_EZA}" = "true" ]; then
+    if command -v eza >/dev/null 2>&1; then
+        echo "  ✓ Eza installed and available"
+    else
+        echo "  ❌ Eza was requested but not found in PATH"
+        validation_failed=true
+    fi
+fi
+
+if [ "${INSTALL_BAT}" = "true" ]; then
+    if command -v bat >/dev/null 2>&1 || command -v batcat >/dev/null 2>&1; then
+        echo "  ✓ Bat installed and available"
+    else
+        echo "  ❌ Bat was requested but not found in PATH"
+        validation_failed=true
+    fi
+fi
+
+if [ "${INSTALL_ZSH}" = "true" ]; then
+    if command -v zsh >/dev/null 2>&1; then
+        echo "  ✓ Zsh installed and available"
+    else
+        echo "  ❌ Zsh was requested but not found in PATH"
+        validation_failed=true
+    fi
+fi
+
+# Check shell configuration
+if [ "${DEFAULT_SHELL}" = "zsh" ]; then
+    if command -v zsh >/dev/null 2>&1; then
+        echo "  ✓ Default shell (zsh) is available"
+    else
+        echo "  ⚠️  Default shell set to zsh but zsh is not installed"
+        validation_failed=true
+    fi
+fi
+
+if [ "$validation_failed" = "true" ]; then
+    echo ""
+    echo "⚠️  Some tools failed to install. This might be due to:"
+    echo "    - Network connectivity issues"
+    echo "    - Architecture not supported for some tools"
+    echo "    - Repository access problems"
+    echo "    The container should still be functional with the tools that did install."
+    echo ""
 fi
 
 echo "✅ Common Utilities installation completed!"

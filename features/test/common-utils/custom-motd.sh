@@ -1,27 +1,29 @@
-#!/bin/bash
+#\!/bin/bash
 
-# Test custom MOTD and optional features
+# Test that custom MOTD functionality works correctly
+
 set -e
 
+# Source dev-container-features-test-lib
 source dev-container-features-test-lib
 
-# Test that custom MOTD was set
-check "custom-motd-exists" test -f ~/.config/modern-shell-motd.sh
-check "custom-motd-content" bash -c "grep -q 'Welcome to Development Environment!' ~/.config/modern-shell-motd.sh"
+# Check that MOTD script exists
+check "motd script exists" test -f /home/zero/.config/modern-shell-motd.sh
 
-# Test that default tools are still installed when bundles are enabled by default
-check "starship" which starship
-check "zoxide" which zoxide  
-check "eza" which eza
-check "bat" which bat
+# Check that MOTD script is executable
+check "motd script executable" test -x /home/zero/.config/modern-shell-motd.sh
 
-# Test that shell configs exist
-check "bashrc" test -f ~/.bashrc
-check "zshrc" test -f ~/.zshrc
+# Test MOTD script runs without errors
+check "motd script runs" /home/zero/.config/modern-shell-motd.sh
 
-# Test that core bundle tools are installed (since bundles default to true)
-check "curl" which curl
-check "git" which git
+# Check that shell config includes MOTD
+check "motd in bashrc" grep -q "modern-shell-motd.sh" /home/zero/.bashrc
+
+# Verify custom content is in the MOTD script
+check "custom dev logo" grep -q "DEV CONTAINER" /home/zero/.config/modern-shell-motd.sh
+check "custom instructions" grep -q "npm start" /home/zero/.config/modern-shell-motd.sh
+check "custom notice" grep -q "Development environment" /home/zero/.config/modern-shell-motd.sh
 
 # Report results
 reportResults
+EOF < /dev/null

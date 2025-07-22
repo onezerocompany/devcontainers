@@ -17,11 +17,11 @@
     "image": "debian:bookworm",
     "features": {
       "common-utils": {
-        "installStarship": false,
-        "installZoxide": false,
-        "installEza": false,
-        "webDevBundle": false,
-        "utilitiesBundle": false
+        "starship": false,
+        "zoxide": false,
+        "eza": false,
+        "webDev": false,
+        "utilities": false
       }
     }
   },
@@ -33,11 +33,11 @@
       }
     }
   },
-  "containers-bundle": {
+  "kubernetes-bundle": {
     "image": "debian:bookworm",
     "features": {
       "common-utils": {
-        "containersBundle": true
+        "kubernetes": true
       }
     }
   },
@@ -45,13 +45,13 @@
     "image": "debian:bookworm",
     "features": {
       "common-utils": {
-        "installStarship": false,
-        "installZoxide": false,
-        "installEza": false,
-        "installBat": false,
-        "webDevBundle": true,
-        "networkingBundle": true,
-        "utilitiesBundle": true
+        "starship": false,
+        "zoxide": false,
+        "eza": false,
+        "bat": false,
+        "webDev": true,
+        "networking": true,
+        "utilities": true
       }
     }
   },
@@ -59,12 +59,8 @@
     "image": "debian:bookworm",
     "features": {
       "common-utils": {
-        "installSshServer": false,
-        "installBuildTools": false,
-        "installKubernetesTools": false,
-        "installPodman": false,
-        "containersBundle": true,
-        "networkingBundle": true
+        "buildTools": false,
+        "networking": true
       }
     }
   },
@@ -72,9 +68,28 @@
     "image": "debian:bookworm",
     "features": {
       "common-utils": {
-        "motdText": "Welcome to Development Environment!",
-        "installShims": false,
-        "installCompletions": false
+        "motdLogo": "dev",
+        "motdInstructions": "Run 'npm start' to begin development\nUse 'npm test' to run tests",
+        "motdNotice": "Development environment - not for production use",
+        "shims": false,
+        "completions": false
+      }
+    }
+  },
+  "docker-motd": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "motdLogo": "docker",
+        "motdInstructions": "Docker commands available: docker, docker-compose"
+      }
+    }
+  },
+  "no-motd": {
+    "image": "debian:bookworm",
+    "features": {
+      "common-utils": {
+        "motd": false
       }
     }
   }

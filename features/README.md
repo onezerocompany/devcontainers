@@ -29,14 +29,14 @@ Comprehensive development utilities with modern CLI tools, shell configurations,
 "features": {
     "ghcr.io/onezerocompany/features/common-utils:latest": {
         "defaultShell": "zsh",
-        "installStarship": true,
-        "installZoxide": true,
-        "installEza": true,
-        "installBat": true,
-        "webDevBundle": true,
-        "networkingBundle": true,
-        "containersBundle": false,
-        "utilitiesBundle": true,
+        "starship": true,
+        "zoxide": true,
+        "eza": true,
+        "bat": true,
+        "webDev": true,
+        "networking": true,
+        "kubernetes": false,
+        "utilities": true,
         "configureForRoot": true
     }
 }

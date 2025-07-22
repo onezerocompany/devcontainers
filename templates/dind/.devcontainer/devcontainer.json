@@ -10,22 +10,8 @@
     }
   ],
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:2.0.3": {
-      "defaultShell": "zsh",
-      "installStarship": true,
-      "installZoxide": true,
-      "installEza": true,
-      "installBat": true,
-      "webDevBundle": true,
-      "networkingBundle": true,
-      "utilitiesBundle": true,
-      "containersBundle": true,
-      "configureForRoot": true
-    },
-    "ghcr.io/onezerocompany/features/docker-in-docker:1.0.1": {
-      "version": "latest",
-      "moby": false
-    }
+    "ghcr.io/onezerocompany/features/common-utils:2": {},
+    "ghcr.io/onezerocompany/features/docker-in-docker:1": {}
   },
   "postAttachCommand": "docker version 2>/dev/null || echo 'Docker is starting up...'"
 }

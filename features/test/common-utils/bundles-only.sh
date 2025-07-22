@@ -16,7 +16,6 @@ check "jq" which jq
 check "curl" which curl
 check "nmap" which nmap
 check "git" which git
-check "lazygit" which lazygit
 
 # Test that shell configs still exist (for bundles)
 check "bashrc" test -f ~/.bashrc

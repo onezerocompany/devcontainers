@@ -9,6 +9,9 @@ DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
+INSTALL_PODMAN="${INSTALLPODMAN:-"false"}"
+INSTALL_DIVE="${INSTALLDIVE:-"true"}"
+INSTALL_WAIT="${INSTALLWAIT:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
@@ -542,6 +545,123 @@ EOF
 
 chmod +x /usr/local/share/docker-init.sh
 chown ${USERNAME}:root /usr/local/share/docker-init.sh
+
+# ========================================
+# CONTAINER TOOLS INSTALLATION
+# ========================================
+
+echo "Installing additional container tools..."
+
+# Get system architecture
+ARCH=$(dpkg --print-architecture)
+
+# Install Podman tools if enabled
+if [ "$INSTALL_PODMAN" = "true" ]; then
+    echo "📦 Installing Podman and related tools..."
+    container_packages="podman buildah skopeo"
+    apt_get_update
+    apt-get install -y $container_packages
+    echo "  ✓ Podman tools installed successfully"
+fi
+
+# Install dive for Docker image analysis if enabled
+if [ "$INSTALL_DIVE" = "true" ]; then
+    echo "📦 Installing dive for Docker image analysis..."
+    DIVE_VERSION="0.12.0"
+    case $ARCH in
+        amd64) DIVE_ARCH="amd64" ;;
+        arm64) DIVE_ARCH="arm64" ;;
+        *) echo "  ⚠️  Unsupported architecture for dive: $ARCH, skipping"; DIVE_ARCH="" ;;
+    esac
+    
+    if [ -n "$DIVE_ARCH" ]; then
+        DIVE_URL="https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_${DIVE_ARCH}.deb"
+        echo "  Downloading dive from: $DIVE_URL"
+        if curl -fsSL "$DIVE_URL" -o /tmp/dive.deb; then
+            if dpkg -i /tmp/dive.deb || apt-get install -f -y; then
+                echo "  ✓ dive installed successfully"
+            else
+                echo "  ⚠️  Failed to install dive package"
+            fi
+            rm -f /tmp/dive.deb
+        else
+            echo "  ⚠️  Failed to download dive, skipping"
+            rm -f /tmp/dive.deb
+        fi
+    fi
+fi
+
+# Install docker-compose-wait utility if enabled
+if [ "$INSTALL_WAIT" = "true" ]; then
+    echo "📦 Installing docker-compose-wait utility..."
+    WAIT_URL="https://github.com/ufoscout/docker-compose-wait/releases/download/2.12.1/wait"
+    echo "  Downloading docker-compose-wait from: $WAIT_URL"
+    if curl -fsSL "$WAIT_URL" -o /usr/local/bin/docker-compose-wait; then
+        chmod +x /usr/local/bin/docker-compose-wait
+        echo "  ✓ docker-compose-wait installed successfully"
+    else
+        echo "  ⚠️  Failed to download docker-compose-wait, skipping"
+        rm -f /usr/local/bin/docker-compose-wait
+    fi
+fi
+
+# Setup container aliases and configurations
+echo "🔧 Setting up container tools configuration..."
+
+# Create shell aliases file
+mkdir -p /usr/local/share/docker-aliases
+cat > /usr/local/share/docker-aliases/aliases.sh << 'EOF'
+# Docker aliases
+alias d='docker'
+alias dc='docker-compose'
+alias dcu='docker-compose up'
+alias dcd='docker-compose down'
+alias dcl='docker-compose logs'
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias di='docker images'
+alias drmf='docker rm -f'
+alias drmi='docker rmi'
+alias dprune='docker system prune -f'
+alias dshell='docker run --rm -it'
+alias dexec='docker exec -it'
+alias dbuild='docker build'
+alias dtag='docker tag'
+alias dpush='docker push'
+alias dpull='docker pull'
+EOF
+
+# Add aliases to shell configurations
+add_aliases_to_shell() {
+    local shell_file="$1"
+    local marker_start="# >>> Docker Aliases - START >>>"
+    local marker_end="# <<< Docker Aliases - END <<<"
+    
+    if [ -f "$shell_file" ] && ! grep -q "$marker_start" "$shell_file"; then
+        echo "" >> "$shell_file"
+        echo "$marker_start" >> "$shell_file"
+        echo "# Docker container aliases" >> "$shell_file"
+        echo "[ -f /usr/local/share/docker-aliases/aliases.sh ] && source /usr/local/share/docker-aliases/aliases.sh" >> "$shell_file"
+        echo "$marker_end" >> "$shell_file"
+        echo "  Added Docker aliases to $(basename "$shell_file")"
+    fi
+}
+
+# Apply aliases to user shells
+if [ "$USERNAME" != "root" ]; then
+    USER_HOME="/home/$USERNAME"
+    add_aliases_to_shell "$USER_HOME/.bashrc"
+    add_aliases_to_shell "$USER_HOME/.zshrc"
+    
+    # Set ownership
+    chown -R "$USERNAME:$USERNAME" "$USER_HOME/.bashrc" "$USER_HOME/.zshrc" 2>/dev/null || true
+fi
+
+# Apply aliases to root shells
+add_aliases_to_shell "/root/.bashrc"
+add_aliases_to_shell "/root/.zshrc"
+
+echo "✅ Container tools configuration completed"
 
 rm -rf /var/lib/apt/lists/*
 

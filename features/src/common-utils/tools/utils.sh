@@ -20,8 +20,26 @@ is_configured() {
     return 1
 }
 
-# Helper function to append our config to a file
-append_config() {
+# Helper function to remove existing marked content
+remove_marked_content() {
+    local file=$1
+    if [ -f "$file" ] && is_configured "$file"; then
+        # Create a temporary file without the marked section
+        local temp_file="/tmp/shell_config_$$"
+        awk -v start="$MARKER_START" -v end="$MARKER_END" '
+            $0 ~ start { skip=1; next }
+            $0 ~ end && skip { skip=0; next }
+            !skip { print }
+        ' "$file" > "$temp_file"
+        
+        # Replace original file with cleaned version
+        mv "$temp_file" "$file"
+        echo "  Removed previous configuration from $(basename "$file")"
+    fi
+}
+
+# Helper function to update config in a file (replaces old content)
+update_config() {
     local file=$1
     local content=$2
     
@@ -30,28 +48,30 @@ append_config() {
         touch "$file"
     fi
     
-    # Check if already configured
-    if is_configured "$file"; then
-        echo "  $(basename "$file") already configured, skipping..."
-        return
+    # Always remove existing marked content first
+    remove_marked_content "$file"
+    
+    # Only add new content if it's not empty
+    if [ -n "$content" ] && [ "$content" != "" ]; then
+        # Add newline if file doesn't end with one
+        if [ -s "$file" ] && [ "$(tail -c 1 "$file")" != "" ]; then
+            echo "" >> "$file"
+        fi
+        
+        # Append our configuration with markers
+        {
+            echo ""
+            echo "$MARKER_START"
+            echo "# Added by Modern Shell Tools feature"
+            echo "# $(date)"
+            echo "$content"
+            echo "$MARKER_END"
+        } >> "$file"
+        
+        echo "  Updated $(basename "$file")"
+    else
+        echo "  No configuration needed for $(basename "$file")"
     fi
-    
-    # Add newline if file doesn't end with one
-    if [ -s "$file" ] && [ "$(tail -c 1 "$file")" != "" ]; then
-        echo "" >> "$file"
-    fi
-    
-    # Append our configuration with markers
-    {
-        echo ""
-        echo "$MARKER_START"
-        echo "# Added by Modern Shell Tools feature"
-        echo "# $(date)"
-        echo "$content"
-        echo "$MARKER_END"
-    } >> "$file"
-    
-    echo "  Updated $(basename "$file")"
 }
 
 # Helper function to build shell configuration content from templates
@@ -64,6 +84,7 @@ build_shell_config() {
     local install_zoxide=$6
     local install_eza=$7
     local install_bat=$8
+    local install_motd=$9
     
     if [ ! -f "$template_file" ]; then
         echo "Warning: Template file $template_file not found"
@@ -119,7 +140,7 @@ build_shell_config() {
     fi
     
     # Add MOTD display
-    if [ -f "$CONFIGS_DIR/motd/motd.sh" ]; then
+    if [ "$install_motd" = "true" ] && [ -f "$CONFIGS_DIR/motd/motd.sh" ]; then
         local motd_display="[ -f ~/.config/modern-shell-motd.sh ] && ~/.config/modern-shell-motd.sh"
         content=$(echo "$content" | sed "s|{{MOTD_DISPLAY}}|$motd_display|g")
     else
@@ -128,6 +149,16 @@ build_shell_config() {
     
     # Clean up any remaining placeholders
     content=$(echo "$content" | grep -v "{{.*}}")
+    
+    # Remove empty lines and check if content has any actual configuration
+    content_trimmed=$(echo "$content" | sed '/^[[:space:]]*$/d' | sed '/^[[:space:]]*#/d')
+    
+    # If no actual content remains (just comments/empty lines), return empty
+    if [ -z "$content_trimmed" ]; then
+        rm -f "$temp_file"
+        echo ""
+        return
+    fi
     
     rm -f "$temp_file"
     echo "$content"
@@ -141,6 +172,7 @@ configure_user_shells() {
     local install_zoxide=$4
     local install_eza=$5
     local install_bat=$6
+    local install_motd=$7
     
     echo "🔧 Configuring shells for $user..."
     
@@ -154,29 +186,33 @@ configure_user_shells() {
     
     # Configure bash
     if [ -f "$CONFIGS_DIR/bashrc" ]; then
-        bashrc_content=$(build_shell_config "$CONFIGS_DIR/bashrc" "bash" "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat")
-        append_config "$home_dir/.bashrc" "$bashrc_content"
+        bashrc_content=$(build_shell_config "$CONFIGS_DIR/bashrc" "bash" "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd")
+        update_config "$home_dir/.bashrc" "$bashrc_content"
     fi
     
     if [ -f "$CONFIGS_DIR/bash_profile" ]; then
         bash_profile_content=$(cat "$CONFIGS_DIR/bash_profile")
-        append_config "$home_dir/.bash_profile" "$bash_profile_content"
+        update_config "$home_dir/.bash_profile" "$bash_profile_content"
     fi
     
-    # Configure zsh
-    if [ -f "$CONFIGS_DIR/zshrc" ]; then
-        zshrc_content=$(build_shell_config "$CONFIGS_DIR/zshrc" "zsh" "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat")
-        append_config "$home_dir/.zshrc" "$zshrc_content"
-    fi
-    
-    if [ -f "$CONFIGS_DIR/zshenv" ]; then
-        zshenv_content=$(cat "$CONFIGS_DIR/zshenv")
-        append_config "$home_dir/.zshenv" "$zshenv_content"
-    fi
-    
-    if [ -f "$CONFIGS_DIR/zprofile" ]; then
-        zprofile_content=$(cat "$CONFIGS_DIR/zprofile")
-        append_config "$home_dir/.zprofile" "$zprofile_content"
+    # Configure zsh (only if zsh is installed)
+    if command -v zsh >/dev/null 2>&1; then
+        if [ -f "$CONFIGS_DIR/zshrc" ]; then
+            zshrc_content=$(build_shell_config "$CONFIGS_DIR/zshrc" "zsh" "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd")
+            update_config "$home_dir/.zshrc" "$zshrc_content"
+        fi
+        
+        if [ -f "$CONFIGS_DIR/zshenv" ]; then
+            zshenv_content=$(cat "$CONFIGS_DIR/zshenv")
+            update_config "$home_dir/.zshenv" "$zshenv_content"
+        fi
+        
+        if [ -f "$CONFIGS_DIR/zprofile" ]; then
+            zprofile_content=$(cat "$CONFIGS_DIR/zprofile")
+            update_config "$home_dir/.zprofile" "$zprofile_content"
+        fi
+    else
+        echo "  Skipping zsh configuration (zsh not installed)"
     fi
 }
 
@@ -238,6 +274,7 @@ configure_tools() {
     local install_zoxide=${4:-"false"}
     local install_eza=${5:-"false"}
     local install_bat=${6:-"false"}
+    local install_motd=${7:-"false"}
     
     echo "🛠️  Configuring modern shell tools for user: $user"
     echo "   Home directory: $home_dir"
@@ -245,9 +282,10 @@ configure_tools() {
     echo "   Zoxide: $install_zoxide" 
     echo "   Eza: $install_eza"
     echo "   Bat: $install_bat"
+    echo "   MOTD: $install_motd"
     
     # Configure shell files
-    configure_user_shells "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat"
+    configure_user_shells "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd"
     
     # Install tool-specific configurations
     install_tool_configs "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat"
@@ -262,7 +300,7 @@ configure_tools() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Called directly - expect arguments
     if [ $# -lt 2 ]; then
-        echo "Usage: $0 <user> <home_dir> [install_starship] [install_zoxide] [install_eza] [install_bat]"
+        echo "Usage: $0 <user> <home_dir> [install_starship] [install_zoxide] [install_eza] [install_bat] [install_motd]"
         exit 1
     fi
     

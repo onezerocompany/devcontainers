@@ -2,16 +2,6 @@
   "image": "ghcr.io/onezerocompany/base",
   "remoteUser": "zero",
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:2.0.4": {
-      "defaultShell": "zsh",
-      "installStarship": true,
-      "installZoxide": true,
-      "installEza": true,
-      "installBat": true,
-      "webDevBundle": true,
-      "networkingBundle": true,
-      "utilitiesBundle": true,
-      "configureForRoot": true
-    }
+    "ghcr.io/onezerocompany/features/common-utils:2": {}
   }
 }

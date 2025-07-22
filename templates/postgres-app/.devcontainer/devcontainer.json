@@ -1,0 +1,43 @@
+{
+  "name": "App with PostgreSQL",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  "features": {
+    "ghcr.io/onezerocompany/features/common-utils:2": {}
+  },
+
+  "forwardPorts": [5432],
+
+  "postCreateCommand": {
+    "wait-for-db": "until pg_isready -h postgres -p 5432 -U ${templateOption:databaseUser}; do echo 'Waiting for PostgreSQL...'; sleep 2; done",
+    "info": "echo 'PostgreSQL is ready! Connect at localhost:5432 or postgres:5432 from within the container'"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-ossdata.vscode-postgresql",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg"
+      ],
+      "settings": {
+        "sqltools.connections": [
+          {
+            "name": "Development Database",
+            "driver": "PostgreSQL",
+            "server": "postgres",
+            "port": 5432,
+            "database": "${templateOption:databaseName}",
+            "username": "${templateOption:databaseUser}",
+            "password": "${templateOption:databasePassword}",
+            "connectionMethod": "Server and Port"
+          }
+        ]
+      }
+    }
+  },
+
+  "remoteUser": "zero"
+}

@@ -14,17 +14,10 @@ check "ssh-client" dpkg -l | grep -q openssh-client
 # Test that build tools are NOT installed
 check "no-build-essential" bash -c "! dpkg -l | grep build-essential"
 
-# Test that containers bundle tools are installed but without k8s tools
-check "docker-compose" which docker-compose
-
-# Test that Kubernetes tools are NOT installed
+# Test that Kubernetes tools are NOT installed (default is false)
 check "no-kubectl" bash -c "! which kubectl"
 check "no-k9s" bash -c "! which k9s"
 check "no-helm" bash -c "! which helm"
-
-# Test that Podman tools are NOT installed
-check "no-podman" bash -c "! which podman"
-check "no-buildah" bash -c "! which buildah"
 
 # Test that core networking tools are still available
 check "curl" which curl

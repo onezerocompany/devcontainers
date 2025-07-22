@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "name": "Docker (Docker-in-Docker)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
   "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -52,6 +52,21 @@
       "type": "boolean",
       "default": false,
       "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
+    },
+    "installPodman": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Podman and related tools (buildah, skopeo)"
+    },
+    "installDive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install dive for Docker image analysis"
+    },
+    "installWait": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install docker-compose-wait utility"
     }
   },
   "entrypoint": "/usr/local/share/docker-init.sh",
