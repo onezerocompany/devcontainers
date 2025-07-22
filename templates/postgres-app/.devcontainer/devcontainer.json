@@ -5,7 +5,7 @@
   "workspaceFolder": "/workspace",
 
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:2": {}
+    "ghcr.io/onezerocompany/features/common-utils:1": {}
   },
 
   "forwardPorts": [5432],

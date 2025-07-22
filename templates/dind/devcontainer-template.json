@@ -1,6 +1,6 @@
 {
   "id": "dind",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "name": "OneZero Docker-in-Docker Dev Container",
   "platforms": ["linux/amd64", "linux/arm64"],
   "keywords": ["onezero", "dind"]

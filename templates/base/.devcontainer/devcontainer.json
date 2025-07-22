@@ -2,6 +2,6 @@
   "image": "ghcr.io/onezerocompany/base",
   "remoteUser": "zero",
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:2": {}
+    "ghcr.io/onezerocompany/features/common-utils:1": {}
   }
 }

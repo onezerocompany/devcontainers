@@ -1,7 +1,7 @@
 {
   "id": "sandbox",
   "name": "Sandbox Network Filter",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "Network traffic filtering for sandboxed environments with domain rule support. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication.",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
   "options": {

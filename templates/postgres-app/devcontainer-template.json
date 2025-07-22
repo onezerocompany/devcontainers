@@ -1,6 +1,6 @@
 {
   "id": "postgres-app",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "name": "App with PostgreSQL",
   "description": "Development container with PostgreSQL database in a sidecar container",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/templates/postgres-app",
