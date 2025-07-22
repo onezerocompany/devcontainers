@@ -242,12 +242,13 @@ jobs:
             # First, create a backup and then use jq to properly modify the JSON structure
             cp .devcontainer/devcontainer.json .devcontainer/devcontainer.json.bak
             
-            # Use jq to replace the feature reference and add disabled options
+            # Use jq to replace the feature reference and disable ALL external downloads
             jq '
               .features |= with_entries(
                 if .key | startswith("ghcr.io/onezerocompany/features/common-utils") then
                   .key = "./features/common-utils" |
-                  .value = (.value + {
+                  .value = {
+                    "defaultShell": "zsh",
                     "installStarship": false,
                     "installZoxide": false,
                     "installEza": false,
@@ -255,8 +256,18 @@ jobs:
                     "webDevBundle": false,
                     "networkingBundle": false,
                     "utilitiesBundle": false,
-                    "containersBundle": false
-                  })
+                    "containersBundle": false,
+                    "configureForRoot": false,
+                    "installCompletions": false,
+                    "installMotd": false,
+                    "installShims": false,
+                    "installBuildTools": false,
+                    "installDatabaseClients": false,
+                    "installGitHubCli": false,
+                    "installKubernetesTools": false,
+                    "installPodman": false,
+                    "installSshServer": false
+                  }
                 else
                   .
                 end
