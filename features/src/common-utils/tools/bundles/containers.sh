@@ -27,8 +27,15 @@ install_containers_bundle() {
     echo "📦 Installing container utilities..."
 
     # Install docker-compose-wait for development
-    curl -L https://github.com/ufoscout/docker-compose-wait/releases/download/2.12.1/wait -o /usr/local/bin/docker-compose-wait
-    chmod +x /usr/local/bin/docker-compose-wait
+    WAIT_URL="https://github.com/ufoscout/docker-compose-wait/releases/download/2.12.1/wait"
+    echo "  Downloading docker-compose-wait from: $WAIT_URL"
+    if curl -fsSL "$WAIT_URL" -o /usr/local/bin/docker-compose-wait; then
+        chmod +x /usr/local/bin/docker-compose-wait
+        echo "  ✓ docker-compose-wait installed successfully"
+    else
+        echo "  ⚠️  Failed to download docker-compose-wait, skipping"
+        rm -f /usr/local/bin/docker-compose-wait
+    fi
 
     # Install dive for Docker image analysis
     DIVE_VERSION="0.12.0"
@@ -36,11 +43,21 @@ install_containers_bundle() {
     case $ARCH in
         amd64) DIVE_ARCH="amd64" ;;
         arm64) DIVE_ARCH="arm64" ;;
-        *) echo "Unsupported architecture for dive: $ARCH"; return 0 ;;
+        *) echo "Unsupported architecture for dive: $ARCH"; echo "  ⚠️  Skipping dive installation"; return 0 ;;
     esac
-    curl -L "https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_${DIVE_ARCH}.deb" -o /tmp/dive.deb
-    dpkg -i /tmp/dive.deb || apt-get install -f -y
-    rm -f /tmp/dive.deb
+    DIVE_URL="https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_${DIVE_ARCH}.deb"
+    echo "  Downloading dive from: $DIVE_URL"
+    if curl -fsSL "$DIVE_URL" -o /tmp/dive.deb; then
+        if dpkg -i /tmp/dive.deb || apt-get install -f -y; then
+            echo "  ✓ dive installed successfully"
+        else
+            echo "  ⚠️  Failed to install dive package"
+        fi
+        rm -f /tmp/dive.deb
+    else
+        echo "  ⚠️  Failed to download dive, skipping"
+        rm -f /tmp/dive.deb
+    fi
 
     # Install Kubernetes tools if enabled
     if [ "$install_kubernetes_tools" = "true" ]; then
@@ -51,21 +68,54 @@ install_containers_bundle() {
         case $ARCH in
             amd64) K9S_ARCH="amd64" ;;
             arm64) K9S_ARCH="arm64" ;;
-            *) echo "Unsupported architecture for k9s: $ARCH"; return 0 ;;
+            *) echo "Unsupported architecture for k9s: $ARCH"; echo "    ⚠️  Skipping k9s installation"; return 0 ;;
         esac
-        curl -L "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz" -o /tmp/k9s.tar.gz
-        tar -xzf /tmp/k9s.tar.gz -C /tmp
-        mv /tmp/k9s /usr/local/bin/
-        chmod +x /usr/local/bin/k9s
-        rm -f /tmp/k9s.tar.gz
+        K9S_URL="https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz"
+        echo "    Downloading k9s from: $K9S_URL"
+        if curl -fsSL "$K9S_URL" -o /tmp/k9s.tar.gz; then
+            tar -xzf /tmp/k9s.tar.gz -C /tmp
+            mv /tmp/k9s /usr/local/bin/
+            chmod +x /usr/local/bin/k9s
+            rm -f /tmp/k9s.tar.gz
+            echo "    ✓ k9s installed successfully"
+        else
+            echo "    ⚠️  Failed to download k9s, skipping"
+            rm -f /tmp/k9s.tar.gz
+        fi
 
         # Install kubectl (Kubernetes client)
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${ARCH}/kubectl"
-        install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-        rm kubectl
+        echo "    Downloading kubectl stable version info..."
+        if KUBECTL_VERSION=$(curl -fsSL "https://dl.k8s.io/release/stable.txt"); then
+            KUBECTL_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl"
+            echo "    Downloading kubectl ${KUBECTL_VERSION} from: $KUBECTL_URL"
+            if curl -fsSL "$KUBECTL_URL" -o kubectl; then
+                install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                rm kubectl
+                echo "    ✓ kubectl installed successfully"
+            else
+                echo "    ⚠️  Failed to download kubectl, skipping"
+                rm -f kubectl
+            fi
+        else
+            echo "    ⚠️  Failed to get kubectl version info, skipping"
+        fi
 
         # Install helm (Kubernetes package manager)
-        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        HELM_INSTALL_URL="https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+        echo "    Downloading helm installer from: $HELM_INSTALL_URL"
+        if curl -fsSL "$HELM_INSTALL_URL" -o /tmp/helm-install.sh; then
+            if [ -s /tmp/helm-install.sh ] && head -1 /tmp/helm-install.sh | grep -q '^#!/'; then
+                chmod +x /tmp/helm-install.sh
+                /tmp/helm-install.sh
+                echo "    ✓ helm installed successfully"
+            else
+                echo "    ⚠️  Downloaded file is not a valid shell script, skipping helm installation"
+            fi
+            rm -f /tmp/helm-install.sh
+        else
+            echo "    ⚠️  Failed to download helm installer, skipping"
+            rm -f /tmp/helm-install.sh
+        fi
     fi
 
     echo "✓ Containers bundle installed"

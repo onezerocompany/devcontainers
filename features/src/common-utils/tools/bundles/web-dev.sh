@@ -34,34 +34,54 @@ install_webdev_bundle() {
     case $ARCH in
         amd64) YQ_ARCH="amd64" ;;
         arm64) YQ_ARCH="arm64" ;;
-        *) echo "Unsupported architecture for yq: $ARCH"; YQ_ARCH="amd64" ;;
+        *) echo "Unsupported architecture for yq: $ARCH"; echo "  ⚠️  Skipping yq installation"; return 0 ;;
     esac
-    curl -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${YQ_ARCH}" -o /usr/local/bin/yq
-    chmod +x /usr/local/bin/yq
+    YQ_URL="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${YQ_ARCH}"
+    echo "  Downloading yq from: $YQ_URL"
+    if curl -fsSL "$YQ_URL" -o /usr/local/bin/yq; then
+        chmod +x /usr/local/bin/yq
+        echo "  ✓ yq installed successfully"
+    else
+        echo "  ⚠️  Failed to download yq, skipping"
+        rm -f /usr/local/bin/yq
+    fi
 
     # Install modern config tools
     echo "📦 Installing config processing tools..."
 
     # Install dasel (universal config query tool)
     DASEL_VERSION="2.8.1"
-    ARCH=$(dpkg --print-architecture)
     case $ARCH in
         amd64) DASEL_ARCH="amd64" ;;
         arm64) DASEL_ARCH="arm64" ;;
-        *) echo "Unsupported architecture for dasel: $ARCH"; return 0 ;;
+        *) echo "Unsupported architecture for dasel: $ARCH"; echo "  ⚠️  Skipping dasel installation"; return 0 ;;
     esac
-    curl -L "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_${DASEL_ARCH}" -o /usr/local/bin/dasel
-    chmod +x /usr/local/bin/dasel
+    DASEL_URL="https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_${DASEL_ARCH}"
+    echo "  Downloading dasel from: $DASEL_URL"
+    if curl -fsSL "$DASEL_URL" -o /usr/local/bin/dasel; then
+        chmod +x /usr/local/bin/dasel
+        echo "  ✓ dasel installed successfully"
+    else
+        echo "  ⚠️  Failed to download dasel, skipping"
+        rm -f /usr/local/bin/dasel
+    fi
 
     # Install yj (YAML/TOML/JSON/HCL converter)
     YJ_VERSION="5.1.0"
     case $ARCH in
         amd64) YJ_ARCH="amd64" ;;
         arm64) YJ_ARCH="arm64" ;;
-        *) echo "Unsupported architecture for yj: $ARCH"; return 0 ;;
+        *) echo "Unsupported architecture for yj: $ARCH"; echo "  ⚠️  Skipping yj installation"; return 0 ;;
     esac
-    curl -L "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}" -o /usr/local/bin/yj
-    chmod +x /usr/local/bin/yj
+    YJ_URL="https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}"
+    echo "  Downloading yj from: $YJ_URL"
+    if curl -fsSL "$YJ_URL" -o /usr/local/bin/yj; then
+        chmod +x /usr/local/bin/yj
+        echo "  ✓ yj installed successfully"
+    else
+        echo "  ⚠️  Failed to download yj, skipping"
+        rm -f /usr/local/bin/yj
+    fi
 
     # Install miller (data processing tool)
     MILLER_VERSION="6.12.0"
