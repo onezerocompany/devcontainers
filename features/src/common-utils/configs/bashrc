@@ -1,0 +1,15 @@
+# Modern Shell Tools Configuration for Bash
+
+# Starship prompt
+{{STARSHIP_INIT}}
+
+# Zoxide (smart cd)
+{{ZOXIDE_INIT}}
+
+# Tool aliases
+{{EZA_ALIASES}}
+{{BAT_ALIASES}}
+{{MISE_ALIASES}}
+
+# MOTD display
+{{MOTD_DISPLAY}}

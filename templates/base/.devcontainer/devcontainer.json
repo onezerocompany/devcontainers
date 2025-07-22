@@ -2,7 +2,7 @@
   "image": "ghcr.io/onezerocompany/base",
   "remoteUser": "zero",
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:2.0.3": {
+    "ghcr.io/onezerocompany/features/common-utils:2.0.4": {
       "defaultShell": "zsh",
       "installStarship": true,
       "installZoxide": true,

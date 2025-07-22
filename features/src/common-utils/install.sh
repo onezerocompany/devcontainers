@@ -152,7 +152,11 @@ if [ "${INSTALL_MOTD}" = "true" ] && command -v install_motd >/dev/null 2>&1; th
     install_motd "$USER_HOME" "$MOTD_TEXT"
 fi
 
-# Shell configuration is now handled through the bundle functions above
+# Configure shell files with modern tools
+echo "🔧 Setting up shell configurations..."
+if command -v configure_tools >/dev/null 2>&1; then
+    configure_tools "$USERNAME" "$USER_HOME" "$INSTALL_STARSHIP" "$INSTALL_ZOXIDE" "$INSTALL_EZA" "$INSTALL_BAT"
+fi
 
 # Setup shell completions
 if [ "${INSTALL_COMPLETIONS}" = "true" ] && [ -f "${SCRIPT_DIR}/tools/shell/completions.sh" ]; then
@@ -190,7 +194,10 @@ if [ "${CONFIGURE_FOR_ROOT}" = "true" ] && [ "$USERNAME" != "root" ]; then
         install_motd "/root" "$MOTD_TEXT"
     fi
     
-    # Shell configuration for root is handled through bundle functions above
+    # Configure shell files with modern tools for root
+    if command -v configure_tools >/dev/null 2>&1; then
+        configure_tools "root" "/root" "$INSTALL_STARSHIP" "$INSTALL_ZOXIDE" "$INSTALL_EZA" "$INSTALL_BAT"
+    fi
     
     # Setup completions for root too
     if [ "${INSTALL_COMPLETIONS}" = "true" ] && [ -f "${SCRIPT_DIR}/tools/shell/completions.sh" ]; then
