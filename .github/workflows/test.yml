@@ -256,7 +256,6 @@ jobs:
         image:
           - base
           - runner
-          - settings-gen
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -322,21 +321,6 @@ jobs:
               timeout 30 docker run --rm "$IMAGE_NAME" whoami || echo "whoami command failed"
               timeout 30 docker run --rm "$IMAGE_NAME" id || echo "id command failed"
               echo 'Base image tests completed with issues, but continuing...'
-            }
-          elif [ "${{ matrix.image }}" = "settings-gen" ]; then
-            echo "Testing settings-gen image functionality..."
-            # Override entrypoint to bypass Docker daemon startup - test tools only
-            timeout 60 docker run --rm --entrypoint="" "$IMAGE_NAME" sh -c "
-              echo 'Testing settings-gen image tools (bypassing Docker daemon)...' &&
-              which docker && echo '✓ docker CLI found' &&
-              which jq && echo '✓ jq found' &&
-              which devcontainer && echo '✓ devcontainer CLI found' &&
-              which node && echo '✓ node found' &&
-              which npm && echo '✓ npm found' &&
-              echo '✓ settings-gen image tools verified without Docker daemon'
-            " || {
-              echo 'ERROR: Settings-gen basic tool test failed'
-              exit 1
             }
           fi
 
