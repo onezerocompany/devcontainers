@@ -63,26 +63,7 @@ install_webdev_bundle() {
     curl -L "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}" -o /usr/local/bin/yj
     chmod +x /usr/local/bin/yj
 
-    # Install gron (make JSON greppable) - using correct GitHub release format
-    GRON_VERSION="0.7.1"
-    case $ARCH in
-        amd64) GRON_ARCH="amd64" ;;
-        arm64) GRON_ARCH="arm64" ;;
-        *) echo "Unsupported architecture for gron: $ARCH"; return 0 ;;
-    esac
-    # The correct URL format for gron releases (with version suffix in filename)
-    GRON_URL="https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}-${GRON_VERSION}.tgz"
-    echo "  Downloading gron from: $GRON_URL"
-    if curl -fsSL "$GRON_URL" -o /tmp/gron.tgz; then
-        tar -xzf /tmp/gron.tgz -C /tmp
-        mv /tmp/gron /usr/local/bin/
-        chmod +x /usr/local/bin/gron
-        rm -f /tmp/gron.tgz
-        echo "  ✓ gron installed successfully"
-    else
-        echo "  ⚠️  Failed to download gron, skipping"
-        rm -f /tmp/gron.tgz
-    fi
+    # Note: gron tool removed due to persistent download issues
 
     # Install miller (data processing tool)
     MILLER_VERSION="6.12.0"
