@@ -1,12 +1,12 @@
 {
   "default": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {}
     }
   },
   "bash-shell": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "defaultShell": "bash"
@@ -14,7 +14,7 @@
     }
   },
   "minimal": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "starship": false,
@@ -26,7 +26,7 @@
     }
   },
   "no-root-config": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "configureForRoot": false
@@ -34,7 +34,7 @@
     }
   },
   "kubernetes-bundle": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "kubernetes": true
@@ -42,7 +42,7 @@
     }
   },
   "bundles-only": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "starship": false,
@@ -56,7 +56,7 @@
     }
   },
   "security-focused": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "buildTools": false,
@@ -65,7 +65,7 @@
     }
   },
   "custom-motd": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "motdLogo": "dev",
@@ -77,7 +77,7 @@
     }
   },
   "docker-motd": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "motdLogo": "docker",
@@ -86,7 +86,7 @@
     }
   },
   "no-motd": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "motd": false
@@ -94,13 +94,13 @@
     }
   },
   "config-system": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {}
     }
   },
   "minimal-config": {
-    "image": "debian:bookworm",
+    "image": "ghcr.io/onezerocompany/base:latest",
     "features": {
       "common-utils": {
         "starship": false,
@@ -109,6 +109,12 @@
         "webDev": false,
         "utilities": false
       }
+    }
+  },
+  "base-image-compat": {
+    "image": "ghcr.io/onezerocompany/base:latest",
+    "features": {
+      "common-utils": {}
     }
   }
 }
