@@ -116,5 +116,37 @@
     "features": {
       "common-utils": {}
     }
+  },
+  "regression-fixes": {
+    "image": "ghcr.io/onezerocompany/base:latest",
+    "features": {
+      "common-utils": {
+        "webDev": false,
+        "databaseClients": false,
+        "githubCli": false,
+        "buildTools": true,
+        "motdLogo": "custom test logo $HOME && `whoami`",
+        "motdInstructions": "Test instructions with special chars: $USER, `pwd`, 'quotes'",
+        "motdNotice": "Notice with shell metacharacters: $(echo test) & background"
+      }
+    }
+  },
+  "edge-cases": {
+    "image": "ghcr.io/onezerocompany/base:latest",
+    "features": {
+      "common-utils": {
+        "defaultShell": "zsh"
+      }
+    }
+  },
+  "security-hardening": {
+    "image": "ghcr.io/onezerocompany/base:latest",
+    "features": {
+      "common-utils": {
+        "motdLogo": "Test $PATH & $(whoami) 'quotes' `commands`",
+        "motdInstructions": "Injection test: $(echo malicious) & background",
+        "motdNotice": "Path test: ../../../etc/passwd"
+      }
+    }
   }
 }

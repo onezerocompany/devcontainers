@@ -11,7 +11,7 @@ ARCH=$(dpkg --print-architecture)
 case $ARCH in
     amd64) ZOXIDE_ARCH="x86_64" ;;
     arm64) ZOXIDE_ARCH="aarch64" ;;
-    *) echo "Unsupported architecture for zoxide: $ARCH"; echo "  ⚠️  Skipping zoxide installation"; return 0 ;;
+    *) echo "Unsupported architecture for zoxide: $ARCH"; echo "  ⚠️  Skipping zoxide installation"; exit 0 ;;
 esac
 ZOXIDE_URL="https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VERSION}/zoxide-${ZOXIDE_VERSION}-${ZOXIDE_ARCH}-unknown-linux-musl.tar.gz"
 echo "  Downloading zoxide from: $ZOXIDE_URL"

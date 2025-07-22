@@ -51,11 +51,11 @@ if curl -fsSL "$FD_URL" -o /tmp/fd.tar.gz; then
     tar -xzf /tmp/fd.tar.gz -C /tmp
     mv "/tmp/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl/fd" /usr/local/bin/
     chmod +x /usr/local/bin/fd
-    rm -rf /tmp/fd*
+    rm -rf /tmp/fd.tar.gz "/tmp/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl"
     echo "  ✓ fd installed successfully"
 else
     echo "  ⚠️  Failed to download fd, skipping"
-    rm -rf /tmp/fd*
+    rm -rf /tmp/fd.tar.gz "/tmp/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl"
 fi
 
 # Install ripgrep (grep alternative)
@@ -71,11 +71,11 @@ if curl -fsSL "$RG_URL" -o /tmp/ripgrep.tar.gz; then
     tar -xzf /tmp/ripgrep.tar.gz -C /tmp
     mv "/tmp/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl/rg" /usr/local/bin/
     chmod +x /usr/local/bin/rg
-    rm -rf /tmp/ripgrep*
+    rm -rf /tmp/ripgrep.tar.gz "/tmp/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl"
     echo "  ✓ ripgrep installed successfully"
 else
     echo "  ⚠️  Failed to download ripgrep, skipping"
-    rm -rf /tmp/ripgrep*
+    rm -rf /tmp/ripgrep.tar.gz "/tmp/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl"
 fi
 
     echo "✓ Utilities bundle installed"

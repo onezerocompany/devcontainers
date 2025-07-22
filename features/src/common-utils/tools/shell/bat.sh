@@ -7,11 +7,11 @@ set -e
 
 echo "🦇 Installing bat (modern cat)..."
 BAT_VERSION="0.24.0"
-ARCH=$(dpkg --print-architecture)
+ARCH=$(get_architecture)
 case $ARCH in
     amd64) BAT_ARCH="x86_64" ;;
     arm64) BAT_ARCH="aarch64" ;;
-    *) echo "Unsupported architecture for bat: $ARCH"; echo "  ⚠️  Skipping bat installation"; return 0 ;;
+    *) echo "Unsupported architecture for bat: $ARCH"; echo "  ⚠️  Skipping bat installation"; exit 0 ;;
 esac
 BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_${ARCH}.deb"
 echo "  Downloading bat from: $BAT_URL"

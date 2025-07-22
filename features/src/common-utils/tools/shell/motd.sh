@@ -76,34 +76,40 @@ printf "\n${GREEN}╔═══════════════════�
 ╚═══════════════════════════════════╝${RESET}\n"
 DEV_LOGO
     elif [ "$logo" != "none" ] && [ -n "$logo" ]; then
-        # Custom logo - escape any single quotes and insert it
-        escaped_logo=$(echo "$logo" | sed "s/'/'\\\\''/g")
-        cat >> "$user_home/.config/modern-shell-motd.sh" << EOF
+        # Custom logo - properly escape for shell script generation
+        escaped_logo=$(printf '%s' "$logo" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
+        cat >> "$user_home/.config/modern-shell-motd.sh" << 'EOF'
 
 # Custom Logo
-printf "\n\${CYAN}$escaped_logo\${RESET}\n"
+printf "\n${CYAN}ESCAPED_LOGO_PLACEHOLDER${RESET}\n"
 EOF
+        # Replace placeholder with properly escaped content
+        sed -i "s/ESCAPED_LOGO_PLACEHOLDER/$escaped_logo/g" "$user_home/.config/modern-shell-motd.sh"
     fi
 
     # Add notice section if provided
     if [ -n "$notice" ]; then
-        escaped_notice=$(echo "$notice" | sed "s/'/'\\\\''/g")
-        cat >> "$user_home/.config/modern-shell-motd.sh" << EOF
+        escaped_notice=$(printf '%s' "$notice" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
+        cat >> "$user_home/.config/modern-shell-motd.sh" << 'EOF'
 
 # Notice
-printf "\n\${RED}${BOLD}⚠️  NOTICE:\${RESET} \${YELLOW}$escaped_notice\${RESET}\n"
+printf "\n${RED}${BOLD}⚠️  NOTICE:${RESET} ${YELLOW}ESCAPED_NOTICE_PLACEHOLDER${RESET}\n"
 EOF
+        # Replace placeholder with properly escaped content
+        sed -i "s/ESCAPED_NOTICE_PLACEHOLDER/$escaped_notice/g" "$user_home/.config/modern-shell-motd.sh"
     fi
 
     # Add instructions section if provided  
     if [ -n "$instructions" ]; then
-        escaped_instructions=$(echo "$instructions" | sed "s/'/'\\\\''/g")
-        cat >> "$user_home/.config/modern-shell-motd.sh" << EOF
+        escaped_instructions=$(printf '%s' "$instructions" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
+        cat >> "$user_home/.config/modern-shell-motd.sh" << 'EOF'
 
 # Instructions
-printf "\n\${BLUE}${BOLD}📋 INSTRUCTIONS:\${RESET}\n"
-printf "\${CYAN}$escaped_instructions\${RESET}\n"
+printf "\n${BLUE}${BOLD}📋 INSTRUCTIONS:${RESET}\n"
+printf "${CYAN}ESCAPED_INSTRUCTIONS_PLACEHOLDER${RESET}\n"
 EOF
+        # Replace placeholder with properly escaped content
+        sed -i "s/ESCAPED_INSTRUCTIONS_PLACEHOLDER/$escaped_instructions/g" "$user_home/.config/modern-shell-motd.sh"
     fi
 
     # Add tools detection section

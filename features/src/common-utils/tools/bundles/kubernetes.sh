@@ -21,16 +21,22 @@ install_kubernetes_bundle() {
 
     # Install kubectl (Kubernetes client)
     echo "📦 Installing kubectl..."
-    if KUBECTL_VERSION=$(curl -fsSL "https://dl.k8s.io/release/stable.txt"); then
-        KUBECTL_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${K8S_ARCH}/kubectl"
-        echo "  Downloading kubectl ${KUBECTL_VERSION} from: $KUBECTL_URL"
-        if curl -fsSL "$KUBECTL_URL" -o kubectl; then
-            install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-            rm kubectl
-            echo "  ✓ kubectl installed successfully"
+    if KUBECTL_VERSION_RAW=$(curl -fsSL "https://dl.k8s.io/release/stable.txt"); then
+        # Validate version format (should be v1.xx.xx)
+        if [[ "$KUBECTL_VERSION_RAW" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            KUBECTL_VERSION="$KUBECTL_VERSION_RAW"
+            KUBECTL_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${K8S_ARCH}/kubectl"
+            echo "  Downloading kubectl ${KUBECTL_VERSION} from: $KUBECTL_URL"
+            if curl -fsSL "$KUBECTL_URL" -o kubectl; then
+                install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                rm kubectl
+                echo "  ✓ kubectl installed successfully"
+            else
+                echo "  ⚠️  Failed to download kubectl, skipping"
+                rm -f kubectl
+            fi
         else
-            echo "  ⚠️  Failed to download kubectl, skipping"
-            rm -f kubectl
+            echo "  ⚠️  Invalid kubectl version format received: $KUBECTL_VERSION_RAW, skipping"
         fi
     else
         echo "  ⚠️  Failed to get kubectl version info, skipping"

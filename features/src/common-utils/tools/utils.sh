@@ -5,11 +5,29 @@ set -e
 # Script directory
 UTILS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FEATURE_DIR="$(dirname "$UTILS_SCRIPT_DIR")"
-CONFIGS_DIR="${FEATURE_DIR}/configs"
+
+# Load configuration manager
+source "${FEATURE_DIR}/lib/config_manager.sh"
 
 # Configuration markers
 MARKER_START="# >>> common-utils - START >>>"
 MARKER_END="# <<< common-utils - END <<<"
+
+# Centralized architecture detection
+get_architecture() {
+    if command -v dpkg >/dev/null 2>&1; then
+        dpkg --print-architecture
+    elif command -v uname >/dev/null 2>&1; then
+        case "$(uname -m)" in
+            x86_64) echo "amd64" ;;
+            aarch64) echo "arm64" ;;
+            arm64) echo "arm64" ;;
+            *) echo "unknown" ;;
+        esac
+    else
+        echo "unknown"
+    fi
+}
 
 # Temporary configuration files
 TMP_BASHRC="/tmp/tmp_bashrc"
@@ -44,39 +62,58 @@ remove_marked_content() {
     fi
 }
 
-# Helper function to update config in a file (replaces old content)
+# Helper function to update config in a file (replaces old content) - ATOMIC VERSION
 update_config() {
     local file=$1
     local content=$2
     
+    log_debug "Updating configuration file: $file"
+    
     # Create file if it doesn't exist
     if [ ! -f "$file" ]; then
         touch "$file"
+        log_debug "Created new configuration file: $file"
     fi
-    
-    # Always remove existing marked content first
-    remove_marked_content "$file"
     
     # Only add new content if it's not empty
     if [ -n "$content" ] && [ "$content" != "" ]; then
-        # Add newline if file doesn't end with one
-        if [ -s "$file" ] && [ "$(tail -c 1 "$file")" != "" ]; then
-            echo "" >> "$file"
+        # Read existing file content
+        local existing_content=""
+        if [ -f "$file" ]; then
+            existing_content=$(cat "$file")
         fi
         
-        # Append our configuration with markers
-        {
-            echo ""
-            echo "$MARKER_START"
-            echo "# Added by Modern Shell Tools feature"
-            echo "# $(date)"
-            echo "$content"
-            echo "$MARKER_END"
-        } >> "$file"
+        # Remove existing marked content
+        local cleaned_content
+        cleaned_content=$(echo "$existing_content" | awk -v start="$MARKER_START" -v end="$MARKER_END" '
+            $0 ~ start { skip=1; next }
+            $0 ~ end && skip { skip=0; next }
+            !skip { print }
+        ')
         
-        echo "  Updated $(basename "$file")"
+        # Add newline if content doesn't end with one
+        if [ -n "$cleaned_content" ] && [[ "$cleaned_content" != *$'\n' ]]; then
+            cleaned_content="$cleaned_content"$'\n'
+        fi
+        
+        # Build new content with markers
+        local new_content="$cleaned_content
+
+$MARKER_START
+# Added by common-utils feature
+# $(date)
+$content
+$MARKER_END"
+        
+        # Use atomic configuration update
+        if safe_config_update "$file" "$new_content" "644"; then
+            log_info "Updated configuration: $(basename "$file")"
+        else
+            log_error "Failed to update configuration: $(basename "$file")"
+            return "${ERROR_CODES[CONFIG_FAILED]}"
+        fi
     else
-        echo "  No configuration needed for $(basename "$file")"
+        log_debug "No configuration content for $(basename "$file")"
     fi
 }
 
@@ -93,43 +130,62 @@ init_tmp_config_files() {
     echo "  Created temporary config files"
 }
 
-# Inject tmp file content into user shell file between markers
-inject_tmp_to_user_config() {
+# Inject tmp file content into user shell file between markers - ATOMIC VERSION
+inject_tmp_to_user_config_atomic() {
     local tmp_file=$1
     local user_file=$2
     local shell_name=$3
     
     # Skip if tmp file doesn't exist or is empty
     if [ ! -f "$tmp_file" ] || [ ! -s "$tmp_file" ]; then
-        echo "  No configuration for $(basename "$user_file")"
-        return
+        log_debug "No configuration content for $(basename "$user_file")"
+        return 1  # Indicate nothing was staged
     fi
     
-    # Create user file if it doesn't exist
-    if [ ! -f "$user_file" ]; then
-        touch "$user_file"
+    log_debug "Staging configuration injection: $(basename "$tmp_file") -> $(basename "$user_file")"
+    
+    # Read existing user file content
+    local existing_content=""
+    if [ -f "$user_file" ]; then
+        existing_content=$(cat "$user_file")
     fi
     
-    # Remove existing marked content first
-    remove_marked_content "$user_file"
+    # Remove existing marked content
+    local cleaned_content
+    cleaned_content=$(echo "$existing_content" | awk -v start="$MARKER_START" -v end="$MARKER_END" '
+        $0 ~ start { skip=1; next }
+        $0 ~ end && skip { skip=0; next }
+        !skip { print }
+    ')
     
-    # Add newline if file doesn't end with one
-    if [ -s "$user_file" ] && [ "$(tail -c 1 "$user_file")" != "" ]; then
-        echo "" >> "$user_file"
+    # Read tmp file content
+    local tmp_content
+    tmp_content=$(cat "$tmp_file")
+    
+    # Add newline if cleaned content doesn't end with one
+    if [ -n "$cleaned_content" ] && [[ "$cleaned_content" != *$'\n' ]]; then
+        cleaned_content="$cleaned_content"$'\n'
     fi
     
-    # Append tmp file content with markers
-    {
-        echo ""
-        echo "$MARKER_START"
-        echo "# Added by common-utils feature for $shell_name"
-        echo "# $(date)"
-        cat "$tmp_file"
-        echo "$MARKER_END"
-    } >> "$user_file"
+    # Build new content with markers
+    local new_content="$cleaned_content
+
+$MARKER_START
+# Added by common-utils feature for $shell_name
+# $(date)
+$tmp_content
+$MARKER_END"
     
-    echo "  Injected $(basename "$tmp_file") content into $(basename "$user_file")"
+    # Stage the configuration update
+    if stage_config_update "$user_file" "$new_content" "644"; then
+        log_debug "Staged configuration injection: $(basename "$user_file")"
+        return 0  # Success
+    else
+        log_error "Failed to stage configuration injection: $(basename "$user_file")"
+        return 1  # Failure
+    fi
 }
+
 
 # Clean up temporary configuration files
 cleanup_tmp_config_files() {
@@ -138,97 +194,8 @@ cleanup_tmp_config_files() {
     echo "  Cleaned up temporary files"
 }
 
-# Helper function to build shell configuration content from templates
-build_shell_config() {
-    local template_file=$1
-    local shell_type=$2
-    local user=$3
-    local home_dir=$4
-    local install_starship=$5
-    local install_zoxide=$6
-    local install_eza=$7
-    local install_bat=$8
-    local install_motd=$9
-    
-    if [ ! -f "$template_file" ]; then
-        echo "Warning: Template file $template_file not found"
-        return 1
-    fi
-    
-    local temp_file="/tmp/modern_shell_config_$$"
-    cp "$template_file" "$temp_file"
-    
-    # Replace shell placeholder
-    sed -i "s/{{SHELL}}/$shell_type/g" "$temp_file"
-    
-    # Build complete content
-    local content=""
-    content=$(cat "$temp_file")
-    
-    # Replace placeholders with actual content
-    # Mise aliases (always included since Mise is in the base configuration)
-    if [ -f "$CONFIGS_DIR/aliases/mise.sh" ]; then
-        local mise_aliases=$(cat "$CONFIGS_DIR/aliases/mise.sh")
-        content=$(echo "$content" | sed "s|{{MISE_ALIASES}}|$mise_aliases|g")
-    else
-        content=$(echo "$content" | sed "s|{{MISE_ALIASES}}||g")
-    fi
-    
-    # Tool-specific configurations
-    if [ "$install_eza" = "true" ] && [ -f "$CONFIGS_DIR/aliases/eza.sh" ]; then
-        local eza_aliases=$(cat "$CONFIGS_DIR/aliases/eza.sh")
-        content=$(echo "$content" | sed "s|{{EZA_ALIASES}}|$eza_aliases|g")
-    else
-        content=$(echo "$content" | sed "s|{{EZA_ALIASES}}||g")
-    fi
-    
-    if [ "$install_bat" = "true" ] && [ -f "$CONFIGS_DIR/aliases/bat.sh" ]; then
-        local bat_aliases=$(cat "$CONFIGS_DIR/aliases/bat.sh")
-        content=$(echo "$content" | sed "s|{{BAT_ALIASES}}|$bat_aliases|g")
-    else
-        content=$(echo "$content" | sed "s|{{BAT_ALIASES}}||g")
-    fi
-    
-    if [ "$install_starship" = "true" ] && [ -f "$CONFIGS_DIR/init/starship.sh" ]; then
-        local starship_init=$(cat "$CONFIGS_DIR/init/starship.sh" | sed "s/{{SHELL}}/$shell_type/g")
-        content=$(echo "$content" | sed "s|{{STARSHIP_INIT}}|$starship_init|g")
-    else
-        content=$(echo "$content" | sed "s|{{STARSHIP_INIT}}||g")
-    fi
-    
-    if [ "$install_zoxide" = "true" ] && [ -f "$CONFIGS_DIR/init/zoxide.sh" ]; then
-        local zoxide_init=$(cat "$CONFIGS_DIR/init/zoxide.sh" | sed "s/{{SHELL}}/$shell_type/g")
-        content=$(echo "$content" | sed "s|{{ZOXIDE_INIT}}|$zoxide_init|g")
-    else
-        content=$(echo "$content" | sed "s|{{ZOXIDE_INIT}}||g")
-    fi
-    
-    # Add MOTD display
-    if [ "$install_motd" = "true" ] && [ -f "$CONFIGS_DIR/motd/motd.sh" ]; then
-        local motd_display="[ -f ~/.config/modern-shell-motd.sh ] && ~/.config/modern-shell-motd.sh"
-        content=$(echo "$content" | sed "s|{{MOTD_DISPLAY}}|$motd_display|g")
-    else
-        content=$(echo "$content" | sed "s|{{MOTD_DISPLAY}}||g")
-    fi
-    
-    # Clean up any remaining placeholders
-    content=$(echo "$content" | grep -v "{{.*}}")
-    
-    # Remove empty lines and check if content has any actual configuration
-    content_trimmed=$(echo "$content" | sed '/^[[:space:]]*$/d' | sed '/^[[:space:]]*#/d')
-    
-    # If no actual content remains (just comments/empty lines), return empty
-    if [ -z "$content_trimmed" ]; then
-        rm -f "$temp_file"
-        echo ""
-        return
-    fi
-    
-    rm -f "$temp_file"
-    echo "$content"
-}
 
-# Configure shell files for a user using tmp files
+# Configure shell files for a user using tmp files - ATOMIC VERSION
 configure_user_shells() {
     local user=$1
     local home_dir=$2
@@ -238,42 +205,56 @@ configure_user_shells() {
     local install_bat=$6
     local install_motd=$7
     
-    echo "🔧 Configuring shells for $user..."
+    log_info "Configuring shells for user: $user"
+    
+    # Initialize atomic configuration transaction
+    init_config_transaction
     
     # Check for existing files
-    echo "  Checking for existing shell configurations..."
-    [ -f "$home_dir/.bashrc" ] && echo "  Found existing .bashrc"
-    [ -f "$home_dir/.bash_profile" ] && echo "  Found existing .bash_profile"
-    [ -f "$home_dir/.zshrc" ] && echo "  Found existing .zshrc"
-    [ -f "$home_dir/.zshenv" ] && echo "  Found existing .zshenv"
-    [ -f "$home_dir/.zprofile" ] && echo "  Found existing .zprofile"
+    log_debug "Checking for existing shell configurations..."
+    [ -f "$home_dir/.bashrc" ] && log_debug "Found existing .bashrc"
+    [ -f "$home_dir/.bash_profile" ] && log_debug "Found existing .bash_profile"
+    [ -f "$home_dir/.zshrc" ] && log_debug "Found existing .zshrc"
+    [ -f "$home_dir/.zshenv" ] && log_debug "Found existing .zshenv"
+    [ -f "$home_dir/.zprofile" ] && log_debug "Found existing .zprofile"
     
-    # Initialize temporary configuration files
-    init_tmp_config_files
-    
-    # Add template content to tmp files for static configurations
-    if [ -f "$CONFIGS_DIR/bash_profile" ]; then
-        cat "$CONFIGS_DIR/bash_profile" >> "$TMP_BASH_PROFILE"
-    fi
-    
-    if [ -f "$CONFIGS_DIR/zshenv" ]; then
-        cat "$CONFIGS_DIR/zshenv" >> "$TMP_ZSHENV"
-    fi
-    
-    # Note: Individual tool scripts should have already written to tmp files
-    # We now inject the tmp file content into user shell files
+    # Stage all shell configuration updates
+    local config_files=()
     
     # Configure bash
-    inject_tmp_to_user_config "$TMP_BASHRC" "$home_dir/.bashrc" "bash"
-    inject_tmp_to_user_config "$TMP_BASH_PROFILE" "$home_dir/.bash_profile" "bash"
+    if inject_tmp_to_user_config_atomic "$TMP_BASHRC" "$home_dir/.bashrc" "bash"; then
+        config_files+=("$home_dir/.bashrc")
+    fi
+    
+    if inject_tmp_to_user_config_atomic "$TMP_BASH_PROFILE" "$home_dir/.bash_profile" "bash"; then
+        config_files+=("$home_dir/.bash_profile")
+    fi
     
     # Configure zsh (only if zsh is installed)
     if command -v zsh >/dev/null 2>&1; then
-        inject_tmp_to_user_config "$TMP_ZSHRC" "$home_dir/.zshrc" "zsh"
-        inject_tmp_to_user_config "$TMP_ZSHENV" "$home_dir/.zshenv" "zsh"
+        if inject_tmp_to_user_config_atomic "$TMP_ZSHRC" "$home_dir/.zshrc" "zsh"; then
+            config_files+=("$home_dir/.zshrc")
+        fi
+        
+        if inject_tmp_to_user_config_atomic "$TMP_ZSHENV" "$home_dir/.zshenv" "zsh"; then
+            config_files+=("$home_dir/.zshenv")
+        fi
     else
-        echo "  Skipping zsh configuration (zsh not installed)"
+        log_debug "Skipping zsh configuration (zsh not installed)"
     fi
+    
+    # Commit all configuration changes atomically
+    if commit_config_transaction; then
+        log_info "Shell configuration completed successfully for $user"
+        log_info "Updated ${#config_files[@]} configuration files"
+    else
+        log_error "Shell configuration failed for $user"
+        rollback_config_transaction
+        cleanup_config_transaction
+        return "${ERROR_CODES[CONFIG_FAILED]}"
+    fi
+    
+    cleanup_config_transaction
 }
 
 # Install tool-specific configurations
@@ -286,24 +267,18 @@ install_tool_configs() {
     local install_bat=$6
     
     # Copy starship config if installed
-    if [ "$install_starship" = "true" ] && [ -f "$CONFIGS_DIR/starship.toml" ]; then
+    if [ "$install_starship" = "true" ] && [ -f "$UTILS_SCRIPT_DIR/shell/starship/starship.toml" ]; then
         mkdir -p "$home_dir/.config"
         
         if [ -f "$home_dir/.config/starship.toml" ]; then
             echo "  Found existing starship.toml, will be replaced"
         fi
         
-        cp "$CONFIGS_DIR/starship.toml" "$home_dir/.config/starship.toml"
+        cp "$UTILS_SCRIPT_DIR/shell/starship/starship.toml" "$home_dir/.config/starship.toml"
         echo "  Installed starship configuration"
     fi
     
-    # Copy MOTD script
-    if [ -f "$CONFIGS_DIR/motd/motd.sh" ]; then
-        mkdir -p "$home_dir/.config"
-        cp "$CONFIGS_DIR/motd/motd.sh" "$home_dir/.config/modern-shell-motd.sh"
-        chmod +x "$home_dir/.config/modern-shell-motd.sh"
-        echo "  Installed MOTD script"
-    fi
+    # MOTD script is generated by install_motd function, not copied from a template
 }
 
 # Fix ownership of files

@@ -99,11 +99,11 @@ install_webdev_bundle() {
         tar -xzf /tmp/miller.tar.gz -C /tmp
         mv "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}/mlr" /usr/local/bin/
         chmod +x /usr/local/bin/mlr
-        rm -rf /tmp/miller*
+        rm -rf /tmp/miller.tar.gz "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}"
         echo "  ✓ miller installed successfully"
     else
         echo "  ⚠️  Failed to download miller, skipping"
-        rm -rf /tmp/miller*
+        rm -rf /tmp/miller.tar.gz "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}"
     fi
 
     # Install httpstat (HTTP request statistics)
