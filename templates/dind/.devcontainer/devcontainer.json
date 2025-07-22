@@ -10,7 +10,7 @@
     }
   ],
   "features": {
-    "ghcr.io/onezerocompany/features/common-utils:2.0.1": {
+    "ghcr.io/onezerocompany/features/common-utils:2.0.3": {
       "defaultShell": "zsh",
       "installStarship": true,
       "installZoxide": true,
