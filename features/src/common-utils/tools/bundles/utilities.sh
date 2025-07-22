@@ -32,6 +32,9 @@ install_utilities_bundle() {
 # Install modern development utilities
 echo "📦 Installing modern utilities..."
 
+# Get architecture for binary downloads
+ARCH=$(dpkg --print-architecture)
+
 # Install fd (find alternative)
 FD_VERSION="8.7.1"
 case $ARCH in

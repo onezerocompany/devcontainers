@@ -11,13 +11,20 @@ ARCH=$(dpkg --print-architecture)
 case $ARCH in
     amd64) ZOXIDE_ARCH="x86_64" ;;
     arm64) ZOXIDE_ARCH="aarch64" ;;
-    *) echo "Unsupported architecture for zoxide: $ARCH"; exit 1 ;;
+    *) echo "Unsupported architecture for zoxide: $ARCH"; echo "  ⚠️  Skipping zoxide installation"; return 0 ;;
 esac
-wget -q -O /tmp/zoxide.tar.gz "https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VERSION}/zoxide-${ZOXIDE_VERSION}-${ZOXIDE_ARCH}-unknown-linux-musl.tar.gz"
-tar -xzf /tmp/zoxide.tar.gz -C /tmp
-mv /tmp/zoxide /usr/local/bin/zoxide
-chmod +x /usr/local/bin/zoxide
-rm -f /tmp/zoxide.tar.gz
+ZOXIDE_URL="https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VERSION}/zoxide-${ZOXIDE_VERSION}-${ZOXIDE_ARCH}-unknown-linux-musl.tar.gz"
+echo "  Downloading zoxide from: $ZOXIDE_URL"
+if curl -fsSL "$ZOXIDE_URL" -o /tmp/zoxide.tar.gz; then
+    tar -xzf /tmp/zoxide.tar.gz -C /tmp
+    mv /tmp/zoxide /usr/local/bin/zoxide
+    chmod +x /usr/local/bin/zoxide
+    rm -f /tmp/zoxide.tar.gz
+    echo "  ✓ zoxide installed successfully"
+else
+    echo "  ⚠️  Failed to download zoxide, skipping"
+    rm -f /tmp/zoxide.tar.gz
+fi
 
 # ========================================
 # ZOXIDE CONFIGURATION

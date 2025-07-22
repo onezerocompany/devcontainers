@@ -11,11 +11,21 @@ ARCH=$(dpkg --print-architecture)
 case $ARCH in
     amd64) BAT_ARCH="x86_64" ;;
     arm64) BAT_ARCH="aarch64" ;;
-    *) echo "Unsupported architecture for bat: $ARCH"; exit 1 ;;
+    *) echo "Unsupported architecture for bat: $ARCH"; echo "  ⚠️  Skipping bat installation"; return 0 ;;
 esac
-wget -q -O /tmp/bat.deb "https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_${ARCH}.deb"
-dpkg -i /tmp/bat.deb || apt-get install -f -y
-rm -f /tmp/bat.deb
+BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_${ARCH}.deb"
+echo "  Downloading bat from: $BAT_URL"
+if curl -fsSL "$BAT_URL" -o /tmp/bat.deb; then
+    if dpkg -i /tmp/bat.deb || apt-get install -f -y; then
+        echo "  ✓ bat installed successfully"
+    else
+        echo "  ⚠️  Failed to install bat package"
+    fi
+    rm -f /tmp/bat.deb
+else
+    echo "  ⚠️  Failed to download bat, skipping"
+    rm -f /tmp/bat.deb
+fi
 
 # ========================================
 # BAT CONFIGURATION

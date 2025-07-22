@@ -6,7 +6,21 @@ set -e
 # ========================================
 
 echo "⭐ Installing Starship prompt..."
-curl -sS https://starship.rs/install.sh | sh -s -- -y
+STARSHIP_INSTALL_URL="https://starship.rs/install.sh"
+echo "  Downloading starship installer from: $STARSHIP_INSTALL_URL"
+if curl -fsSL "$STARSHIP_INSTALL_URL" -o /tmp/starship-install.sh; then
+    if [ -s /tmp/starship-install.sh ] && head -1 /tmp/starship-install.sh | grep -q '^#!/'; then
+        chmod +x /tmp/starship-install.sh
+        /tmp/starship-install.sh -y
+        echo "  ✓ starship installed successfully"
+    else
+        echo "  ⚠️  Downloaded file is not a valid shell script, skipping starship installation"
+    fi
+    rm -f /tmp/starship-install.sh
+else
+    echo "  ⚠️  Failed to download starship installer, skipping"
+    rm -f /tmp/starship-install.sh
+fi
 
 # ========================================
 # STARSHIP CONFIGURATION

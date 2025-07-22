@@ -6,12 +6,28 @@ set -e
 # ========================================
 
 echo "📋 Installing eza (modern ls)..."
-mkdir -p /etc/apt/keyrings
-wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
-chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
-apt-get update
-apt-get install -y eza
+EZA_KEY_URL="https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"
+echo "  Downloading eza GPG key from: $EZA_KEY_URL"
+if curl -fsSL "$EZA_KEY_URL" -o /tmp/eza.asc; then
+    if [ -s /tmp/eza.asc ] && grep -q "BEGIN PGP PUBLIC KEY BLOCK" /tmp/eza.asc; then
+        mkdir -p /etc/apt/keyrings
+        gpg --dearmor < /tmp/eza.asc > /etc/apt/keyrings/gierens.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
+        chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+        if apt-get update && apt-get install -y eza; then
+            echo "  ✓ eza installed successfully from repository"
+        else
+            echo "  ⚠️  Failed to install eza from repository, cleaning up"
+            rm -f /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+        fi
+    else
+        echo "  ⚠️  Downloaded file is not a valid GPG key, skipping eza installation"
+    fi
+    rm -f /tmp/eza.asc
+else
+    echo "  ⚠️  Failed to download eza GPG key, skipping"
+    rm -f /tmp/eza.asc
+fi
 
 # ========================================
 # EZA CONFIGURATION
