@@ -41,13 +41,13 @@ EOF
 )
     
     # Append to both bash and zsh tmp files
-    echo "" >> /tmp/tmp_bashrc
-    echo "$bat_content" >> /tmp/tmp_bashrc
-    echo "" >> /tmp/tmp_bashrc
+    echo "" >> "$TMP_BASHRC"
+    echo "$bat_content" >> "$TMP_BASHRC"
+    echo "" >> "$TMP_BASHRC"
     
-    echo "" >> /tmp/tmp_zshrc
-    echo "$bat_content" >> /tmp/tmp_zshrc
-    echo "" >> /tmp/tmp_zshrc
+    echo "" >> "$TMP_ZSHRC"
+    echo "$bat_content" >> "$TMP_ZSHRC"
+    echo "" >> "$TMP_ZSHRC"
 }
 
 # Get bat aliases content for template replacement
