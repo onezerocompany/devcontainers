@@ -2,6 +2,9 @@
 # Common Utilities Feature Installation Script
 set -e
 
+# Ensure non-interactive mode for apt
+export DEBIAN_FRONTEND=noninteractive
+
 # Feature options
 DEFAULT_SHELL="${DEFAULTSHELL:-zsh}"
 INSTALL_STARSHIP="${STARSHIP:-true}"

@@ -59,7 +59,7 @@ A development container template that provides a complete application developmen
 ## Customization
 
 ### Database Initialization
-Edit `.devcontainer/init-db.sql` to add:
+Create `.devcontainer/init-db.sql` to add:
 - Custom tables and schemas
 - Sample data
 - PostgreSQL extensions

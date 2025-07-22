@@ -2,6 +2,9 @@
 # Sandbox Network Filter Feature Installation Script
 set -e
 
+# Ensure non-interactive mode for apt
+export DEBIAN_FRONTEND=noninteractive
+
 # Feature options
 ALLOWED_DOMAINS="${ALLOWEDDOMAINS:-}"
 BLOCKED_DOMAINS="${BLOCKEDDOMAINS:-*.facebook.com,*.twitter.com,*.instagram.com,*.tiktok.com,*.youtube.com}"
@@ -15,6 +18,13 @@ echo "Installing Sandbox Network Filter..."
 
 # Install required packages
 echo "Installing required packages..."
+
+# Pre-create iptables rules directory to avoid interactive prompts
+mkdir -p /etc/iptables
+# Create empty rules files to prevent iptables-persistent from prompting
+echo -e "*filter\n:INPUT ACCEPT [0:0]\n:FORWARD ACCEPT [0:0]\n:OUTPUT ACCEPT [0:0]\nCOMMIT" > /etc/iptables/rules.v4
+echo -e "*filter\n:INPUT ACCEPT [0:0]\n:FORWARD ACCEPT [0:0]\n:OUTPUT ACCEPT [0:0]\nCOMMIT" > /etc/iptables/rules.v6
+
 apt-get update
 apt-get install -y iptables iptables-persistent dnsmasq bind9-dnsutils netfilter-persistent
 
@@ -140,21 +150,39 @@ else
 fi
 
 # Replace system hosts file with filtered version
-cp "$HOSTS_FILE" /etc/hosts
+# Handle read-only /etc/hosts during Docker build
+if cp "$HOSTS_FILE" /etc/hosts 2>/dev/null; then
+    echo "Updated /etc/hosts with filtered entries"
+else
+    echo "Warning: Cannot update /etc/hosts (read-only filesystem), DNS filtering will rely on dnsmasq only"
+    # In Docker build context, /etc/hosts is often read-only
+    # The filtering will still work via dnsmasq configuration
+fi
 
 # Configure system to use local dnsmasq
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
-echo "nameserver 8.8.8.8" >> /etc/resolv.conf  # fallback
+# Handle read-only /etc/resolv.conf during Docker build
+if echo "nameserver 127.0.0.1" > /etc/resolv.conf 2>/dev/null && echo "nameserver 8.8.8.8" >> /etc/resolv.conf 2>/dev/null; then
+    echo "Updated /etc/resolv.conf to use local dnsmasq"
+else
+    echo "Warning: Cannot update /etc/resolv.conf (read-only filesystem), DNS configuration will be applied at runtime"
+    # In Docker build context, /etc/resolv.conf is often read-only
+    # The configuration will be applied when the container starts
+fi
 
-# Start dnsmasq
-systemctl start dnsmasq
-systemctl enable dnsmasq 2>/dev/null || true
-
-# Test dnsmasq is working
-if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
-    echo "Warning: dnsmasq failed to start, falling back to hosts file only"
-    # Restore original resolv.conf if dnsmasq fails
-    cp /etc/resolv.conf.sandbox.backup /etc/resolv.conf 2>/dev/null || true
+# Start dnsmasq (handle both systemd and non-systemd environments)
+if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
+    systemctl start dnsmasq
+    systemctl enable dnsmasq 2>/dev/null || true
+    
+    # Test dnsmasq is working
+    if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
+        echo "Warning: dnsmasq failed to start, falling back to hosts file only"
+        # Restore original resolv.conf if dnsmasq fails
+        cp /etc/resolv.conf.sandbox.backup /etc/resolv.conf 2>/dev/null || true
+    fi
+else
+    echo "Systemd not available - dnsmasq will be started at runtime"
+    # In Docker build context, services can't run, but will start at container runtime
 fi
 
 echo "DNS filtering configured with proper wildcard support"
@@ -236,9 +264,11 @@ IMMUTABLE_CONFIG="$IMMUTABLE_CONFIG"
 LOG_BLOCKED="$LOG_BLOCKED"
 EOF
 
-# Setup initial rules and DNS filtering
+# Setup initial DNS filtering (skip iptables during build)
 /usr/local/share/sandbox/setup-dns-filter.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY"
-/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED"
+
+# Skip iptables setup during Docker build - will be configured at runtime
+echo "Skipping iptables configuration during build (will be applied at container startup)"
 
 # Create startup script that runs the filtering setup
 cat > /usr/local/share/sandbox/sandbox-init.sh << 'EOF'
@@ -258,11 +288,14 @@ fi
 /usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED"
 
 # Ensure dnsmasq is running for DNS filtering
-if command -v systemctl >/dev/null 2>&1; then
+if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
     systemctl start dnsmasq 2>/dev/null || true
     if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
         echo "Warning: dnsmasq is not running - wildcard DNS blocking may not work properly"
     fi
+else
+    # Try to start dnsmasq with service command as fallback
+    service dnsmasq start 2>/dev/null || echo "Warning: Could not start dnsmasq service"
 fi
 
 # Make immutable if configured
@@ -284,8 +317,8 @@ EOF
 
 chmod +x /usr/local/share/sandbox/sandbox-init.sh
 
-# Save initial iptables rules
-iptables-save > /etc/iptables/rules.v4
+# Skip saving iptables rules during build (will be saved at runtime)
+echo "Skipping iptables rules save during build"
 
 # Create service to restore rules on boot
 cat > /etc/systemd/system/sandbox-network-filter.service << 'EOF'
@@ -302,8 +335,12 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 
-# Enable the service
-systemctl enable sandbox-network-filter.service 2>/dev/null || true
+# Enable the service (only if systemd is available)
+if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
+    systemctl enable sandbox-network-filter.service 2>/dev/null || true
+else
+    echo "Systemd not available - service will need to be enabled at runtime"
+fi
 
 # Make configuration immutable if requested
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
