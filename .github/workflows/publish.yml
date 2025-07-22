@@ -205,7 +205,6 @@ jobs:
         template:
           - base
           - dind
-          - postgres-app
     steps:
       - name: Checkout
         uses: actions/checkout@v4
