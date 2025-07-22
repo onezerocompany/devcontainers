@@ -5,22 +5,16 @@ on:
     types: [published]
 
 jobs:
-  # Sync versions with GitHub release
-  sync-versions:
-    name: Sync Versions with Release
+  # Extract version from release tag
+  extract-version:
+    name: Extract Version
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.extract-version.outputs.version }}
-      version_major: ${{ steps.extract-version.outputs.version_major }}
+      version: ${{ steps.version.outputs.version }}
+      version_major: ${{ steps.version.outputs.version_major }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
       - name: Extract version from release tag
-        id: extract-version
+        id: version
         run: |
           # Extract version from release tag (e.g., v1.2.3 -> 1.2.3)
           VERSION="${{ github.event.release.tag_name }}"
@@ -34,94 +28,11 @@ jobs:
           echo "Release version: ${VERSION}"
           echo "Major version: ${VERSION_MAJOR}"
 
-      - name: Update feature versions
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Updating feature versions to ${VERSION}..."
-
-          # Update all feature versions
-          find features/src -name "devcontainer-feature.json" -type f | while read -r file; do
-            echo "Updating $file"
-            jq --arg version "$VERSION" '.version = $version' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-          done
-
-      - name: Update template versions
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          VERSION_MAJOR="${{ steps.extract-version.outputs.version_major }}"
-          echo "Updating template versions to ${VERSION}..."
-
-          # Update all template versions
-          find templates -name "devcontainer-template.json" -type f | while read -r file; do
-            echo "Updating $file"
-            jq --arg version "$VERSION" '.version = $version' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-          done
-
-          # Update feature references in template devcontainer.json files to use major version
-          find templates -name "devcontainer.json" -type f | while read -r file; do
-            echo "Updating feature references in $file"
-            # Update common-utils feature reference to use major version
-            jq --arg major "$VERSION_MAJOR" '
-              if .features then
-                .features |= with_entries(
-                  if .key | test("ghcr.io/onezerocompany/features/common-utils") then
-                    .key = "ghcr.io/onezerocompany/features/common-utils:" + $major
-                  else . end
-                ) |
-                .features |= with_entries(
-                  if .key | test("ghcr.io/onezerocompany/features/docker-in-docker") then
-                    .key = "ghcr.io/onezerocompany/features/docker-in-docker:" + $major
-                  else . end
-                ) |
-                .features |= with_entries(
-                  if .key | test("ghcr.io/onezerocompany/features/sandbox") then
-                    .key = "ghcr.io/onezerocompany/features/sandbox:" + $major
-                  else . end
-                )
-              else . end
-            ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-          done
-
-      - name: Commit version updates
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          if git diff --staged --quiet; then
-            echo "No version changes to commit"
-          else
-            git commit -m "Update versions to ${{ steps.extract-version.outputs.version }} for release"
-            git push origin HEAD:${{ github.ref_name }}
-          fi
-
-  # Optional: Run tests before publishing
-  test-features:
-    name: Test Features
-    runs-on: ubuntu-latest
-    needs: [sync-versions]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Run feature tests
-        run: |
-          echo "Running feature tests..."
-          # Run tests for common-utils
-          cd features/test/common-utils
-          ./test.sh
-
-          # Run tests for docker-in-docker  
-          cd ../docker-in-docker
-          ./test.sh
-
   # Publish all features
-  publish-features:
-    name: Publish All Features
+  publish-features-templates:
+    name: Publish All Features and Templates
     runs-on: ubuntu-latest
-    needs: [sync-versions, test-features]
-    if: always() && (needs.test-features.result == 'success' || needs.test-features.result == 'skipped')
+    needs: [extract-version]
     permissions:
       contents: write
       packages: write
@@ -129,8 +40,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -142,45 +51,14 @@ jobs:
       - name: Publish Features
         uses: devcontainers/action@v1
         with:
+          publish-templates: "true"
+          base-path-to-templates: "./templates"
           publish-features: "true"
           base-path-to-features: "./features/src"
           generate-docs: "true"
-          disable-repo-tagging: false
+          disable-repo-tagging: true
           oci-registry: ghcr.io
           features-namespace: onezerocompany/features
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Publish all templates (after features)
-  publish-templates:
-    name: Publish All Templates
-    runs-on: ubuntu-latest
-    needs: [sync-versions, publish-features]
-    permissions:
-      contents: write
-      packages: write
-      pull-requests: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish All Templates
-        uses: devcontainers/action@v1
-        with:
-          publish-templates: "true"
-          base-path-to-templates: "./templates"
-          generate-docs: "true"
-          disable-repo-tagging: false
-          oci-registry: ghcr.io
           templates-namespace: onezerocompany/templates
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -189,16 +67,13 @@ jobs:
   publish-base:
     name: Build and Push base Docker Image
     runs-on: ubuntu-latest
-    needs: [sync-versions]
-    if: ${{ always() && (needs.sync-versions.result == 'success' || needs.sync-versions.result == 'skipped') }}
+    needs: [extract-version]
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -219,10 +94,9 @@ jobs:
         with:
           images: ghcr.io/onezerocompany/base
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
+            type=raw,value=${{ needs.extract-version.outputs.version }}
+            type=raw,value=${{ needs.extract-version.outputs.version_major }}
 
       - name: Build and Push base
         uses: docker/build-push-action@v5
@@ -241,15 +115,13 @@ jobs:
   publish-runner:
     name: Build and Push runner Docker Image
     runs-on: ubuntu-latest
-    needs: [sync-versions, publish-base]
+    needs: [extract-version, publish-base]
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -270,10 +142,9 @@ jobs:
         with:
           images: ghcr.io/onezerocompany/runner
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
+            type=raw,value=${{ needs.extract-version.outputs.version }}
+            type=raw,value=${{ needs.extract-version.outputs.version_major }}
 
       - name: Build and Push runner
         uses: docker/build-push-action@v5
@@ -292,16 +163,13 @@ jobs:
   publish-settings-gen:
     name: Build and Push settings-gen Docker Image
     runs-on: ubuntu-latest
-    needs: [sync-versions]
-    if: ${{ always() && (needs.sync-versions.result == 'success' || needs.sync-versions.result == 'skipped') }}
+    needs: [extract-version]
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -322,10 +190,9 @@ jobs:
         with:
           images: ghcr.io/onezerocompany/settings-gen
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
+            type=raw,value=${{ needs.extract-version.outputs.version }}
+            type=raw,value=${{ needs.extract-version.outputs.version_major }}
 
       - name: Build and Push settings-gen
         uses: docker/build-push-action@v5
@@ -344,7 +211,7 @@ jobs:
   prebuild:
     name: Pre-build Dev Container Images
     runs-on: ubuntu-latest
-    needs: [sync-versions, publish-base, publish-templates, publish-features]
+    needs: [extract-version, publish-base, publish-features-templates]
     permissions:
       contents: read
       packages: write
@@ -358,8 +225,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -391,7 +256,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           imageName: ghcr.io/onezerocompany/devcontainer
-          imageTag: ${{ matrix.template }}
+          imageTag: ${{ matrix.template }}-${{ needs.extract-version.outputs.version }}
           cacheFrom: ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}
           push: always
           platform: linux/amd64,linux/arm64
@@ -399,44 +264,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Summary job
-  publish-summary:
-    name: Publish Summary
-    runs-on: ubuntu-latest
-    needs:
-      [
-        sync-versions,
-        publish-features,
-        publish-templates,
-        publish-base,
-        publish-runner,
-        publish-settings-gen,
-        prebuild,
-      ]
-    if: always()
-    steps:
-      - name: Print Summary
+      - name: Tag additional versions for ${{ matrix.template }}
         run: |
-          echo "## Publication Summary"
-          echo "Version Sync: ${{ needs.sync-versions.result }}"
-          echo "Features: ${{ needs.publish-features.result }}"
-          echo "Templates: ${{ needs.publish-templates.result }}"
-          echo "Base Image: ${{ needs.publish-base.result }}"
-          echo "Runner Image: ${{ needs.publish-runner.result }}"
-          echo "Settings-gen Image: ${{ needs.publish-settings-gen.result }}"
-          echo "Pre-builds: ${{ needs.prebuild.result }}"
+          # Tag with template name (latest for this template)
+          docker buildx imagetools create \
+            ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}-${{ needs.extract-version.outputs.version }} \
+            --tag ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}
 
-          # Show version info if available
-          if [ "${{ needs.sync-versions.outputs.version }}" != "" ]; then
-            echo "Published Version: ${{ needs.sync-versions.outputs.version }}"
-            echo "Major Version: ${{ needs.sync-versions.outputs.version_major }}"
-          fi
-
-          if [ "${{ needs.publish-features.result }}" = "success" ] && \
-             [ "${{ needs.publish-templates.result }}" = "success" ] && \
-             [ "${{ needs.publish-base.result }}" = "success" ]; then
-            echo "🎉 Core components published successfully!"
-          else
-            echo "❌ Some components failed to publish"
-            exit 1
-          fi
+          # Tag with major version
+          docker buildx imagetools create \
+            ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}-${{ needs.extract-version.outputs.version }} \
+            --tag ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}-${{ needs.extract-version.outputs.version_major }}
