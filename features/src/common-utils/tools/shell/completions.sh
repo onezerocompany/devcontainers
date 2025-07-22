@@ -44,6 +44,10 @@ setup_completions_for_user() {
     
     # Add completion configurations to temporary files
     
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
+    
     # Zsh completion configuration
     local zsh_completion_content=$(cat << 'EOF'
 # Add local completion directories to fpath
@@ -63,13 +67,13 @@ EOF
 )
     
     # Add to temporary files
-    echo "" >> /tmp/tmp_zshrc
-    echo "$zsh_completion_content" >> /tmp/tmp_zshrc
-    echo "" >> /tmp/tmp_zshrc
+    echo "" >> "$TMP_ZSHRC"
+    echo "$zsh_completion_content" >> "$TMP_ZSHRC"
+    echo "" >> "$TMP_ZSHRC"
     
-    echo "" >> /tmp/tmp_bashrc
-    echo "$bash_completion_content" >> /tmp/tmp_bashrc
-    echo "" >> /tmp/tmp_bashrc
+    echo "" >> "$TMP_BASHRC"
+    echo "$bash_completion_content" >> "$TMP_BASHRC"
+    echo "" >> "$TMP_BASHRC"
     
     # Set proper ownership
     if [ "$username" != "root" ]; then

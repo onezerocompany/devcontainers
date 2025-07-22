@@ -33,6 +33,10 @@ fi
 
 # Function to add bat aliases to temporary config files
 configure_bat_aliases() {
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
+    
     # Define bat alias content
     local bat_content=$(cat << 'EOF'
 # Bat alias (modern cat)

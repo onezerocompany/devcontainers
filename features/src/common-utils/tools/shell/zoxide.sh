@@ -34,6 +34,10 @@ fi
 configure_zoxide_init() {
     local shell_name="$1"
     
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
+    
     # Define zoxide init content
     local zoxide_content=$(cat << 'EOF'
 # Zoxide - Smarter cd command (interactive shells only)
@@ -48,13 +52,13 @@ EOF
     
     # Append to appropriate tmp files
     if [ "$shell_name" = "bash" ]; then
-        echo "" >> /tmp/tmp_bashrc
-        echo "$zoxide_content" >> /tmp/tmp_bashrc
-        echo "" >> /tmp/tmp_bashrc
+        echo "" >> "$TMP_BASHRC"
+        echo "$zoxide_content" >> "$TMP_BASHRC"
+        echo "" >> "$TMP_BASHRC"
     elif [ "$shell_name" = "zsh" ]; then
-        echo "" >> /tmp/tmp_zshrc
-        echo "$zoxide_content" >> /tmp/tmp_zshrc
-        echo "" >> /tmp/tmp_zshrc
+        echo "" >> "$TMP_ZSHRC"
+        echo "$zoxide_content" >> "$TMP_ZSHRC"
+        echo "" >> "$TMP_ZSHRC"
     fi
 }
 

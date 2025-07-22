@@ -35,6 +35,10 @@ fi
 
 # Function to add eza aliases to temporary config files
 configure_eza_aliases() {
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
+    
     # Define eza aliases content
     local eza_content=$(cat << 'EOF'
 # Eza aliases (modern ls)
@@ -47,13 +51,13 @@ EOF
 )
     
     # Append to both bash and zsh tmp files
-    echo "" >> /tmp/tmp_bashrc
-    echo "$eza_content" >> /tmp/tmp_bashrc
-    echo "" >> /tmp/tmp_bashrc
+    echo "" >> "$TMP_BASHRC"
+    echo "$eza_content" >> "$TMP_BASHRC"
+    echo "" >> "$TMP_BASHRC"
     
-    echo "" >> /tmp/tmp_zshrc
-    echo "$eza_content" >> /tmp/tmp_zshrc
-    echo "" >> /tmp/tmp_zshrc
+    echo "" >> "$TMP_ZSHRC"
+    echo "$eza_content" >> "$TMP_ZSHRC"
+    echo "" >> "$TMP_ZSHRC"
 }
 
 # Get aliases content for template replacement

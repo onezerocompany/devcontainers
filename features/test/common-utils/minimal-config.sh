@@ -28,7 +28,11 @@ check "zshenv-has-basic-config" bash -c "grep -q 'PATH.*local/bin' ~/.zshenv"
 
 # Test that sections are either empty or contain only basic configuration
 check "minimal-bashrc-content" bash -c "
-    content=\$(sed -n '/# >>> common-utils - START >>>/,/# <<< common-utils - END <<</p' ~/.bashrc | sed '/^#/d' | sed '/^[[:space:]]*$/d')
+    content=\$(sed -n '/# >>> common-utils - START >>>/,/# <<< common-utils - END <<</ {
+        /^#/d
+        /^[[:space:]]*$/d
+        p
+    }' ~/.bashrc)
     [ -z \"\$content\" ] || echo \"\$content\" | grep -q 'PATH\\|EDITOR'
 "
 

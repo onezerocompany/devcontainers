@@ -30,6 +30,10 @@ fi
 configure_starship_init() {
     local shell_name="$1"
     
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
+    
     # Define starship init content
     local starship_content=$(cat << 'EOF'
 # Starship - Cross-shell prompt (interactive shells only)
@@ -44,13 +48,13 @@ EOF
     
     # Append to appropriate tmp files
     if [ "$shell_name" = "bash" ]; then
-        echo "" >> /tmp/tmp_bashrc
-        echo "$starship_content" >> /tmp/tmp_bashrc
-        echo "" >> /tmp/tmp_bashrc
+        echo "" >> "$TMP_BASHRC"
+        echo "$starship_content" >> "$TMP_BASHRC"
+        echo "" >> "$TMP_BASHRC"
     elif [ "$shell_name" = "zsh" ]; then
-        echo "" >> /tmp/tmp_zshrc
-        echo "$starship_content" >> /tmp/tmp_zshrc
-        echo "" >> /tmp/tmp_zshrc
+        echo "" >> "$TMP_ZSHRC"
+        echo "$starship_content" >> "$TMP_ZSHRC"
+        echo "" >> "$TMP_ZSHRC"
     fi
 }
 
