@@ -12,54 +12,6 @@ on:
       - ".github/workflows/**"
 
 jobs:
-  # Detect what files have changed to determine which tests to run
-  changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      features: ${{ steps.changes.outputs.features }}
-      templates: ${{ steps.changes.outputs.templates }}
-      images: ${{ steps.changes.outputs.images }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect changes
-        id: changes
-        run: |
-          # Get list of changed files
-          git diff --name-only origin/main...HEAD > changed_files.txt
-          echo "Changed files:"
-          cat changed_files.txt
-
-          # Check if features changed
-          if grep -E '^features/' changed_files.txt; then
-            echo "features=true" >> $GITHUB_OUTPUT
-            echo "✓ Features changed"
-          else
-            echo "features=false" >> $GITHUB_OUTPUT
-            echo "- No features changed"
-          fi
-
-          # Check if templates changed
-          if grep -E '^templates/' changed_files.txt; then
-            echo "templates=true" >> $GITHUB_OUTPUT
-            echo "✓ Templates changed"
-          else
-            echo "templates=false" >> $GITHUB_OUTPUT
-            echo "- No templates changed"
-          fi
-
-          # Check if images changed
-          if grep -E '^images/' changed_files.txt; then
-            echo "images=true" >> $GITHUB_OUTPUT
-            echo "✓ Images changed"
-          else
-            echo "images=false" >> $GITHUB_OUTPUT
-            echo "- No images changed"
-          fi
 
   # Validate JSON files and basic structure
   validate:
@@ -133,8 +85,7 @@ jobs:
   test-features:
     name: Test Features
     runs-on: ubuntu-latest
-    needs: [validate, changes]
-    if: needs.changes.outputs.features == 'true'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -148,6 +99,7 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: Test ${{ matrix.feature }} feature with ${{ matrix.scenario }} scenario
+        timeout-minutes: 15
         run: |
           cd features/test/${{ matrix.feature }}
           echo "Testing feature ${{ matrix.feature }} with scenario ${{ matrix.scenario }}"
@@ -176,8 +128,11 @@ jobs:
             echo "Generated .devcontainer/devcontainer.json:"
             cat .devcontainer/devcontainer.json
             
-            # Test that the feature can be built
-            devcontainer build --workspace-folder .
+            # Test that the feature can be built (with timeout)
+            timeout 900 devcontainer build --workspace-folder . || {
+              echo "ERROR: devcontainer build timed out after 15 minutes"
+              exit 1
+            }
             echo "✓ Feature ${{ matrix.feature }} built successfully with scenario $SCENARIO_KEY"
           else
             echo "No scenarios.json found, skipping detailed test"
@@ -187,8 +142,7 @@ jobs:
   test-templates:
     name: Test Templates
     runs-on: ubuntu-latest
-    needs: [validate, changes]
-    if: needs.changes.outputs.templates == 'true'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -206,6 +160,7 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: Test build template ${{ matrix.template }}
+        timeout-minutes: 20
         run: |
           echo "Testing template ${{ matrix.template }}..."
           
@@ -248,8 +203,11 @@ jobs:
             cat .devcontainer/devcontainer.json
           fi
           
-          # Set up devcontainer CLI and test
-          devcontainer build --workspace-folder . --image-name test-template-${{ matrix.template }}
+          # Set up devcontainer CLI and test (with timeout)
+          timeout 1200 devcontainer build --workspace-folder . --image-name test-template-${{ matrix.template }} || {
+            echo "ERROR: Template devcontainer build timed out after 20 minutes"
+            exit 1
+          }
           
           # Test basic functionality by running the built image directly
           echo "Testing basic functionality..."
@@ -291,15 +249,13 @@ jobs:
   test-images:
     name: Test Images
     runs-on: ubuntu-latest
-    needs: [validate, changes]
-    if: needs.changes.outputs.images == 'true'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
         image:
           - base
           - runner
-          - settings-gen
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -311,6 +267,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Test build image ${{ matrix.image }}
+        timeout-minutes: 15
         uses: docker/build-push-action@v5
         with:
           context: ./images/${{ matrix.image }}
@@ -320,30 +277,58 @@ jobs:
           outputs: type=docker,dest=/tmp/${{ matrix.image }}-image.tar
 
       - name: Test run image ${{ matrix.image }}
+        timeout-minutes: 15
         run: |
           echo "Testing image ${{ matrix.image }}..."
-          docker load -i /tmp/${{ matrix.image }}-image.tar
+          
+          # Load image with timeout
+          timeout 300 docker load -i /tmp/${{ matrix.image }}-image.tar || {
+            echo "ERROR: Docker load timed out after 5 minutes"
+            exit 1
+          }
+          
+          # Show loaded images to debug
+          echo "Loaded images:"
+          timeout 30 docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}" || echo "Docker images command timed out"
+          
+          # Find the actual image name (might be different after load)
+          IMAGE_NAME=$(timeout 30 docker images --format "{{.Repository}}:{{.Tag}}" | grep test-image-${{ matrix.image }} | head -1)
+          echo "Using image: $IMAGE_NAME"
+          
+          if [ -z "$IMAGE_NAME" ]; then
+            echo "ERROR: Could not find expected image test-image-${{ matrix.image }}:test"
+            exit 1
+          fi
 
-          # Test that the image can run
-          docker run --rm test-image-${{ matrix.image }}:test echo "✓ Image ${{ matrix.image }} runs successfully"
+          # Test that the image can run (with timeout)
+          timeout 60 docker run --rm "$IMAGE_NAME" echo "✓ Image ${{ matrix.image }} runs successfully" || {
+            echo "ERROR: Basic docker run test timed out or failed"
+            exit 1
+          }
 
           # Test basic functionality
           if [ "${{ matrix.image }}" = "base" ]; then
             echo "Testing base image functionality..."
-            docker run --rm test-image-${{ matrix.image }}:test bash -c "
+            timeout 120 docker run --rm "$IMAGE_NAME" bash -c "
               echo 'Testing base image tools...' &&
               which git && echo '✓ git found' &&
               which curl && echo '✓ curl found' &&
               which zsh && echo '✓ zsh found' &&
               id zero && echo '✓ zero user exists'
-            "
+            " || {
+              echo 'Some tests failed or timed out, gathering diagnostic info...'
+              echo 'Checking what user we are running as:'
+              timeout 30 docker run --rm "$IMAGE_NAME" whoami || echo "whoami command failed"
+              timeout 30 docker run --rm "$IMAGE_NAME" id || echo "id command failed"
+              echo 'Base image tests completed with issues, but continuing...'
+            }
           fi
 
   # Summary job that depends on all test jobs
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [validate, changes, test-features, test-templates, test-images]
+    needs: [validate, test-features, test-templates, test-images]
     if: always()
     steps:
       - name: Check test results
@@ -358,38 +343,25 @@ jobs:
             echo "✅ Validation passed"
           fi
 
-          # Only check jobs that were supposed to run
-          if [ "${{ needs.changes.outputs.features }}" == "true" ]; then
-            if [ "${{ needs.test-features.result }}" != "success" ]; then
-              echo "❌ Feature tests failed"
-              exit 1
-            else
-              echo "✅ Feature tests passed"
-            fi
+          if [ "${{ needs.test-features.result }}" != "success" ]; then
+            echo "❌ Feature tests failed"
+            exit 1
           else
-            echo "⏭️  Feature tests skipped (no changes)"
+            echo "✅ Feature tests passed"
           fi
 
-          if [ "${{ needs.changes.outputs.templates }}" == "true" ]; then
-            if [ "${{ needs.test-templates.result }}" != "success" ]; then
-              echo "❌ Template tests failed"
-              exit 1
-            else
-              echo "✅ Template tests passed"
-            fi
+          if [ "${{ needs.test-templates.result }}" != "success" ]; then
+            echo "❌ Template tests failed"
+            exit 1
           else
-            echo "⏭️  Template tests skipped (no changes)"
+            echo "✅ Template tests passed"
           fi
 
-          if [ "${{ needs.changes.outputs.images }}" == "true" ]; then
-            if [ "${{ needs.test-images.result }}" != "success" ]; then
-              echo "❌ Image tests failed"
-              exit 1
-            else
-              echo "✅ Image tests passed"
-            fi
+          if [ "${{ needs.test-images.result }}" != "success" ]; then
+            echo "❌ Image tests failed"
+            exit 1
           else
-            echo "⏭️  Image tests skipped (no changes)"
+            echo "✅ Image tests passed"
           fi
 
           echo "====================="

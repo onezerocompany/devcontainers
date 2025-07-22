@@ -33,39 +33,31 @@ fi
 # EZA CONFIGURATION
 # ========================================
 
-# Function to add eza aliases to shell config files
+# Function to add eza aliases to temporary config files
 configure_eza_aliases() {
-    local config_file="$1"
-    local marker_start="# >>> Eza aliases - START >>>"
-    local marker_end="# <<< Eza aliases - END <<<"
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
     
-    # Check if already configured
-    if [ -f "$config_file" ] && grep -q "$marker_start" "$config_file"; then
-        return 0
-    fi
-    
-    # Create file if it doesn't exist
-    if [ ! -f "$config_file" ]; then
-        touch "$config_file"
-    fi
-    
-    # Add newline if file doesn't end with one
-    if [ -s "$config_file" ] && [ "$(tail -c 1 "$config_file")" != "" ]; then
-        echo "" >> "$config_file"
-    fi
-    
-    # Append eza aliases
-    cat >> "$config_file" << EOF
-
-$marker_start
+    # Define eza aliases content
+    local eza_content=$(cat << 'EOF'
 # Eza aliases (modern ls)
 alias ls='eza'
 alias ll='eza -l'
 alias la='eza -la'
 alias lt='eza --tree'
 alias tree='eza --tree'
-$marker_end
 EOF
+)
+    
+    # Append to both bash and zsh tmp files
+    echo "" >> "$TMP_BASHRC"
+    echo "$eza_content" >> "$TMP_BASHRC"
+    echo "" >> "$TMP_BASHRC"
+    
+    echo "" >> "$TMP_ZSHRC"
+    echo "$eza_content" >> "$TMP_ZSHRC"
+    echo "" >> "$TMP_ZSHRC"
 }
 
 # Get aliases content for template replacement
@@ -79,3 +71,9 @@ alias lt='eza --tree'
 alias tree='eza --tree'
 EOF
 }
+
+# Configure eza aliases when script runs
+if command -v eza >/dev/null 2>&1; then
+    echo "  Writing eza aliases to temporary files..."
+    configure_eza_aliases
+fi

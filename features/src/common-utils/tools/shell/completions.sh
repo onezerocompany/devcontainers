@@ -42,37 +42,38 @@ setup_completions_for_user() {
         docker-compose completion zsh > "$user_home/.local/share/zsh/site-functions/_docker-compose" 2>/dev/null || true
     fi
     
-    # Add zsh completion path to .zshrc if not already present
-    local zshrc="$user_home/.zshrc"
-    if [ -f "$zshrc" ]; then
-        if ! grep -q "/.local/share/zsh/site-functions" "$zshrc"; then
-            cat >> "$zshrc" << 'EOF'
-
-# >>> Custom completions - START >>>
+    # Add completion configurations to temporary files
+    
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
+    
+    # Zsh completion configuration
+    local zsh_completion_content=$(cat << 'EOF'
 # Add local completion directories to fpath
 fpath=($HOME/.local/share/zsh/site-functions $fpath)
-# <<< Custom completions - END <<<
 EOF
-        fi
-    fi
+)
     
-    # Add bash completion path to .bashrc if not already present
-    local bashrc="$user_home/.bashrc"
-    if [ -f "$bashrc" ]; then
-        if ! grep -q "/.local/share/bash-completion" "$bashrc"; then
-            cat >> "$bashrc" << 'EOF'
-
-# >>> Custom completions - START >>>
+    # Bash completion configuration
+    local bash_completion_content=$(cat << 'EOF'
 # Add local bash completions
 if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
     for completion in "$HOME/.local/share/bash-completion/completions"/*; do
         [ -r "$completion" ] && source "$completion"
     done
 fi
-# <<< Custom completions - END <<<
 EOF
-        fi
-    fi
+)
+    
+    # Add to temporary files
+    echo "" >> "$TMP_ZSHRC"
+    echo "$zsh_completion_content" >> "$TMP_ZSHRC"
+    echo "" >> "$TMP_ZSHRC"
+    
+    echo "" >> "$TMP_BASHRC"
+    echo "$bash_completion_content" >> "$TMP_BASHRC"
+    echo "" >> "$TMP_BASHRC"
     
     # Set proper ownership
     if [ "$username" != "root" ]; then

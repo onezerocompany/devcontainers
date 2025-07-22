@@ -30,38 +30,36 @@ fi
 # ZOXIDE CONFIGURATION
 # ========================================
 
-# Function to add zoxide initialization to shell config files
+# Function to add zoxide initialization to temporary config files
 configure_zoxide_init() {
-    local config_file="$1"
-    local shell_name="$2"
-    local marker_start="# >>> Zoxide init - START >>>"
-    local marker_end="# <<< Zoxide init - END <<<"
+    local shell_name="$1"
     
-    # Check if already configured
-    if [ -f "$config_file" ] && grep -q "$marker_start" "$config_file"; then
-        return 0
-    fi
+    # Define temporary file paths (consistent with utils.sh)
+    local TMP_BASHRC="/tmp/tmp_bashrc"
+    local TMP_ZSHRC="/tmp/tmp_zshrc"
     
-    # Create file if it doesn't exist
-    if [ ! -f "$config_file" ]; then
-        touch "$config_file"
-    fi
-    
-    # Add newline if file doesn't end with one
-    if [ -s "$config_file" ] && [ "$(tail -c 1 "$config_file")" != "" ]; then
-        echo "" >> "$config_file"
-    fi
-    
-    # Append zoxide initialization
-    cat >> "$config_file" << EOF
-
-$marker_start
+    # Define zoxide init content
+    local zoxide_content=$(cat << 'EOF'
 # Zoxide - Smarter cd command (interactive shells only)
-if command -v zoxide >/dev/null 2>&1 && [[ \$- == *i* ]]; then
-    eval "\$(zoxide init $shell_name)"
+if command -v zoxide >/dev/null 2>&1 && [[ $- == *i* ]]; then
+    eval "$(zoxide init SHELL_PLACEHOLDER)"
 fi
-$marker_end
 EOF
+)
+    
+    # Replace shell placeholder
+    zoxide_content=$(echo "$zoxide_content" | sed "s/SHELL_PLACEHOLDER/$shell_name/g")
+    
+    # Append to appropriate tmp files
+    if [ "$shell_name" = "bash" ]; then
+        echo "" >> "$TMP_BASHRC"
+        echo "$zoxide_content" >> "$TMP_BASHRC"
+        echo "" >> "$TMP_BASHRC"
+    elif [ "$shell_name" = "zsh" ]; then
+        echo "" >> "$TMP_ZSHRC"
+        echo "$zoxide_content" >> "$TMP_ZSHRC"
+        echo "" >> "$TMP_ZSHRC"
+    fi
 }
 
 # Get zoxide init content for template replacement
@@ -74,3 +72,10 @@ if command -v zoxide >/dev/null 2>&1 && [[ \$- == *i* ]]; then
 fi
 EOF
 }
+
+# Configure zoxide for both bash and zsh when script runs
+if command -v zoxide >/dev/null 2>&1; then
+    echo "  Writing zoxide configuration to temporary files..."
+    configure_zoxide_init "bash"
+    configure_zoxide_init "zsh"
+fi

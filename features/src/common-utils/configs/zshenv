@@ -1,0 +1,9 @@
+# Environment configuration for Zsh
+# This file is sourced by zsh for all invocations (login, interactive, non-interactive)
+
+# Add local bin directories to PATH if they exist
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
+[ -d "$HOME/bin" ] && export PATH="$HOME/bin:$PATH"
+
+# Set default editor if not already set
+[ -z "$EDITOR" ] && command -v nano >/dev/null 2>&1 && export EDITOR=nano
