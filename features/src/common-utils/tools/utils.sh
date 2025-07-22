@@ -114,7 +114,7 @@ inject_tmp_to_user_config() {
     remove_marked_content "$user_file"
     
     # Add newline if file doesn't end with one
-    if [ -s "$user_file" ] && [ "$(tail -c1 "$user_file" | wc -l)" -eq 0 ]; then
+    if [ -s "$user_file" ] && [ "$(tail -c 1 "$user_file")" != "" ]; then
         echo "" >> "$user_file"
     fi
     
