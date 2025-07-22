@@ -63,8 +63,6 @@ install_webdev_bundle() {
     curl -L "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}" -o /usr/local/bin/yj
     chmod +x /usr/local/bin/yj
 
-    # Note: gron tool removed due to persistent download issues
-
     # Install miller (data processing tool)
     MILLER_VERSION="6.12.0"
     case $ARCH in
@@ -84,8 +82,6 @@ install_webdev_bundle() {
         echo "  ⚠️  Failed to download miller, skipping"
         rm -rf /tmp/miller*
     fi
-
-    # Note: hq tool temporarily removed due to download URL issues
 
     # Install httpstat (HTTP request statistics)
     HTTPSTAT_URL="https://raw.githubusercontent.com/reorx/httpstat/master/httpstat.py"

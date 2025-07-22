@@ -32,8 +32,6 @@ install_utilities_bundle() {
 # Install modern development utilities
 echo "📦 Installing modern utilities..."
 
-# Note: lazygit removed as requested
-
 # Install fd (find alternative)
 FD_VERSION="8.7.1"
 case $ARCH in
@@ -123,8 +121,6 @@ EOF
         gh completion -s zsh > "$user_home/.local/share/zsh/site-functions/_gh" 2>/dev/null || true
     fi
 
-    # Note: glab completions removed (tool not installed)
-
     # Enable bash completion globally
     if ! grep -q "/etc/bash_completion" /etc/bash.bashrc 2>/dev/null; then
         echo "# Enable bash completion" >> /etc/bash.bashrc
@@ -166,9 +162,7 @@ alias h='history'
 alias hg='history | grep'
 alias myip='curl -s ipinfo.io/ip'
 alias weather='curl -s wttr.in'
-# lg alias removed (lazygit not installed)
 alias find='fd'
 alias search='rg'
-# tldr alias removed (tlrc tool not installed)
 EOF
 }

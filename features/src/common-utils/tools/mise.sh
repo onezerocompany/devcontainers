@@ -4,7 +4,6 @@ set -e
 # ========================================
 # MISE CONFIGURATION
 # ========================================
-# Note: Mise installation is handled in the base image
 
 # Function to add mise aliases to shell config files
 configure_mise_aliases() {

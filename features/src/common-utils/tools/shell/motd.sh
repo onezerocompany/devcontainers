@@ -4,7 +4,6 @@ set -e
 # ========================================
 # MOTD CONFIGURATION
 # ========================================
-# Note: MOTD script is self-contained, no installation needed
 
 # Function to install MOTD script
 install_motd() {
