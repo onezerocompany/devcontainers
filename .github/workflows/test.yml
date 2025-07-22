@@ -12,54 +12,6 @@ on:
       - ".github/workflows/**"
 
 jobs:
-  # Detect what files have changed to determine which tests to run
-  changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      features: ${{ steps.changes.outputs.features }}
-      templates: ${{ steps.changes.outputs.templates }}
-      images: ${{ steps.changes.outputs.images }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect changes
-        id: changes
-        run: |
-          # Get list of changed files
-          git diff --name-only origin/main...HEAD > changed_files.txt
-          echo "Changed files:"
-          cat changed_files.txt
-
-          # Check if features changed
-          if grep -E '^features/' changed_files.txt; then
-            echo "features=true" >> $GITHUB_OUTPUT
-            echo "✓ Features changed"
-          else
-            echo "features=false" >> $GITHUB_OUTPUT
-            echo "- No features changed"
-          fi
-
-          # Check if templates changed
-          if grep -E '^templates/' changed_files.txt; then
-            echo "templates=true" >> $GITHUB_OUTPUT
-            echo "✓ Templates changed"
-          else
-            echo "templates=false" >> $GITHUB_OUTPUT
-            echo "- No templates changed"
-          fi
-
-          # Check if images changed
-          if grep -E '^images/' changed_files.txt; then
-            echo "images=true" >> $GITHUB_OUTPUT
-            echo "✓ Images changed"
-          else
-            echo "images=false" >> $GITHUB_OUTPUT
-            echo "- No images changed"
-          fi
 
   # Validate JSON files and basic structure
   validate:
@@ -133,8 +85,7 @@ jobs:
   test-features:
     name: Test Features
     runs-on: ubuntu-latest
-    needs: [validate, changes]
-    if: needs.changes.outputs.features == 'true'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -187,8 +138,7 @@ jobs:
   test-templates:
     name: Test Templates
     runs-on: ubuntu-latest
-    needs: [validate, changes]
-    if: needs.changes.outputs.templates == 'true'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -291,8 +241,7 @@ jobs:
   test-images:
     name: Test Images
     runs-on: ubuntu-latest
-    needs: [validate, changes]
-    if: needs.changes.outputs.images == 'true'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -343,7 +292,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [validate, changes, test-features, test-templates, test-images]
+    needs: [validate, test-features, test-templates, test-images]
     if: always()
     steps:
       - name: Check test results
@@ -358,38 +307,25 @@ jobs:
             echo "✅ Validation passed"
           fi
 
-          # Only check jobs that were supposed to run
-          if [ "${{ needs.changes.outputs.features }}" == "true" ]; then
-            if [ "${{ needs.test-features.result }}" != "success" ]; then
-              echo "❌ Feature tests failed"
-              exit 1
-            else
-              echo "✅ Feature tests passed"
-            fi
+          if [ "${{ needs.test-features.result }}" != "success" ]; then
+            echo "❌ Feature tests failed"
+            exit 1
           else
-            echo "⏭️  Feature tests skipped (no changes)"
+            echo "✅ Feature tests passed"
           fi
 
-          if [ "${{ needs.changes.outputs.templates }}" == "true" ]; then
-            if [ "${{ needs.test-templates.result }}" != "success" ]; then
-              echo "❌ Template tests failed"
-              exit 1
-            else
-              echo "✅ Template tests passed"
-            fi
+          if [ "${{ needs.test-templates.result }}" != "success" ]; then
+            echo "❌ Template tests failed"
+            exit 1
           else
-            echo "⏭️  Template tests skipped (no changes)"
+            echo "✅ Template tests passed"
           fi
 
-          if [ "${{ needs.changes.outputs.images }}" == "true" ]; then
-            if [ "${{ needs.test-images.result }}" != "success" ]; then
-              echo "❌ Image tests failed"
-              exit 1
-            else
-              echo "✅ Image tests passed"
-            fi
+          if [ "${{ needs.test-images.result }}" != "success" ]; then
+            echo "❌ Image tests failed"
+            exit 1
           else
-            echo "⏭️  Image tests skipped (no changes)"
+            echo "✅ Image tests passed"
           fi
 
           echo "====================="
