@@ -12,7 +12,7 @@ install_utilities_bundle() {
     echo "⚡ Installing utilities bundle..."
 
     # Install core system utilities
-    local core_packages="curl wget unzip zip p7zip-full tree less ncdu man-db htop lsof procps strace ca-certificates gnupg lsb-release software-properties-common bash-completion git-extras tlrc"
+    local core_packages="curl wget unzip zip p7zip-full tree less ncdu man-db htop lsof procps strace ca-certificates gnupg lsb-release software-properties-common bash-completion git-extras"
     
     # Add build tools if enabled
     if [ "$install_build_tools" = "true" ]; then
@@ -23,7 +23,7 @@ install_utilities_bundle() {
     # Add GitHub CLI tools if enabled
     if [ "$install_github_cli" = "true" ]; then
         echo "  Including GitHub CLI tools..."
-        core_packages="$core_packages gh glab"
+        core_packages="$core_packages gh"
     fi
     
     # Install packages
@@ -123,10 +123,7 @@ EOF
         gh completion -s zsh > "$user_home/.local/share/zsh/site-functions/_gh" 2>/dev/null || true
     fi
 
-    if command -v glab >/dev/null 2>&1; then
-        glab completion -s bash > "$user_home/.local/share/bash-completion/completions/glab" 2>/dev/null || true
-        glab completion -s zsh > "$user_home/.local/share/zsh/site-functions/_glab" 2>/dev/null || true
-    fi
+    # Note: glab completions removed (tool not installed)
 
     # Enable bash completion globally
     if ! grep -q "/etc/bash_completion" /etc/bash.bashrc 2>/dev/null; then
@@ -172,6 +169,6 @@ alias weather='curl -s wttr.in'
 # lg alias removed (lazygit not installed)
 alias find='fd'
 alias search='rg'
-alias tldr='tlrc'
+# tldr alias removed (tlrc tool not installed)
 EOF
 }
