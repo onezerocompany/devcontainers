@@ -281,9 +281,9 @@ jobs:
           # Set up devcontainer CLI and test
           devcontainer build --workspace-folder . --image-name test-template-${{ matrix.template }}
           
-          # Test basic functionality by running commands in the container
+          # Test basic functionality by running the built image directly
           echo "Testing basic functionality..."
-          devcontainer exec --workspace-folder . bash -c "
+          docker run --rm test-template-${{ matrix.template }} bash -c "
             echo 'Testing template ${{ matrix.template }}...'
             echo 'Verifying user and environment...'
             whoami
@@ -294,18 +294,24 @@ jobs:
             which git || echo 'git not found'
             which curl || echo 'curl not found'
 
-            # For dind template, test Docker functionality
-            if [ '${{ matrix.template }}' = 'dind' ]; then
-              echo 'Testing Docker functionality in dind template...'
+            echo '✓ Template ${{ matrix.template }} built and tested successfully'
+          "
+          
+          # For dind template, test Docker functionality with privileged mode
+          if [ '${{ matrix.template }}' = 'dind' ]; then
+            echo 'Testing Docker functionality in dind template...'
+            docker run --rm --privileged test-template-${{ matrix.template }} bash -c "
+              echo 'Testing Docker functionality...'
+              # Start Docker daemon in background
+              dockerd-entrypoint.sh dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 &
               # Wait a bit for Docker to start
-              sleep 5
+              sleep 10
               timeout 30 sh -c 'until docker info >/dev/null 2>&1; do sleep 1; done' || echo 'Docker not ready yet'
               docker --version || echo 'Docker not available'
               docker info || echo 'Docker daemon not running'
-            fi
-
-            echo '✓ Template ${{ matrix.template }} built and tested successfully'
-          "
+              echo '✓ Docker functionality tested'
+            "
+          fi
           
           # Clean up
           cd -
