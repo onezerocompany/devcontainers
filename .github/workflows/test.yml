@@ -99,6 +99,7 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: Test ${{ matrix.feature }} feature with ${{ matrix.scenario }} scenario
+        timeout-minutes: 15
         run: |
           cd features/test/${{ matrix.feature }}
           echo "Testing feature ${{ matrix.feature }} with scenario ${{ matrix.scenario }}"
@@ -127,8 +128,11 @@ jobs:
             echo "Generated .devcontainer/devcontainer.json:"
             cat .devcontainer/devcontainer.json
             
-            # Test that the feature can be built
-            devcontainer build --workspace-folder .
+            # Test that the feature can be built (with timeout)
+            timeout 900 devcontainer build --workspace-folder . || {
+              echo "ERROR: devcontainer build timed out after 15 minutes"
+              exit 1
+            }
             echo "✓ Feature ${{ matrix.feature }} built successfully with scenario $SCENARIO_KEY"
           else
             echo "No scenarios.json found, skipping detailed test"
@@ -156,6 +160,7 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: Test build template ${{ matrix.template }}
+        timeout-minutes: 20
         run: |
           echo "Testing template ${{ matrix.template }}..."
           
@@ -198,8 +203,11 @@ jobs:
             cat .devcontainer/devcontainer.json
           fi
           
-          # Set up devcontainer CLI and test
-          devcontainer build --workspace-folder . --image-name test-template-${{ matrix.template }}
+          # Set up devcontainer CLI and test (with timeout)
+          timeout 1200 devcontainer build --workspace-folder . --image-name test-template-${{ matrix.template }} || {
+            echo "ERROR: Template devcontainer build timed out after 20 minutes"
+            exit 1
+          }
           
           # Test basic functionality by running the built image directly
           echo "Testing basic functionality..."
@@ -260,6 +268,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Test build image ${{ matrix.image }}
+        timeout-minutes: 15
         uses: docker/build-push-action@v5
         with:
           context: ./images/${{ matrix.image }}
@@ -269,16 +278,22 @@ jobs:
           outputs: type=docker,dest=/tmp/${{ matrix.image }}-image.tar
 
       - name: Test run image ${{ matrix.image }}
+        timeout-minutes: 10
         run: |
           echo "Testing image ${{ matrix.image }}..."
-          docker load -i /tmp/${{ matrix.image }}-image.tar
+          
+          # Load image with timeout
+          timeout 300 docker load -i /tmp/${{ matrix.image }}-image.tar || {
+            echo "ERROR: Docker load timed out after 5 minutes"
+            exit 1
+          }
           
           # Show loaded images to debug
           echo "Loaded images:"
-          docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}"
+          timeout 30 docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}" || echo "Docker images command timed out"
           
           # Find the actual image name (might be different after load)
-          IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep test-image-${{ matrix.image }} | head -1)
+          IMAGE_NAME=$(timeout 30 docker images --format "{{.Repository}}:{{.Tag}}" | grep test-image-${{ matrix.image }} | head -1)
           echo "Using image: $IMAGE_NAME"
           
           if [ -z "$IMAGE_NAME" ]; then
@@ -286,23 +301,27 @@ jobs:
             exit 1
           fi
 
-          # Test that the image can run
-          docker run --rm "$IMAGE_NAME" echo "✓ Image ${{ matrix.image }} runs successfully"
+          # Test that the image can run (with timeout)
+          timeout 60 docker run --rm "$IMAGE_NAME" echo "✓ Image ${{ matrix.image }} runs successfully" || {
+            echo "ERROR: Basic docker run test timed out or failed"
+            exit 1
+          }
 
           # Test basic functionality
           if [ "${{ matrix.image }}" = "base" ]; then
             echo "Testing base image functionality..."
-            docker run --rm "$IMAGE_NAME" bash -c "
+            timeout 120 docker run --rm "$IMAGE_NAME" bash -c "
               echo 'Testing base image tools...' &&
               which git && echo '✓ git found' &&
               which curl && echo '✓ curl found' &&
               which zsh && echo '✓ zsh found' &&
               id zero && echo '✓ zero user exists'
             " || {
-              echo 'Some tests failed, but continuing...'
+              echo 'Some tests failed or timed out, gathering diagnostic info...'
               echo 'Checking what user we are running as:'
-              docker run --rm "$IMAGE_NAME" whoami
-              docker run --rm "$IMAGE_NAME" id
+              timeout 30 docker run --rm "$IMAGE_NAME" whoami || echo "whoami command failed"
+              timeout 30 docker run --rm "$IMAGE_NAME" id || echo "id command failed"
+              echo 'Base image tests completed with issues, but continuing...'
             }
           fi
 
