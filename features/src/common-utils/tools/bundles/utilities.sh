@@ -32,19 +32,7 @@ install_utilities_bundle() {
 # Install modern development utilities
 echo "📦 Installing modern utilities..."
 
-# Install lazygit
-LAZYGIT_VERSION="0.40.2"
-ARCH=$(dpkg --print-architecture)
-case $ARCH in
-    amd64) LAZYGIT_ARCH="x86_64" ;;
-    arm64) LAZYGIT_ARCH="arm64" ;;
-    *) echo "Unsupported architecture for lazygit: $ARCH"; return 0 ;;
-esac
-curl -L "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz" -o /tmp/lazygit.tar.gz
-tar -xzf /tmp/lazygit.tar.gz -C /tmp
-mv /tmp/lazygit /usr/local/bin/
-chmod +x /usr/local/bin/lazygit
-rm -f /tmp/lazygit.tar.gz
+# Note: lazygit removed as requested
 
 # Install fd (find alternative)
 FD_VERSION="8.7.1"
@@ -53,11 +41,18 @@ case $ARCH in
     arm64) FD_ARCH="aarch64" ;;
     *) echo "Unsupported architecture for fd: $ARCH"; return 0 ;;
 esac
-curl -L "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl.tar.gz" -o /tmp/fd.tar.gz
-tar -xzf /tmp/fd.tar.gz -C /tmp
-mv "/tmp/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl/fd" /usr/local/bin/
-chmod +x /usr/local/bin/fd
-rm -rf /tmp/fd*
+FD_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl.tar.gz"
+echo "  Downloading fd from: $FD_URL"
+if curl -fsSL "$FD_URL" -o /tmp/fd.tar.gz; then
+    tar -xzf /tmp/fd.tar.gz -C /tmp
+    mv "/tmp/fd-v${FD_VERSION}-${FD_ARCH}-unknown-linux-musl/fd" /usr/local/bin/
+    chmod +x /usr/local/bin/fd
+    rm -rf /tmp/fd*
+    echo "  ✓ fd installed successfully"
+else
+    echo "  ⚠️  Failed to download fd, skipping"
+    rm -rf /tmp/fd*
+fi
 
 # Install ripgrep (grep alternative)
 RG_VERSION="14.0.3"
@@ -66,11 +61,18 @@ case $ARCH in
     arm64) RG_ARCH="aarch64" ;;
     *) echo "Unsupported architecture for ripgrep: $ARCH"; return 0 ;;
 esac
-curl -L "https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl.tar.gz" -o /tmp/ripgrep.tar.gz
-tar -xzf /tmp/ripgrep.tar.gz -C /tmp
-mv "/tmp/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl/rg" /usr/local/bin/
-chmod +x /usr/local/bin/rg
-rm -rf /tmp/ripgrep*
+RG_URL="https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl.tar.gz"
+echo "  Downloading ripgrep from: $RG_URL"
+if curl -fsSL "$RG_URL" -o /tmp/ripgrep.tar.gz; then
+    tar -xzf /tmp/ripgrep.tar.gz -C /tmp
+    mv "/tmp/ripgrep-${RG_VERSION}-${RG_ARCH}-unknown-linux-musl/rg" /usr/local/bin/
+    chmod +x /usr/local/bin/rg
+    rm -rf /tmp/ripgrep*
+    echo "  ✓ ripgrep installed successfully"
+else
+    echo "  ⚠️  Failed to download ripgrep, skipping"
+    rm -rf /tmp/ripgrep*
+fi
 
     echo "✓ Utilities bundle installed"
 }
@@ -167,7 +169,7 @@ alias h='history'
 alias hg='history | grep'
 alias myip='curl -s ipinfo.io/ip'
 alias weather='curl -s wttr.in'
-alias lg='lazygit'
+# lg alias removed (lazygit not installed)
 alias find='fd'
 alias search='rg'
 alias tldr='tlrc'
