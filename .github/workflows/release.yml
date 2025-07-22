@@ -29,8 +29,8 @@ jobs:
           echo "Major version: ${VERSION_MAJOR}"
 
   # Publish all features
-  publish-features-templates:
-    name: Publish All Features and Templates
+  publish-features:
+    name: Publish All Features
     runs-on: ubuntu-latest
     needs: [extract-version]
     permissions:
@@ -40,6 +40,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Update feature versions
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          echo "Updating feature versions to ${VERSION}..."
+          
+          # Find and update all devcontainer-feature.json files
+          find . -name "devcontainer-feature.json" -type f | while read -r file; do
+            echo "Updating feature file: $file"
+            jq --arg version "$VERSION" '.version = $version' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+          done
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -51,14 +62,73 @@ jobs:
       - name: Publish Features
         uses: devcontainers/action@v1
         with:
-          publish-templates: "true"
-          base-path-to-templates: "./templates"
           publish-features: "true"
           base-path-to-features: "./features/src"
           generate-docs: "true"
           disable-repo-tagging: true
           oci-registry: ghcr.io
           features-namespace: onezerocompany/features
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish all templates
+  publish-templates:
+    name: Publish All Templates
+    runs-on: ubuntu-latest
+    needs: [extract-version, publish-features]
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update template versions and feature references
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          VERSION_MAJOR="${{ needs.extract-version.outputs.version_major }}"
+          echo "Updating template versions to ${VERSION}..."
+          
+          # Find and update all devcontainer-template.json files
+          find . -name "devcontainer-template.json" -type f | while read -r file; do
+            echo "Updating template file: $file"
+            jq --arg version "$VERSION" '.version = $version' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+          done
+          
+          # Find and update feature references in all devcontainer.json files to use major version
+          find . -name "devcontainer.json" -type f | while read -r file; do
+            echo "Checking feature references in: $file"
+            # Check if file has features section and onezerocompany features
+            if jq -e '.features // {} | keys[] | test("ghcr.io/onezerocompany/features/")' "$file" > /dev/null 2>&1; then
+              echo "Updating feature references in: $file"
+              jq --arg major "$VERSION_MAJOR" '
+                if .features then
+                  .features |= with_entries(
+                    if .key | test("ghcr.io/onezerocompany/features/") then
+                      .key = (.key | gsub(":.*$"; "") + ":" + $major)
+                    else . end
+                  )
+                else . end
+              ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+            fi
+          done
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish All Templates
+        uses: devcontainers/action@v1
+        with:
+          publish-templates: "true"
+          base-path-to-templates: "./templates"
+          generate-docs: "true"
+          disable-repo-tagging: true
+          oci-registry: ghcr.io
           templates-namespace: onezerocompany/templates
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -211,7 +281,7 @@ jobs:
   prebuild:
     name: Pre-build Dev Container Images
     runs-on: ubuntu-latest
-    needs: [extract-version, publish-base, publish-features-templates]
+    needs: [extract-version, publish-base, publish-templates, publish-features]
     permissions:
       contents: read
       packages: write
