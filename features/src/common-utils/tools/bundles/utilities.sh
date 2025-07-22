@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure non-interactive mode for apt
+export DEBIAN_FRONTEND=noninteractive
+
 # ========================================
 # UTILITIES BUNDLE INSTALLATION
 # ========================================

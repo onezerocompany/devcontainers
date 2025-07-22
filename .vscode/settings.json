@@ -2,5 +2,14 @@
   "bun.runtime": "/Users/luca/.local/share/mise/shims/bun",
   "debug.javascript.defaultRuntimeExecutable": {
     "pwa-node": "/Users/luca/.local/share/mise/shims/node"
-  }
+  },
+  "workbench.colorCustomizations": {
+    "sash.hoverBorder": "#308ffa",
+    "commandCenter.border": "#e7e7e799",
+    "titleBar.activeBackground": "#0674f1",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#0674f199",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#0674f1"
 }

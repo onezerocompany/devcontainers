@@ -1,0 +1,12 @@
+base-image-compat
+bash-shell
+bundles-only
+config-system
+custom-motd
+default
+kubernetes-bundle
+minimal-config
+minimal
+no-motd
+security-focused
+test
