@@ -325,15 +325,18 @@ jobs:
             }
           elif [ "${{ matrix.image }}" = "settings-gen" ]; then
             echo "Testing settings-gen image functionality..."
-            # Skip Docker daemon startup in CI - just test that the image runs and has required tools
-            timeout 60 docker run --rm "$IMAGE_NAME" sh -c "
-              echo 'Testing settings-gen image tools...' &&
-              which docker && echo '✓ docker found' &&
+            # Override entrypoint to bypass Docker daemon startup - test tools only
+            timeout 60 docker run --rm --entrypoint="" "$IMAGE_NAME" sh -c "
+              echo 'Testing settings-gen image tools (bypassing Docker daemon)...' &&
+              which docker && echo '✓ docker CLI found' &&
               which jq && echo '✓ jq found' &&
               which devcontainer && echo '✓ devcontainer CLI found' &&
-              echo '✓ settings-gen image basic functionality verified'
+              which node && echo '✓ node found' &&
+              which npm && echo '✓ npm found' &&
+              echo '✓ settings-gen image tools verified without Docker daemon'
             " || {
-              echo 'Settings-gen tests failed, but this might be expected in CI environment'
+              echo 'ERROR: Settings-gen basic tool test failed'
+              exit 1
             }
           fi
 
