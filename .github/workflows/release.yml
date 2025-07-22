@@ -326,7 +326,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           imageName: ghcr.io/onezerocompany/devcontainer
-          imageTag: ${{ matrix.template }}-${{ needs.extract-version.outputs.version }}
+          imageTag: ${{ matrix.template }}
           cacheFrom: ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}
           push: always
           platform: linux/amd64,linux/arm64
@@ -334,14 +334,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Tag additional versions for ${{ matrix.template }}
-        run: |
-          # Tag with template name (latest for this template)
-          docker buildx imagetools create \
-            ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}-${{ needs.extract-version.outputs.version }} \
-            --tag ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}
-
-          # Tag with major version
-          docker buildx imagetools create \
-            ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}-${{ needs.extract-version.outputs.version }} \
-            --tag ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}-${{ needs.extract-version.outputs.version_major }}
