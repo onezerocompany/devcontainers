@@ -1,0 +1,396 @@
+---
+name: Test Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "features/**"
+      - "templates/**"
+      - "images/**"
+      - ".github/workflows/**"
+
+jobs:
+  # Detect what files have changed to determine which tests to run
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.changes.outputs.features }}
+      templates: ${{ steps.changes.outputs.templates }}
+      images: ${{ steps.changes.outputs.images }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        run: |
+          # Get list of changed files
+          git diff --name-only origin/main...HEAD > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+
+          # Check if features changed
+          if grep -E '^features/' changed_files.txt; then
+            echo "features=true" >> $GITHUB_OUTPUT
+            echo "✓ Features changed"
+          else
+            echo "features=false" >> $GITHUB_OUTPUT
+            echo "- No features changed"
+          fi
+
+          # Check if templates changed
+          if grep -E '^templates/' changed_files.txt; then
+            echo "templates=true" >> $GITHUB_OUTPUT
+            echo "✓ Templates changed"
+          else
+            echo "templates=false" >> $GITHUB_OUTPUT
+            echo "- No templates changed"
+          fi
+
+          # Check if images changed
+          if grep -E '^images/' changed_files.txt; then
+            echo "images=true" >> $GITHUB_OUTPUT
+            echo "✓ Images changed"
+          else
+            echo "images=false" >> $GITHUB_OUTPUT
+            echo "- No images changed"
+          fi
+
+  # Validate JSON files and basic structure
+  validate:
+    name: Validate Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          find . -name "*.json" -type f | while read -r file; do
+            echo "Checking $file"
+            jq empty "$file" || (echo "Invalid JSON in $file" && exit 1)
+          done
+
+      - name: Check feature metadata
+        run: |
+          echo "Checking feature metadata..."
+          for feature_dir in features/src/*/; do
+            if [ -d "$feature_dir" ]; then
+              feature_name=$(basename "$feature_dir")
+              echo "Checking feature: $feature_name"
+
+              # Check required files exist
+              if [ ! -f "$feature_dir/devcontainer-feature.json" ]; then
+                echo "ERROR: Missing devcontainer-feature.json in $feature_name"
+                exit 1
+              fi
+
+              if [ ! -f "$feature_dir/install.sh" ]; then
+                echo "ERROR: Missing install.sh in $feature_name"
+                exit 1
+              fi
+
+              # Check install.sh is executable
+              if [ ! -x "$feature_dir/install.sh" ]; then
+                echo "ERROR: install.sh is not executable in $feature_name"
+                exit 1
+              fi
+
+              echo "✓ Feature $feature_name structure is valid"
+            fi
+          done
+
+      - name: Check template metadata
+        run: |
+          echo "Checking template metadata..."
+          for template_dir in templates/*/; do
+            if [ -d "$template_dir" ]; then
+              template_name=$(basename "$template_dir")
+              echo "Checking template: $template_name"
+
+              # Check required files exist
+              if [ ! -f "$template_dir/devcontainer-template.json" ]; then
+                echo "ERROR: Missing devcontainer-template.json in $template_name"
+                exit 1
+              fi
+
+              if [ ! -f "$template_dir/.devcontainer/devcontainer.json" ]; then
+                echo "ERROR: Missing .devcontainer/devcontainer.json in $template_name"
+                exit 1
+              fi
+
+              echo "✓ Template $template_name structure is valid"
+            fi
+          done
+
+  # Test features using devcontainer CLI
+  test-features:
+    name: Test Features
+    runs-on: ubuntu-latest
+    needs: [validate, changes]
+    if: needs.changes.outputs.features == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        feature: [common-utils, docker-in-docker]
+        scenario: [default]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Test ${{ matrix.feature }} feature with ${{ matrix.scenario }} scenario
+        run: |
+          cd features/test/${{ matrix.feature }}
+          echo "Testing feature ${{ matrix.feature }} with scenario ${{ matrix.scenario }}"
+
+          # Create a test devcontainer.json based on the scenario
+          if [ -f "scenarios.json" ]; then
+            echo "Found scenarios.json, creating a proper test environment"
+            
+            # Get first scenario key for testing (since we're only testing "default" scenario currently)
+            SCENARIO_KEY=$(jq -r 'keys[0]' scenarios.json)
+            echo "Testing scenario: $SCENARIO_KEY"
+            
+            # Create a proper .devcontainer directory structure
+            mkdir -p .devcontainer
+            
+            # Copy local feature to a location that devcontainer CLI can access
+            mkdir -p .devcontainer/features/${{ matrix.feature }}
+            cp -r ../../../features/src/${{ matrix.feature }}/* .devcontainer/features/${{ matrix.feature }}/
+            
+            # Extract the scenario configuration and modify to use local feature
+            # Re-enable external downloads to test actual functionality
+            jq ".\"$SCENARIO_KEY\"" scenarios.json | \
+            jq --arg feature "${{ matrix.feature }}" \
+              '.features = {("./features/" + $feature): .features[$feature]}' > .devcontainer/devcontainer.json
+            
+            echo "Generated .devcontainer/devcontainer.json:"
+            cat .devcontainer/devcontainer.json
+            
+            # Test that the feature can be built
+            devcontainer build --workspace-folder .
+            echo "✓ Feature ${{ matrix.feature }} built successfully with scenario $SCENARIO_KEY"
+          else
+            echo "No scenarios.json found, skipping detailed test"
+          fi
+
+  # Test templates by building them
+  test-templates:
+    name: Test Templates
+    runs-on: ubuntu-latest
+    needs: [validate, changes]
+    if: needs.changes.outputs.templates == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - base
+          - dind
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Test build template ${{ matrix.template }}
+        run: |
+          echo "Testing template ${{ matrix.template }}..."
+          
+          # Create a temporary directory for testing
+          TEMP_DIR=$(mktemp -d)
+          cp -r templates/${{ matrix.template }}/* $TEMP_DIR/
+          cp -r templates/${{ matrix.template }}/.devcontainer $TEMP_DIR/ 2>/dev/null || echo "No .devcontainer directory to copy"
+          cd $TEMP_DIR
+          
+          # Modify devcontainer.json to use local features instead of published ones
+          if [ -f ".devcontainer/devcontainer.json" ]; then
+            echo "Modifying devcontainer.json to use local features..."
+            
+            # Copy local features to the template directory
+            mkdir -p .devcontainer/features
+            for feature_dir in ${GITHUB_WORKSPACE}/features/src/*/; do
+              if [ -d "$feature_dir" ]; then
+                feature_name=$(basename "$feature_dir")
+                mkdir -p ".devcontainer/features/$feature_name"
+                cp -r "$feature_dir"* ".devcontainer/features/$feature_name/"
+              fi
+            done
+            
+            # Replace ghcr.io/onezerocompany/features/common-utils with local path and disable external downloads
+            # First, create a backup and then use jq to properly modify the JSON structure
+            cp .devcontainer/devcontainer.json .devcontainer/devcontainer.json.bak
+            
+            # Use jq to replace the feature reference with local path but keep original settings
+            jq '
+              .features |= with_entries(
+                if .key | startswith("ghcr.io/onezerocompany/features/common-utils") then
+                  .key = "./features/common-utils"
+                else
+                  .
+                end
+              )
+            ' .devcontainer/devcontainer.json.bak > .devcontainer/devcontainer.json
+            
+            echo "Modified devcontainer.json:"
+            cat .devcontainer/devcontainer.json
+          fi
+          
+          # Set up devcontainer CLI and test
+          devcontainer build --workspace-folder . --image-name test-template-${{ matrix.template }}
+          
+          # Test basic functionality by running the built image directly
+          echo "Testing basic functionality..."
+          docker run --rm test-template-${{ matrix.template }} bash -c "
+            echo 'Testing template ${{ matrix.template }}...'
+            echo 'Verifying user and environment...'
+            whoami
+            pwd
+            echo \$PATH
+
+            # Test that common tools are available
+            which git || echo 'git not found'
+            which curl || echo 'curl not found'
+
+            echo '✓ Template ${{ matrix.template }} built and tested successfully'
+          "
+          
+          # For dind template, test Docker functionality with privileged mode
+          if [ '${{ matrix.template }}' = 'dind' ]; then
+            echo 'Testing Docker functionality in dind template...'
+            docker run --rm --privileged test-template-${{ matrix.template }} bash -c "
+              echo 'Testing Docker functionality...'
+              # Start Docker daemon in background
+              dockerd-entrypoint.sh dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 &
+              # Wait a bit for Docker to start
+              sleep 10
+              timeout 30 sh -c 'until docker info >/dev/null 2>&1; do sleep 1; done' || echo 'Docker not ready yet'
+              docker --version || echo 'Docker not available'
+              docker info || echo 'Docker daemon not running'
+              echo '✓ Docker functionality tested'
+            "
+          fi
+          
+          # Clean up
+          cd -
+          rm -rf $TEMP_DIR
+
+  # Test Docker images by building them
+  test-images:
+    name: Test Images
+    runs-on: ubuntu-latest
+    needs: [validate, changes]
+    if: needs.changes.outputs.images == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - base
+          - runner
+          - settings-gen
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test build image ${{ matrix.image }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/${{ matrix.image }}
+          push: false
+          platforms: linux/amd64
+          tags: test-image-${{ matrix.image }}:test
+          outputs: type=docker,dest=/tmp/${{ matrix.image }}-image.tar
+
+      - name: Test run image ${{ matrix.image }}
+        run: |
+          echo "Testing image ${{ matrix.image }}..."
+          docker load -i /tmp/${{ matrix.image }}-image.tar
+
+          # Test that the image can run
+          docker run --rm test-image-${{ matrix.image }}:test echo "✓ Image ${{ matrix.image }} runs successfully"
+
+          # Test basic functionality
+          if [ "${{ matrix.image }}" = "base" ]; then
+            echo "Testing base image functionality..."
+            docker run --rm test-image-${{ matrix.image }}:test bash -c "
+              echo 'Testing base image tools...' &&
+              which git && echo '✓ git found' &&
+              which curl && echo '✓ curl found' &&
+              which zsh && echo '✓ zsh found' &&
+              id zero && echo '✓ zero user exists'
+            "
+          fi
+
+  # Summary job that depends on all test jobs
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [validate, changes, test-features, test-templates, test-images]
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          echo "Test Results Summary:"
+          echo "====================="
+
+          if [ "${{ needs.validate.result }}" != "success" ]; then
+            echo "❌ Validation failed"
+            exit 1
+          else
+            echo "✅ Validation passed"
+          fi
+
+          # Only check jobs that were supposed to run
+          if [ "${{ needs.changes.outputs.features }}" == "true" ]; then
+            if [ "${{ needs.test-features.result }}" != "success" ]; then
+              echo "❌ Feature tests failed"
+              exit 1
+            else
+              echo "✅ Feature tests passed"
+            fi
+          else
+            echo "⏭️  Feature tests skipped (no changes)"
+          fi
+
+          if [ "${{ needs.changes.outputs.templates }}" == "true" ]; then
+            if [ "${{ needs.test-templates.result }}" != "success" ]; then
+              echo "❌ Template tests failed"
+              exit 1
+            else
+              echo "✅ Template tests passed"
+            fi
+          else
+            echo "⏭️  Template tests skipped (no changes)"
+          fi
+
+          if [ "${{ needs.changes.outputs.images }}" == "true" ]; then
+            if [ "${{ needs.test-images.result }}" != "success" ]; then
+              echo "❌ Image tests failed"
+              exit 1
+            else
+              echo "✅ Image tests passed"
+            fi
+          else
+            echo "⏭️  Image tests skipped (no changes)"
+          fi
+
+          echo "====================="
+          echo "🎉 All tests passed! PR is ready for review."

@@ -1,7 +1,7 @@
 
 # onezero-base
 
-
+A comprehensive development container template with modern tools and utilities.
 
 ## Options
 

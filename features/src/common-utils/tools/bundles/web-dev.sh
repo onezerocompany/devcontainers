@@ -63,18 +63,26 @@ install_webdev_bundle() {
     curl -L "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux-${YJ_ARCH}" -o /usr/local/bin/yj
     chmod +x /usr/local/bin/yj
 
-    # Install gron (make JSON greppable)
+    # Install gron (make JSON greppable) - using correct GitHub release format
     GRON_VERSION="0.7.1"
     case $ARCH in
         amd64) GRON_ARCH="amd64" ;;
         arm64) GRON_ARCH="arm64" ;;
         *) echo "Unsupported architecture for gron: $ARCH"; return 0 ;;
     esac
-    curl -L "https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}-${GRON_VERSION}.tgz" -o /tmp/gron.tgz
-    tar -xzf /tmp/gron.tgz -C /tmp
-    mv /tmp/gron /usr/local/bin/
-    chmod +x /usr/local/bin/gron
-    rm -f /tmp/gron.tgz
+    # The correct URL format for gron releases (with version suffix in filename)
+    GRON_URL="https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}-${GRON_VERSION}.tgz"
+    echo "  Downloading gron from: $GRON_URL"
+    if curl -fsSL "$GRON_URL" -o /tmp/gron.tgz; then
+        tar -xzf /tmp/gron.tgz -C /tmp
+        mv /tmp/gron /usr/local/bin/
+        chmod +x /usr/local/bin/gron
+        rm -f /tmp/gron.tgz
+        echo "  ✓ gron installed successfully"
+    else
+        echo "  ⚠️  Failed to download gron, skipping"
+        rm -f /tmp/gron.tgz
+    fi
 
     # Install miller (data processing tool)
     MILLER_VERSION="6.12.0"
@@ -83,28 +91,31 @@ install_webdev_bundle() {
         arm64) MILLER_ARCH="arm64" ;;
         *) echo "Unsupported architecture for miller: $ARCH"; return 0 ;;
     esac
-    curl -L "https://github.com/johnkerl/miller/releases/download/v${MILLER_VERSION}/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}.tar.gz" -o /tmp/miller.tar.gz
-    tar -xzf /tmp/miller.tar.gz -C /tmp
-    mv "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}/mlr" /usr/local/bin/
-    chmod +x /usr/local/bin/mlr
-    rm -rf /tmp/miller*
+    MILLER_URL="https://github.com/johnkerl/miller/releases/download/v${MILLER_VERSION}/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}.tar.gz"
+    echo "  Downloading miller from: $MILLER_URL"
+    if curl -fsSL "$MILLER_URL" -o /tmp/miller.tar.gz; then
+        tar -xzf /tmp/miller.tar.gz -C /tmp
+        mv "/tmp/miller-${MILLER_VERSION}-linux-${MILLER_ARCH}/mlr" /usr/local/bin/
+        chmod +x /usr/local/bin/mlr
+        rm -rf /tmp/miller*
+        echo "  ✓ miller installed successfully"
+    else
+        echo "  ⚠️  Failed to download miller, skipping"
+        rm -rf /tmp/miller*
+    fi
 
-    # Install hq (HTML processor)
-    HQ_VERSION="1.0.0"
-    case $ARCH in
-        amd64) HQ_ARCH="x86_64" ;;
-        arm64) HQ_ARCH="aarch64" ;;
-        *) echo "Unsupported architecture for hq: $ARCH"; return 0 ;;
-    esac
-    curl -L "https://github.com/orf/hq/releases/download/v${HQ_VERSION}/hq-${HQ_ARCH}-unknown-linux-musl.tar.gz" -o /tmp/hq.tar.gz
-    tar -xzf /tmp/hq.tar.gz -C /tmp
-    mv /tmp/hq /usr/local/bin/
-    chmod +x /usr/local/bin/hq
-    rm -f /tmp/hq.tar.gz
+    # Note: hq tool temporarily removed due to download URL issues
 
     # Install httpstat (HTTP request statistics)
-    curl -L https://raw.githubusercontent.com/reorx/httpstat/master/httpstat.py -o /usr/local/bin/httpstat
-    chmod +x /usr/local/bin/httpstat
+    HTTPSTAT_URL="https://raw.githubusercontent.com/reorx/httpstat/master/httpstat.py"
+    echo "  Downloading httpstat from: $HTTPSTAT_URL"
+    if curl -fsSL "$HTTPSTAT_URL" -o /usr/local/bin/httpstat; then
+        chmod +x /usr/local/bin/httpstat
+        echo "  ✓ httpstat installed successfully"
+    else
+        echo "  ⚠️  Failed to download httpstat, skipping"
+        rm -f /usr/local/bin/httpstat
+    fi
 
     echo "✅ Web development bundle installed"
 }

@@ -11,7 +11,7 @@ install_networking_bundle() {
     echo "🌐 Installing networking bundle..."
 
     # Install core networking tools
-    local networking_packages="openssh-client iproute2 net-tools netcat-openbsd nmap rsync wget curl dnsutils iputils-ping telnet tcpdump traceroute whois socat iperf3 ftp sftp lftp"
+    local networking_packages="openssh-client iproute2 net-tools netcat-openbsd nmap rsync wget curl dnsutils iputils-ping telnet tcpdump traceroute whois socat iperf3"
     
     # Add SSH server if enabled
     if [ "$install_ssh_server" = "true" ]; then
