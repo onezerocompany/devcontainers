@@ -70,8 +70,8 @@ install_webdev_bundle() {
         arm64) GRON_ARCH="arm64" ;;
         *) echo "Unsupported architecture for gron: $ARCH"; return 0 ;;
     esac
-    # The correct URL format for gron releases (without version suffix in filename)
-    GRON_URL="https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}.tgz"
+    # The correct URL format for gron releases (with version suffix in filename)
+    GRON_URL="https://github.com/tomnomnom/gron/releases/download/v${GRON_VERSION}/gron-linux-${GRON_ARCH}-${GRON_VERSION}.tgz"
     echo "  Downloading gron from: $GRON_URL"
     if curl -fsSL "$GRON_URL" -o /tmp/gron.tgz; then
         tar -xzf /tmp/gron.tgz -C /tmp
@@ -104,25 +104,7 @@ install_webdev_bundle() {
         rm -rf /tmp/miller*
     fi
 
-    # Install hq (HTML processor)
-    HQ_VERSION="1.0.0"
-    case $ARCH in
-        amd64) HQ_ARCH="x86_64" ;;
-        arm64) HQ_ARCH="aarch64" ;;
-        *) echo "Unsupported architecture for hq: $ARCH"; return 0 ;;
-    esac
-    HQ_URL="https://github.com/orf/hq/releases/download/v${HQ_VERSION}/hq-${HQ_ARCH}-unknown-linux-musl.tar.gz"
-    echo "  Downloading hq from: $HQ_URL"
-    if curl -fsSL "$HQ_URL" -o /tmp/hq.tar.gz; then
-        tar -xzf /tmp/hq.tar.gz -C /tmp
-        mv /tmp/hq /usr/local/bin/
-        chmod +x /usr/local/bin/hq
-        rm -f /tmp/hq.tar.gz
-        echo "  ✓ hq installed successfully"
-    else
-        echo "  ⚠️  Failed to download hq, skipping"
-        rm -f /tmp/hq.tar.gz
-    fi
+    # Note: hq tool temporarily removed due to download URL issues
 
     # Install httpstat (HTTP request statistics)
     HTTPSTAT_URL="https://raw.githubusercontent.com/reorx/httpstat/master/httpstat.py"
