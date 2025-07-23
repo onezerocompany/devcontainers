@@ -1,0 +1,270 @@
+name: Publish Dev Containers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "features/**"
+      - "templates/**"
+      - "images/**"
+      - ".github/workflows/publish.yml"
+
+jobs:
+  # Publish all features
+  publish-features:
+    name: Publish All Features
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Features
+        uses: devcontainers/action@v1
+        with:
+          publish-features: "true"
+          base-path-to-features: "./features/src"
+          generate-docs: "true"
+          disable-repo-tagging: true
+          oci-registry: ghcr.io
+          features-namespace: onezerocompany/features
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish all templates
+  publish-templates:
+    name: Publish All Templates
+    runs-on: ubuntu-latest
+    needs: [publish-features]
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish All Templates
+        uses: devcontainers/action@v1
+        with:
+          publish-templates: "true"
+          base-path-to-templates: "./templates"
+          generate-docs: "true"
+          disable-repo-tagging: true
+          oci-registry: ghcr.io
+          templates-namespace: onezerocompany/templates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build base Docker image
+  publish-base:
+    name: Build and Push base Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/onezerocompany/base
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and Push base
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/base
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/base:buildcache
+            type=registry,ref=ghcr.io/onezerocompany/base:latest
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/base:buildcache,mode=max
+
+  # Build runner Docker image
+  publish-runner:
+    name: Build and Push runner Docker Image
+    runs-on: ubuntu-latest
+    needs: [publish-base]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/onezerocompany/runner
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and Push runner
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/runner
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/runner:buildcache
+            type=registry,ref=ghcr.io/onezerocompany/runner:latest
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/runner:buildcache,mode=max
+
+  # Build settings-gen Docker image
+  publish-settings-gen:
+    name: Build and Push settings-gen Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/onezerocompany/settings-gen
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and Push settings-gen
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/settings-gen
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=ghcr.io/onezerocompany/settings-gen:buildcache
+            type=registry,ref=ghcr.io/onezerocompany/settings-gen:latest
+          cache-to: type=registry,ref=ghcr.io/onezerocompany/settings-gen:buildcache,mode=max
+
+  # Pre-build dev container images
+  prebuild:
+    name: Pre-build Dev Container Images
+    runs-on: ubuntu-latest
+    needs: [publish-base, publish-templates, publish-features]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - base
+          - dind
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Wait for base images to be available
+      - name: Wait for base image availability
+        run: |
+          echo "Waiting for base image to be available..."
+          for i in {1..10}; do
+            if docker pull ghcr.io/onezerocompany/base:latest; then
+              echo "Base image is available"
+              break
+            fi
+            echo "Attempt $i: Base image not ready, waiting..."
+            sleep 30
+          done
+
+      - name: Pre-build ${{ matrix.template }} template
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: ghcr.io/onezerocompany/devcontainer
+          imageTag: ${{ matrix.template }}
+          cacheFrom: ghcr.io/onezerocompany/devcontainer:${{ matrix.template }}
+          push: always
+          platform: linux/amd64,linux/arm64
+          subFolder: templates/${{ matrix.template }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
