@@ -2,7 +2,8 @@
 # Error Handling Framework for Common Utils Feature
 # Provides structured error reporting, retry logic, and failure recovery
 
-set -euo pipefail
+# Note: We set strict mode only after initialization to allow graceful fallback
+# set -euo pipefail will be enabled in setup_error_handling()
 
 # Error codes for different failure types
 declare -r -A ERROR_CODES=(
@@ -350,6 +351,9 @@ cleanup_on_exit() {
 setup_error_handling() {
     # Initialize logging
     init_logging
+    
+    # Enable strict mode now that logging is initialized
+    set -euo pipefail
     
     # Set up exit trap
     trap cleanup_on_exit EXIT

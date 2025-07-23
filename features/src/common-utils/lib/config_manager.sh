@@ -90,18 +90,22 @@ create_config_backup() {
     
     if [ -f "$target_file" ]; then
         if ! cp "$target_file" "$backup_path"; then
-            report_error "${ERROR_CODES[CONFIG_FAILED]}" \
-                "Failed to create backup of $target_file"
-            return "${ERROR_CODES[CONFIG_FAILED]}"
+            if command -v report_error >/dev/null 2>&1; then
+                report_error "${ERROR_CODES[CONFIG_FAILED]:-13}" \
+                    "Failed to create backup of $target_file"
+            else
+                safe_log_error "Failed to create backup of $target_file"
+            fi
+            return "${ERROR_CODES[CONFIG_FAILED]:-13}"
         fi
         
         CONFIG_BACKUPS["$target_file"]="$backup_path"
         CONFIG_CHECKSUMS["$target_file"]=$(calculate_checksum "$target_file")
-        log_debug "Created backup: $target_file -> $backup_path"
+        safe_log_debug "Created backup: $target_file -> $backup_path"
     else
         CONFIG_BACKUPS["$target_file"]="NONEXISTENT"
         CONFIG_CHECKSUMS["$target_file"]="new-file"
-        log_debug "Target file doesn't exist: $target_file"
+        safe_log_debug "Target file doesn't exist: $target_file"
     fi
     
     return 0
@@ -117,9 +121,13 @@ stage_config_update() {
     
     # Write content to staging area
     if ! echo "$content" > "$staging_file"; then
-        report_error "${ERROR_CODES[CONFIG_FAILED]}" \
-            "Failed to write staging file: $staging_file"
-        return "${ERROR_CODES[CONFIG_FAILED]}"
+        if command -v report_error >/dev/null 2>&1; then
+            report_error "${ERROR_CODES[CONFIG_FAILED]:-13}" \
+                "Failed to write staging file: $staging_file"
+        else
+            safe_log_error "Failed to write staging file: $staging_file"
+        fi
+        return "${ERROR_CODES[CONFIG_FAILED]:-13}"
     fi
     
     # Set permissions
@@ -127,13 +135,17 @@ stage_config_update() {
     
     # Validate staged content (basic checks)
     if [ ! -s "$staging_file" ]; then
-        report_error "${ERROR_CODES[CONFIG_FAILED]}" \
-            "Staged configuration is empty: $staging_file"
-        return "${ERROR_CODES[CONFIG_FAILED]}"
+        if command -v report_error >/dev/null 2>&1; then
+            report_error "${ERROR_CODES[CONFIG_FAILED]:-13}" \
+                "Staged configuration is empty: $staging_file"
+        else
+            safe_log_error "Staged configuration is empty: $staging_file"
+        fi
+        return "${ERROR_CODES[CONFIG_FAILED]:-13}"
     fi
     
     PENDING_CONFIGS["$target_file"]="$staging_file"
-    log_debug "Staged configuration: $target_file"
+    safe_log_debug "Staged configuration: $target_file"
     
     return 0
 }
@@ -145,25 +157,33 @@ stage_config_file() {
     local mode="${3:-644}"
     
     if [ ! -f "$source_file" ]; then
-        report_error "${ERROR_CODES[CONFIG_FAILED]}" \
-            "Source configuration file not found: $source_file"
-        return "${ERROR_CODES[CONFIG_FAILED]}"
+        if command -v report_error >/dev/null 2>&1; then
+            report_error "${ERROR_CODES[CONFIG_FAILED]:-13}" \
+                "Source configuration file not found: $source_file"
+        else
+            safe_log_error "Source configuration file not found: $source_file"
+        fi
+        return "${ERROR_CODES[CONFIG_FAILED]:-13}"
     fi
     
     local staging_file="$TRANSACTION_DIR/staging/$(basename "$target_file")"
     
     # Copy to staging area
     if ! cp "$source_file" "$staging_file"; then
-        report_error "${ERROR_CODES[CONFIG_FAILED]}" \
-            "Failed to stage configuration file: $source_file"
-        return "${ERROR_CODES[CONFIG_FAILED]}"
+        if command -v report_error >/dev/null 2>&1; then
+            report_error "${ERROR_CODES[CONFIG_FAILED]:-13}" \
+                "Failed to stage configuration file: $source_file"
+        else
+            safe_log_error "Failed to stage configuration file: $source_file"
+        fi
+        return "${ERROR_CODES[CONFIG_FAILED]:-13}"
     fi
     
     # Set permissions
     chmod "$mode" "$staging_file"
     
     PENDING_CONFIGS["$target_file"]="$staging_file"
-    log_debug "Staged configuration file: $source_file -> $target_file"
+    safe_log_debug "Staged configuration file: $source_file -> $target_file"
     
     return 0
 }
@@ -172,7 +192,7 @@ stage_config_file() {
 validate_staged_configs() {
     local validation_errors=()
     
-    log_info "Validating staged configurations..."
+    safe_log_info "Validating staged configurations..."
     
     for target_file in "${!PENDING_CONFIGS[@]}"; do
         local staging_file="${PENDING_CONFIGS[$target_file]}"
@@ -207,18 +227,18 @@ validate_staged_configs() {
             fi
         fi
         
-        log_debug "Validation passed: $target_file"
+        safe_log_debug "Validation passed: $target_file"
     done
     
     if [ ${#validation_errors[@]} -gt 0 ]; then
-        log_error "Configuration validation failed:"
+        safe_log_error "Configuration validation failed:"
         for error in "${validation_errors[@]}"; do
-            log_error "  - $error"
+            safe_log_error "  - $error"
         done
-        return "${ERROR_CODES[VALIDATION_FAILED]}"
+        return "${ERROR_CODES[VALIDATION_FAILED]:-11}"
     fi
     
-    log_info "All staged configurations validated successfully"
+    safe_log_info "All staged configurations validated successfully"
     return 0
 }
 
@@ -226,19 +246,19 @@ validate_staged_configs() {
 commit_config_transaction() {
     local committed_files=()
     
-    log_info "Committing configuration transaction: $TRANSACTION_ID"
+    safe_log_info "Committing configuration transaction: $TRANSACTION_ID"
     
     # First, create backups for all target files
     for target_file in "${!PENDING_CONFIGS[@]}"; do
         if ! create_config_backup "$target_file"; then
-            log_error "Failed to create backup for $target_file, aborting transaction"
+            safe_log_error "Failed to create backup for $target_file, aborting transaction"
             return "${ERROR_CODES[CONFIG_FAILED]}"
         fi
     done
     
     # Validate all staged configurations
     if ! validate_staged_configs; then
-        log_error "Configuration validation failed, aborting transaction"
+        safe_log_error "Configuration validation failed, aborting transaction"
         return "${ERROR_CODES[VALIDATION_FAILED]}"
     fi
     
@@ -246,7 +266,7 @@ commit_config_transaction() {
     for target_file in "${!PENDING_CONFIGS[@]}"; do
         local staging_file="${PENDING_CONFIGS[$target_file]}"
         
-        log_debug "Applying configuration: $staging_file -> $target_file"
+        safe_log_debug "Applying configuration: $staging_file -> $target_file"
         
         # Ensure target directory exists
         local target_dir
@@ -256,17 +276,17 @@ commit_config_transaction() {
         # Atomic move (within same filesystem)
         if mv "$staging_file" "$target_file"; then
             committed_files+=("$target_file")
-            log_debug "Successfully applied: $target_file"
+            safe_log_debug "Successfully applied: $target_file"
         else
-            log_error "Failed to apply configuration: $target_file"
+            safe_log_error "Failed to apply configuration: $target_file"
             # Rollback all committed files so far
             rollback_config_transaction "${committed_files[@]}"
             return "${ERROR_CODES[CONFIG_FAILED]}"
         fi
     done
     
-    log_info "Configuration transaction committed successfully"
-    log_info "Applied ${#committed_files[@]} configuration files"
+    safe_log_info "Configuration transaction committed successfully"
+    safe_log_info "Applied ${#committed_files[@]} configuration files"
     
     return 0
 }
@@ -275,7 +295,7 @@ commit_config_transaction() {
 rollback_config_transaction() {
     local files_to_rollback=("$@")
     
-    log_warn "Rolling back configuration transaction: $TRANSACTION_ID"
+    safe_log_warn "Rolling back configuration transaction: $TRANSACTION_ID"
     
     # If no specific files provided, rollback all pending configs
     if [ ${#files_to_rollback[@]} -eq 0 ]; then
@@ -286,7 +306,7 @@ rollback_config_transaction() {
         local backup_path="${CONFIG_BACKUPS[$target_file]:-}"
         
         if [ -z "$backup_path" ]; then
-            log_warn "No backup found for $target_file"
+            safe_log_warn "No backup found for $target_file"
             continue
         fi
         
@@ -294,26 +314,26 @@ rollback_config_transaction() {
             # File didn't exist before, remove it
             if [ -f "$target_file" ]; then
                 rm -f "$target_file"
-                log_debug "Removed file that didn't exist before: $target_file"
+                safe_log_debug "Removed file that didn't exist before: $target_file"
             fi
         else
             # Restore from backup
             if cp "$backup_path" "$target_file"; then
-                log_debug "Restored from backup: $target_file"
+                safe_log_debug "Restored from backup: $target_file"
             else
-                log_error "Failed to restore backup: $target_file"
+                safe_log_error "Failed to restore backup: $target_file"
             fi
         fi
     done
     
-    log_warn "Configuration rollback completed"
+    safe_log_warn "Configuration rollback completed"
 }
 
 # Clean up configuration transaction
 cleanup_config_transaction() {
     if [ -n "$TRANSACTION_DIR" ] && [ -d "$TRANSACTION_DIR" ]; then
         rm -rf "$TRANSACTION_DIR"
-        log_debug "Cleaned up transaction directory: $TRANSACTION_DIR"
+        safe_log_debug "Cleaned up transaction directory: $TRANSACTION_DIR"
     fi
     
     # Clear transaction state
@@ -337,17 +357,17 @@ safe_config_update() {
     
     # Stage the update
     if ! stage_config_update "$target_file" "$content" "$mode"; then
-        log_error "Failed to stage configuration update for $target_file"
+        safe_log_error "Failed to stage configuration update for $target_file"
         return "${ERROR_CODES[CONFIG_FAILED]}"
     fi
     
     # Commit the single update
     if commit_config_transaction; then
-        log_info "Configuration successfully updated: $target_file"
+        safe_log_info "Configuration successfully updated: $target_file"
         cleanup_config_transaction
         return 0
     else
-        log_error "Configuration update failed for $target_file"
+        safe_log_error "Configuration update failed for $target_file"
         rollback_config_transaction
         cleanup_config_transaction
         return "${ERROR_CODES[CONFIG_FAILED]}"
@@ -358,7 +378,7 @@ safe_config_update() {
 batch_config_update() {
     init_config_transaction
     
-    log_info "Starting batch configuration update"
+    safe_log_info "Starting batch configuration update"
     
     # Stage all updates (this function expects pairs of target_file content)
     while [ $# -gt 1 ]; do
@@ -367,7 +387,7 @@ batch_config_update() {
         shift 2
         
         if ! stage_config_update "$target_file" "$content"; then
-            log_error "Failed to stage batch update for $target_file"
+            safe_log_error "Failed to stage batch update for $target_file"
             cleanup_config_transaction
             return "${ERROR_CODES[CONFIG_FAILED]}"
         fi
@@ -375,11 +395,11 @@ batch_config_update() {
     
     # Commit all updates atomically
     if commit_config_transaction; then
-        log_info "Batch configuration update completed successfully"
+        safe_log_info "Batch configuration update completed successfully"
         cleanup_config_transaction
         return 0
     else
-        log_error "Batch configuration update failed"
+        safe_log_error "Batch configuration update failed"
         rollback_config_transaction
         cleanup_config_transaction
         return "${ERROR_CODES[CONFIG_FAILED]}"
@@ -395,10 +415,10 @@ detect_config_changes() {
     current_checksum=$(calculate_checksum "$target_file")
     
     if [ "$current_checksum" != "$stored_checksum" ]; then
-        log_info "Configuration change detected: $target_file"
+        safe_log_info "Configuration change detected: $target_file"
         return 0  # Changed
     else
-        log_debug "No change detected: $target_file"
+        safe_log_debug "No change detected: $target_file"
         return 1  # Unchanged
     fi
 }
