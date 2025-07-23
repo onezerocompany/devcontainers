@@ -66,6 +66,12 @@ log_info "Installing Common Utilities for user: ${USERNAME}"
 # APT PACKAGES
 # ========================================
 
+# Create temporary policy-rc.d to prevent service restarts during package installation
+# This prevents "policy-rc.d denied execution" and dbus/systemd related errors
+echo '#!/bin/sh
+exit 101' > /usr/sbin/policy-rc.d
+chmod +x /usr/sbin/policy-rc.d
+
 installation_step "apt_update" "Updating package repositories" \
     network_operation "apt_update" apt-get update
 
@@ -157,6 +163,9 @@ if [ "${INSTALL_UTILITIES_BUNDLE}" = "true" ]; then
     installation_step "utilities_bundle" "Installing utilities bundle" \
         install_utilities_bundle "$INSTALL_BUILD_TOOLS" "$INSTALL_GITHUB_CLI" || log_warn "Utilities bundle had errors"
 fi
+
+# Remove the temporary policy-rc.d after all package installations are complete
+rm -f /usr/sbin/policy-rc.d
 
 # ========================================
 # INSTALL SHIM SCRIPTS

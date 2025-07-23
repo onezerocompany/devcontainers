@@ -148,5 +148,20 @@
         "motdNotice": "Path test: ../../../etc/passwd"
       }
     }
+  },
+  "apt-fix-validation": {
+    "image": "ghcr.io/onezerocompany/base:latest",
+    "features": {
+      "common-utils": {
+        "starship": false,
+        "zoxide": false,
+        "eza": false,
+        "bat": false,
+        "webDev": false,
+        "networking": false,
+        "utilities": false,
+        "motd": false
+      }
+    }
   }
 }
