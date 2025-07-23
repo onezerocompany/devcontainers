@@ -247,11 +247,17 @@ configure_user_shells() {
     safe_log_info "Configuring shells for user: $user"
     
     # Initialize atomic configuration transaction with fallback
-    if ! init_config_transaction; then
-        safe_log_warn "Atomic configuration failed, using direct configuration approach"
-        configure_user_shells_direct "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd"
-        return $?
-    fi
+    # Temporarily disable atomic configuration to troubleshoot prebuild issues
+    safe_log_warn "Using direct configuration approach (atomic config temporarily disabled)"
+    configure_user_shells_direct "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd"
+    return $?
+    
+    # Original atomic config code (disabled for now)
+    # if ! init_config_transaction; then
+    #     safe_log_warn "Atomic configuration failed, using direct configuration approach"
+    #     configure_user_shells_direct "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd"
+    #     return $?
+    # fi
     
     # Check for existing files
     safe_log_debug "Checking for existing shell configurations..."
