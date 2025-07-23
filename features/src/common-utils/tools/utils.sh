@@ -195,6 +195,45 @@ cleanup_tmp_config_files() {
 }
 
 
+# Direct (non-atomic) shell configuration fallback
+configure_user_shells_direct() {
+    local user=$1
+    local home_dir=$2
+    local install_starship=$3
+    local install_zoxide=$4
+    local install_eza=$5
+    local install_bat=$6
+    local install_motd=$7
+    
+    log_info "Using direct configuration for user: $user"
+    
+    # Ensure shell files exist
+    touch "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv"
+    
+    # Append configurations directly without atomic transaction
+    if [ -n "$TMP_BASHRC" ] && [ -f "$TMP_BASHRC" ]; then
+        cat "$TMP_BASHRC" >> "$home_dir/.bashrc"
+    fi
+    
+    if [ -n "$TMP_BASH_PROFILE" ] && [ -f "$TMP_BASH_PROFILE" ]; then
+        cat "$TMP_BASH_PROFILE" >> "$home_dir/.bash_profile"
+    fi
+    
+    if [ -n "$TMP_ZSHRC" ] && [ -f "$TMP_ZSHRC" ]; then
+        cat "$TMP_ZSHRC" >> "$home_dir/.zshrc"
+    fi
+    
+    if [ -n "$TMP_ZSHENV" ] && [ -f "$TMP_ZSHENV" ]; then
+        cat "$TMP_ZSHENV" >> "$home_dir/.zshenv"
+    fi
+    
+    # Fix ownership
+    chown -R "$user:$(id -gn "$user" 2>/dev/null || echo "$user")" "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv" 2>/dev/null || true
+    
+    log_info "Direct configuration completed for user: $user"
+    return 0
+}
+
 # Configure shell files for a user using tmp files - ATOMIC VERSION
 configure_user_shells() {
     local user=$1
@@ -207,8 +246,12 @@ configure_user_shells() {
     
     log_info "Configuring shells for user: $user"
     
-    # Initialize atomic configuration transaction
-    init_config_transaction
+    # Initialize atomic configuration transaction with fallback
+    if ! init_config_transaction; then
+        log_warn "Atomic configuration failed, using direct configuration approach"
+        configure_user_shells_direct "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd"
+        return $?
+    fi
     
     # Check for existing files
     log_debug "Checking for existing shell configurations..."

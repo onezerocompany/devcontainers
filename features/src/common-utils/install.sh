@@ -62,18 +62,6 @@ fi
 log_info "Installing Common Utilities for user: ${USERNAME}"
 
 # ========================================
-# DEPENDENCY AND SYSTEM CHECKS
-# ========================================
-
-installation_step "system_checks" "Performing system compatibility checks" \
-    check_dependencies "curl" "wget" "apt-get"
-
-installation_step "disk_space_check" "Checking available disk space" \
-    check_disk_space 512  # Require 512MB free space
-
-installation_step "permission_check" "Checking system permissions" \
-    check_permissions "/usr/local/bin" "w"
-
 # ========================================
 # APT PACKAGES
 # ========================================
@@ -92,6 +80,19 @@ fi
 
 installation_step "base_packages" "Installing base packages: $BASE_PACKAGES" \
     apt-get install -y $BASE_PACKAGES
+
+# ========================================
+# DEPENDENCY AND SYSTEM CHECKS
+# ========================================
+
+installation_step "system_checks" "Performing system compatibility checks" \
+    check_dependencies "curl" "wget" "apt-get"
+
+installation_step "disk_space_check" "Checking available disk space" \
+    check_disk_space 512  # Require 512MB free space
+
+installation_step "permission_check" "Checking system permissions" \
+    check_permissions "/usr/local/bin" "w"
 
 # ========================================
 # MODERN CLI TOOLS INSTALLATION

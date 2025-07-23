@@ -2,7 +2,7 @@
 # Atomic Configuration Management for Common Utils Feature
 # Provides safe, atomic configuration updates with rollback capability
 
-set -euo pipefail
+set -e
 
 # Configuration management state
 declare -A PENDING_CONFIGS=()
@@ -22,8 +22,23 @@ init_config_transaction() {
     log_info "Configuration transaction started: $TRANSACTION_ID"
     log_debug "Transaction directory: $TRANSACTION_DIR"
     
+    # Debug: verify directories were created successfully
+    if [ ! -d "$TRANSACTION_DIR/backups" ]; then
+        log_error "Failed to create backups directory: $TRANSACTION_DIR/backups"
+        return 1
+    fi
+    if [ ! -d "$TRANSACTION_DIR/staging" ]; then
+        log_error "Failed to create staging directory: $TRANSACTION_DIR/staging"
+        return 1
+    fi
+    log_debug "Transaction directories verified successfully"
+    
     # Track temp directory for cleanup
-    TEMP_DIRS="${TEMP_DIRS:-} $TRANSACTION_DIR"
+    if [ -z "${TEMP_DIRS:-}" ]; then
+        TEMP_DIRS="$TRANSACTION_DIR"
+    else
+        TEMP_DIRS="$TEMP_DIRS $TRANSACTION_DIR"
+    fi
 }
 
 # Calculate file checksum for change detection
