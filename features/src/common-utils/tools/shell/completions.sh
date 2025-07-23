@@ -29,7 +29,11 @@ setup_completion_directories() {
     
     # Create completion directories
     mkdir -p "${USER_HOME}/.local/share/bash-completion/completions"
-    mkdir -p "${USER_HOME}/.local/share/zsh/site-functions"
+    
+    # Only create zsh directories if zsh is enabled
+    if [ "${ZSH:-true}" = "true" ]; then
+        mkdir -p "${USER_HOME}/.local/share/zsh/site-functions"
+    fi
     
     # Set ownership if not root
     if [ "$USER_NAME" != "root" ]; then
@@ -47,28 +51,36 @@ setup_tool_completions() {
     # Setup GitHub CLI completions
     if command -v gh >/dev/null 2>&1; then
         gh completion -s bash > "${USER_HOME}/.local/share/bash-completion/completions/gh" 2>/dev/null || true
-        gh completion -s zsh > "${USER_HOME}/.local/share/zsh/site-functions/_gh" 2>/dev/null || true
+        if [ "${ZSH:-true}" = "true" ]; then
+            gh completion -s zsh > "${USER_HOME}/.local/share/zsh/site-functions/_gh" 2>/dev/null || true
+        fi
         echo "    ✓ GitHub CLI completions configured"
     fi
     
     # Setup GitLab CLI completions
     if command -v glab >/dev/null 2>&1; then
         glab completion -s bash > "${USER_HOME}/.local/share/bash-completion/completions/glab" 2>/dev/null || true
-        glab completion -s zsh > "${USER_HOME}/.local/share/zsh/site-functions/_glab" 2>/dev/null || true
+        if [ "${ZSH:-true}" = "true" ]; then
+            glab completion -s zsh > "${USER_HOME}/.local/share/zsh/site-functions/_glab" 2>/dev/null || true
+        fi
         echo "    ✓ GitLab CLI completions configured"
     fi
     
     # Setup Docker completions
     if command -v docker >/dev/null 2>&1; then
         docker completion bash > "${USER_HOME}/.local/share/bash-completion/completions/docker" 2>/dev/null || true
-        docker completion zsh > "${USER_HOME}/.local/share/zsh/site-functions/_docker" 2>/dev/null || true
+        if [ "${ZSH:-true}" = "true" ]; then
+            docker completion zsh > "${USER_HOME}/.local/share/zsh/site-functions/_docker" 2>/dev/null || true
+        fi
         echo "    ✓ Docker completions configured"
     fi
     
     # Setup Docker Compose completions
     if command -v docker-compose >/dev/null 2>&1; then
         docker-compose completion bash > "${USER_HOME}/.local/share/bash-completion/completions/docker-compose" 2>/dev/null || true
-        docker-compose completion zsh > "${USER_HOME}/.local/share/zsh/site-functions/_docker-compose" 2>/dev/null || true
+        if [ "${ZSH:-true}" = "true" ]; then
+            docker-compose completion zsh > "${USER_HOME}/.local/share/zsh/site-functions/_docker-compose" 2>/dev/null || true
+        fi
         echo "    ✓ Docker Compose completions configured"
     fi
     

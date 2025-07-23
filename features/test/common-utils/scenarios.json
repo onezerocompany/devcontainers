@@ -68,12 +68,18 @@
         "networkingBundle": false,
         "kubernetesBundle": false,
         "webDevBundle": false,
+        "dataProcessingBundle": false,
+        "developmentBundle": false,
+        "containersBundle": false,
         "bat": true,
         "eza": true,
         "starship": true,
         "jq": true,
         "kubectl": true,
-        "httpie": true
+        "httpie": true,
+        "fd": false,
+        "ripgrep": false,
+        "zoxide": false
       }
     }
   },

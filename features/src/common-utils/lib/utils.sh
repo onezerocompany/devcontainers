@@ -398,6 +398,11 @@ generate_config() {
     
     # Process each shell and config type
     for shell in bash zsh; do
+        # Skip zsh if not installing zsh
+        if [ "$shell" = "zsh" ] && [ "${ZSH:-true}" != "true" ]; then
+            echo "  ⏭️  Skipping zsh configuration (zsh installation disabled)"
+            continue
+        fi
         if [ -d "$CONFIG_ROOT/$shell" ]; then
             echo "  📁 Processing $shell configurations..."
             
