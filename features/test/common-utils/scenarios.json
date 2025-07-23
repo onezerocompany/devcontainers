@@ -1,152 +1,86 @@
 {
   "default": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
-      "common-utils": {}
-    }
-  },
-  "bash-shell": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "defaultShell": "bash"
-      }
+      "ghcr.io/onezerocompany/features/common-utils:latest": {}
     }
   },
   "minimal": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
-      "common-utils": {
-        "starship": false,
-        "zoxide": false,
-        "eza": false,
-        "webDev": false,
-        "utilities": false
+      "ghcr.io/onezerocompany/features/common-utils:latest": {
+        "shellBundle": false,
+        "utilitiesBundle": false,
+        "networkingBundle": false,
+        "kubernetesBundle": false,
+        "webDevBundle": false,
+        "dataProcessingBundle": false,
+        "developmentBundle": false,
+        "containersBundle": false
       }
     }
   },
-  "no-root-config": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+  "shell-only": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
-      "common-utils": {
-        "configureForRoot": false
+      "ghcr.io/onezerocompany/features/common-utils:latest": {
+        "shellBundle": true,
+        "utilitiesBundle": false,
+        "networkingBundle": false,
+        "kubernetesBundle": false,
+        "webDevBundle": false,
+        "dataProcessingBundle": false,
+        "developmentBundle": false,
+        "containersBundle": false
       }
     }
   },
-  "kubernetes-bundle": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+  "all-bundles": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
-      "common-utils": {
-        "kubernetes": true
+      "ghcr.io/onezerocompany/features/common-utils:latest": {
+        "shellBundle": true,
+        "utilitiesBundle": true,
+        "networkingBundle": true,
+        "kubernetesBundle": true,
+        "webDevBundle": true,
+        "dataProcessingBundle": true,
+        "developmentBundle": true,
+        "containersBundle": true
       }
     }
   },
-  "bundles-only": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+  "bash-shell": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
-      "common-utils": {
-        "starship": false,
-        "zoxide": false,
-        "eza": false,
-        "bat": false,
-        "webDev": true,
-        "networking": true,
-        "utilities": true
+      "ghcr.io/onezerocompany/features/common-utils:latest": {
+        "defaultShell": "bash",
+        "zsh": false
       }
     }
   },
-  "security-focused": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+  "individual-tools": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
-      "common-utils": {
-        "buildTools": false,
-        "networking": true
+      "ghcr.io/onezerocompany/features/common-utils:latest": {
+        "shellBundle": false,
+        "utilitiesBundle": false,
+        "networkingBundle": false,
+        "kubernetesBundle": false,
+        "webDevBundle": false,
+        "bat": true,
+        "eza": true,
+        "starship": true,
+        "jq": true,
+        "kubectl": true,
+        "httpie": true
       }
     }
   },
-  "custom-motd": {
-    "image": "ghcr.io/onezerocompany/base:latest",
+  "debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
     "features": {
-      "common-utils": {
-        "motdLogo": "dev",
-        "motdInstructions": "Run 'npm start' to begin development\nUse 'npm test' to run tests",
-        "motdNotice": "Development environment - not for production use",
-        "shims": false,
-        "completions": false
-      }
-    }
-  },
-  "docker-motd": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "motdLogo": "docker",
-        "motdInstructions": "Docker commands available: docker, docker-compose"
-      }
-    }
-  },
-  "no-motd": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "motd": false
-      }
-    }
-  },
-  "config-system": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {}
-    }
-  },
-  "minimal-config": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "starship": false,
-        "zoxide": false,
-        "eza": false,
-        "webDev": false,
-        "utilities": false
-      }
-    }
-  },
-  "base-image-compat": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {}
-    }
-  },
-  "regression-fixes": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "webDev": false,
-        "databaseClients": false,
-        "githubCli": false,
-        "buildTools": true,
-        "motdLogo": "custom test logo $HOME && `whoami`",
-        "motdInstructions": "Test instructions with special chars: $USER, `pwd`, 'quotes'",
-        "motdNotice": "Notice with shell metacharacters: $(echo test) & background"
-      }
-    }
-  },
-  "edge-cases": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "defaultShell": "zsh"
-      }
-    }
-  },
-  "security-hardening": {
-    "image": "ghcr.io/onezerocompany/base:latest",
-    "features": {
-      "common-utils": {
-        "motdLogo": "Test $PATH & $(whoami) 'quotes' `commands`",
-        "motdInstructions": "Injection test: $(echo malicious) & background",
-        "motdNotice": "Path test: ../../../etc/passwd"
-      }
+      "ghcr.io/onezerocompany/features/common-utils:latest": {}
     }
   }
 }

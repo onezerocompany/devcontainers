@@ -1,99 +1,104 @@
 #!/bin/bash
 set -e
 
-# ========================================
-# SHELL COMPLETIONS SETUP
-# ========================================
+# Source utils functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../lib/utils.sh"
 
-echo "🔧 Setting up shell completions..."
+install_completions() {
+    local INSTALL_COMPLETIONS=${1:-true}
 
-# Function to setup completions for a user
-setup_completions_for_user() {
-    local user_home="$1"
-    local username="$2"
+    if [ "$INSTALL_COMPLETIONS" != "true" ]; then
+        echo "  ⚠️  Shell completions installation skipped"
+        return 0
+    fi
+
+    echo "🔧 Installing shell completions..."
+
+    # Always setup completion directories and completions
+    setup_completion_directories
+    setup_tool_completions
+    setup_completion_loading
+}
+
+setup_completion_directories() {
+    echo "  🔧 Setting up completion directories..."
     
-    echo "  Setting up completions for $username..."
+    local USER_NAME=$(username)
+    local USER_HOME=$(user_home)
     
     # Create completion directories
-    mkdir -p "$user_home/.local/share/bash-completion/completions"
-    mkdir -p "$user_home/.local/share/zsh/site-functions"
+    mkdir -p "${USER_HOME}/.local/share/bash-completion/completions"
+    mkdir -p "${USER_HOME}/.local/share/zsh/site-functions"
+    
+    # Set ownership if not root
+    if [ "$USER_NAME" != "root" ]; then
+        chown -R "$USER_NAME:$USER_NAME" "${USER_HOME}/.local" 2>/dev/null || true
+    fi
+    
+    echo "  ✓ Completion directories created"
+}
+
+setup_tool_completions() {
+    echo "  🔧 Setting up tool completions..."
+    
+    local USER_HOME=$(user_home)
     
     # Setup GitHub CLI completions
     if command -v gh >/dev/null 2>&1; then
-        gh completion -s bash > "$user_home/.local/share/bash-completion/completions/gh" 2>/dev/null || true
-        gh completion -s zsh > "$user_home/.local/share/zsh/site-functions/_gh" 2>/dev/null || true
+        gh completion -s bash > "${USER_HOME}/.local/share/bash-completion/completions/gh" 2>/dev/null || true
+        gh completion -s zsh > "${USER_HOME}/.local/share/zsh/site-functions/_gh" 2>/dev/null || true
+        echo "    ✓ GitHub CLI completions configured"
     fi
     
     # Setup GitLab CLI completions
     if command -v glab >/dev/null 2>&1; then
-        glab completion -s bash > "$user_home/.local/share/bash-completion/completions/glab" 2>/dev/null || true
-        glab completion -s zsh > "$user_home/.local/share/zsh/site-functions/_glab" 2>/dev/null || true
+        glab completion -s bash > "${USER_HOME}/.local/share/bash-completion/completions/glab" 2>/dev/null || true
+        glab completion -s zsh > "${USER_HOME}/.local/share/zsh/site-functions/_glab" 2>/dev/null || true
+        echo "    ✓ GitLab CLI completions configured"
     fi
     
     # Setup Docker completions
     if command -v docker >/dev/null 2>&1; then
-        docker completion bash > "$user_home/.local/share/bash-completion/completions/docker" 2>/dev/null || true
-        docker completion zsh > "$user_home/.local/share/zsh/site-functions/_docker" 2>/dev/null || true
+        docker completion bash > "${USER_HOME}/.local/share/bash-completion/completions/docker" 2>/dev/null || true
+        docker completion zsh > "${USER_HOME}/.local/share/zsh/site-functions/_docker" 2>/dev/null || true
+        echo "    ✓ Docker completions configured"
     fi
     
     # Setup Docker Compose completions
     if command -v docker-compose >/dev/null 2>&1; then
-        docker-compose completion bash > "$user_home/.local/share/bash-completion/completions/docker-compose" 2>/dev/null || true
-        docker-compose completion zsh > "$user_home/.local/share/zsh/site-functions/_docker-compose" 2>/dev/null || true
+        docker-compose completion bash > "${USER_HOME}/.local/share/bash-completion/completions/docker-compose" 2>/dev/null || true
+        docker-compose completion zsh > "${USER_HOME}/.local/share/zsh/site-functions/_docker-compose" 2>/dev/null || true
+        echo "    ✓ Docker Compose completions configured"
     fi
     
-    # Add completion configurations to temporary files
+    echo "  ✓ Tool completions configured"
+}
+
+setup_completion_loading() {
+    echo "  🔧 Setting up completion loading..."
     
-    # Define temporary file paths (consistent with utils.sh)
-    local TMP_BASHRC="/tmp/tmp_bashrc"
-    local TMP_ZSHRC="/tmp/tmp_zshrc"
-    
-    # Zsh completion configuration
-    local zsh_completion_content=$(cat << 'EOF'
-# Add local completion directories to fpath
-fpath=($HOME/.local/share/zsh/site-functions $fpath)
-EOF
-)
-    
-    # Bash completion configuration
-    local bash_completion_content=$(cat << 'EOF'
-# Add local bash completions
-if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
-    for completion in "$HOME/.local/share/bash-completion/completions"/*; do
-        [ -r "$completion" ] && source "$completion"
-    done
-fi
-EOF
-)
-    
-    # Add to temporary files
-    echo "" >> "$TMP_ZSHRC"
-    echo "$zsh_completion_content" >> "$TMP_ZSHRC"
-    echo "" >> "$TMP_ZSHRC"
-    
-    echo "" >> "$TMP_BASHRC"
-    echo "$bash_completion_content" >> "$TMP_BASHRC"
-    echo "" >> "$TMP_BASHRC"
-    
-    # Set proper ownership
-    if [ "$username" != "root" ]; then
-        chown -R "$username:$username" "$user_home/.local" 2>/dev/null || true
+    # Add completion loading configuration
+    add_config "shared" "rc" "$(cat << 'EOF'
+# Local shell completions setup
+if [ "%SHELL%" = "zsh" ]; then
+    # Add local completion directories to fpath for zsh
+    fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
+else
+    # Add local bash completions
+    if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
+        for completion in "$HOME/.local/share/bash-completion/completions"/*; do
+            [ -r "$completion" ] && source "$completion"
+        done
     fi
-    
-    echo "    ✓ Completions configured for $username"
-}
-
-# Get completions setup content for template replacement
-get_completions_setup() {
-    cat << 'EOF'
-# Custom completions setup
-fpath=($HOME/.local/share/zsh/site-functions $fpath)
-if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
-    for completion in "$HOME/.local/share/bash-completion/completions"/*; do
-        [ -r "$completion" ] && source "$completion"
-    done
 fi
 EOF
+)"
+    
+    echo "  ✓ Completion loading configured"
 }
 
-echo "✓ Shell completions setup completed"
+# Run installation with environment variables
+INSTALL_COMPLETIONS=${COMPLETIONS_INSTALL:-true}
+
+install_completions "$INSTALL_COMPLETIONS"

@@ -3,71 +3,106 @@ set -e
 
 # Source utils functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../utils.sh"
+source "${SCRIPT_DIR}/../../lib/utils.sh"
 
-# ========================================
-# BAT INSTALLATION
-# ========================================
+install_bat() {
+    local INSTALL_BAT=${1:-true}
+    local BAT_VERSION=${2:-"latest"}
 
-echo "🦇 Installing bat (modern cat)..."
-BAT_VERSION="0.24.0"
-ARCH=$(get_architecture)
-case $ARCH in
-    amd64) BAT_ARCH="x86_64" ;;
-    arm64) BAT_ARCH="aarch64" ;;
-    *) echo "Unsupported architecture for bat: $ARCH"; echo "  ⚠️  Skipping bat installation"; exit 0 ;;
-esac
-BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_${ARCH}.deb"
-echo "  Downloading bat from: $BAT_URL"
-if curl -fsSL "$BAT_URL" -o /tmp/bat.deb; then
-    if dpkg -i /tmp/bat.deb || apt-get install -f -y; then
-        echo "  ✓ bat installed successfully"
-    else
-        echo "  ⚠️  Failed to install bat package"
+    if [ "$INSTALL_BAT" != "true" ]; then
+        echo "  ⚠️  bat installation skipped"
+        return 0
     fi
-    rm -f /tmp/bat.deb
+
+    echo "🦇 Installing bat (modern cat)..."
+
+    # Get architecture
+    local ARCH=$(uname -m)
+    case $ARCH in
+        x86_64) ARCH="amd64" ;;
+        aarch64|arm64) ARCH="arm64" ;;
+        *) echo "  ⚠️  Unsupported architecture: $ARCH"; return 1 ;;
+    esac
+
+    # Get latest version if not specified
+    if [ "$BAT_VERSION" = "latest" ]; then
+        echo "  🔍 Fetching latest bat version..."
+        BAT_VERSION=$(get_latest_github_release "sharkdp/bat")
+        if [ -z "$BAT_VERSION" ]; then
+            echo "  ⚠️  Failed to fetch latest version, using fallback"
+            BAT_VERSION="0.24.0"
+        else
+            echo "  📋 Latest version: $BAT_VERSION"
+        fi
+    fi
+
+    # Download and install bat
+    local BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_${ARCH}.deb"
+    
+    echo "  📥 Downloading bat from: $BAT_URL"
+    if curl -fsSL "$BAT_URL" -o /tmp/bat.deb; then
+        if dpkg -i /tmp/bat.deb || apt-get install -f -y; then
+            echo "  ✓ bat v${BAT_VERSION} installed successfully"
+        else
+            echo "  ⚠️  Failed to install bat package"
+            rm -f /tmp/bat.deb
+            return 1
+        fi
+        rm -f /tmp/bat.deb
+    else
+        echo "  ⚠️  Failed to download bat"
+        rm -f /tmp/bat.deb
+        return 1
+    fi
+
+    # Always setup aliases and config
+    setup_bat_aliases
+    setup_bat_config
+}
+
+setup_bat_aliases() {
+    echo "  🔧 Setting up bat aliases..."
+    
+    # Replace cat with bat for better syntax highlighting
+    add_alias "bat" "cat" "bat --paging=never"
+    add_alias "bat" "ccat" "bat --paging=never --color=always"
+    add_alias "bat" "less" "bat --paging=always"
+    
+    echo "  ✓ bat aliases configured"
+}
+
+setup_bat_config() {
+    echo "  🔧 Setting up bat configuration..."
+    
+    local USER_NAME=$(username)
+    local USER_HOME=$(user_home)
+    
+    # Create bat config directory
+    local BAT_CONFIG_DIR="${USER_HOME}/.config/bat"
+    mkdir -p "$BAT_CONFIG_DIR"
+    
+    # Create bat configuration
+    cat > "${BAT_CONFIG_DIR}/config" << 'EOF'
+# bat configuration
+--theme="OneHalfDark"
+--style="numbers,changes,header"
+--wrap="auto"
+--pager="less -FR"
+EOF
+
+    # Set ownership if not root
+    if [ "$USER_NAME" != "root" ]; then
+        chown -R "$USER_NAME:$USER_NAME" "$BAT_CONFIG_DIR"
+    fi
+    
+    echo "  ✓ bat configuration created at ${BAT_CONFIG_DIR}/config"
+}
+
+# Check if bat should be installed (individual option or shell bundle)
+if should_install_tool "BAT" "SHELLBUNDLE"; then
+    # Run installation
+    BAT_VERSION=${BAT_VERSION:-"latest"}
+    install_bat "true" "$BAT_VERSION"
 else
-    echo "  ⚠️  Failed to download bat, skipping"
-    rm -f /tmp/bat.deb
-fi
-
-# ========================================
-# BAT CONFIGURATION
-# ========================================
-
-# Function to add bat aliases to temporary config files
-configure_bat_aliases() {
-    # Define temporary file paths (consistent with utils.sh)
-    local TMP_BASHRC="/tmp/tmp_bashrc"
-    local TMP_ZSHRC="/tmp/tmp_zshrc"
-    
-    # Define bat alias content
-    local bat_content=$(cat << 'EOF'
-# Bat alias (modern cat)
-alias cat='bat --paging=never'
-EOF
-)
-    
-    # Append to both bash and zsh tmp files
-    echo "" >> "$TMP_BASHRC"
-    echo "$bat_content" >> "$TMP_BASHRC"
-    echo "" >> "$TMP_BASHRC"
-    
-    echo "" >> "$TMP_ZSHRC"
-    echo "$bat_content" >> "$TMP_ZSHRC"
-    echo "" >> "$TMP_ZSHRC"
-}
-
-# Get bat aliases content for template replacement
-get_bat_aliases() {
-    cat << 'EOF'
-# Bat alias (modern cat)
-alias cat='bat --paging=never'
-EOF
-}
-
-# Configure bat aliases when script runs
-if command -v bat >/dev/null 2>&1; then
-    echo "  Writing bat aliases to temporary files..."
-    configure_bat_aliases
+    echo "  ⏭️  Skipping bat installation (disabled)"
 fi

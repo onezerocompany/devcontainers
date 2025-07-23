@@ -1,8 +1,8 @@
 {
   "id": "common-utils",
   "name": "Common Utilities",
-  "version": "1.2.9",
-  "description": "Comprehensive development utilities with modern CLI tools, shell configurations, and customizable tool bundles. Includes modern shell tools (starship, zoxide, eza, bat), web development tools, networking utilities, Kubernetes tools, and system utilities with granular configuration options.",
+  "version": "1.3.1",
+  "description": "Comprehensive development utilities with modern CLI tools, shell configurations, and customizable tool bundles. Features both bundle-level and individual tool-level control for maximum flexibility.",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/common-utils",
   "options": {
     "zsh": {
@@ -12,99 +12,232 @@
     },
     "defaultShell": {
       "type": "string",
-      "enum": ["zsh", "bash"],
+      "enum": [
+        "zsh",
+        "bash"
+      ],
       "default": "zsh",
       "description": "Default shell to set for the user"
     },
-    "starship": {
+    "shellBundle": {
       "type": "boolean",
       "default": true,
-      "description": "Install Starship cross-shell prompt"
+      "description": "Install shell enhancement bundle (starship, bat, eza, zoxide, fd, ripgrep)"
     },
-    "zoxide": {
+    "utilitiesBundle": {
       "type": "boolean",
       "default": true,
-      "description": "Install zoxide (smarter cd command)"
+      "description": "Install core utilities bundle (curl, wget, zip, tree, htop, etc.)"
     },
-    "eza": {
+    "networkingBundle": {
       "type": "boolean",
       "default": true,
-      "description": "Install eza (modern ls replacement)"
+      "description": "Install networking tools bundle (nmap, netcat, tcpdump, etc.)"
+    },
+    "kubernetesBundle": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Kubernetes tools bundle (kubectl, helm, k9s, kustomize, etc.)"
+    },
+    "webDevBundle": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install web development bundle (httpie, nginx, database clients)"
+    },
+    "dataProcessingBundle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install data processing bundle (jq, yq, dasel, miller, csvkit)"
+    },
+    "developmentBundle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install development tools bundle (git extras, gh, glab, build tools, task runners)"
+    },
+    "containersBundle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install container tools bundle (podman, buildah, crane, dive, trivy)"
     },
     "bat": {
       "type": "boolean",
       "default": true,
-      "description": "Install bat (modern cat with syntax highlighting)"
+      "description": "Install bat (syntax highlighting cat)"
     },
-    "networking": {
+    "eza": {
+      "type": "boolean", 
+      "default": true,
+      "description": "Install eza (modern ls)"
+    },
+    "zoxide": {
       "type": "boolean",
       "default": true,
-      "description": "Install networking bundle (ssh, nmap, curl, wget, iperf3, tcpdump, network tools)"
+      "description": "Install zoxide (smart directory navigation)"
     },
-    "webDev": {
+    "starship": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install starship (cross-shell prompt)"
+    },
+    "fd": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install fd (modern find)"
+    },
+    "ripgrep": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install ripgrep (modern grep)"
+    },
+    "kubectl": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install kubectl (Kubernetes CLI)"
+    },
+    "k9s": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install k9s (Kubernetes TUI)"
+    },
+    "helm": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install helm (Kubernetes package manager)"
+    },
+    "kustomize": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install kustomize (Kubernetes config management)"
+    },
+    "flux": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install flux (GitOps toolkit)"
+    },
+    "kind": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install kind (Kubernetes in Docker)"
+    },
+    "httpie": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install HTTPie (HTTP client)"
+    },
+    "nginx": {
       "type": "boolean",
       "default": false,
-      "description": "Install web development bundle (httpie, jq, yq, dasel, gron, miller, hq, config tools)"
-    },
-    "kubernetes": {
-      "type": "boolean",
-      "default": false,
-      "description": "Install Kubernetes bundle (kubectl, k9s, helm, flux, kustomize)"
-    },
-    "utilities": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install utilities bundle (git, fd, ripgrep, database clients, system tools)"
-    },
-    "configureForRoot": {
-      "type": "boolean",
-      "default": true,
-      "description": "Also configure shells for root user"
-    },
-    "completions": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install shell completions for CLI tools"
-    },
-    "motd": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install custom Message of the Day (MOTD)"
-    },
-    "motdLogo": {
-      "type": "string",
-      "default": "onezero",
-      "description": "MOTD logo/banner - 'onezero' for default, 'none' to disable, or custom ASCII art"
-    },
-    "motdInstructions": {
-      "type": "string",
-      "default": "",
-      "description": "Custom instructions to display in MOTD (e.g., 'Run npm start to begin development')"
-    },
-    "motdNotice": {
-      "type": "string",
-      "default": "",
-      "description": "Custom notice/warning to display in MOTD (e.g., 'Development environment - not for production')"
-    },
-    "shims": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install shim scripts (code, systemctl, devcontainer-info)"
-    },
-    "buildTools": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install build tools (build-essential, cmake, pkg-config) in utilities bundle"
+      "description": "Install nginx web server"
     },
     "databaseClients": {
       "type": "boolean",
+      "default": true,
+      "description": "Install database clients (postgresql-client, redis-tools)"
+    },
+    "jq": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install jq (JSON processor)"
+    },
+    "yq": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install yq (YAML processor)"
+    },
+    "dasel": {
+      "type": "boolean",
       "default": false,
-      "description": "Install database clients (postgresql, sqlite3, redis) in web-dev bundle"
+      "description": "Install dasel (multi-format data processor)"
+    },
+    "miller": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install miller (data processing)"
+    },
+    "gitExtras": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install git extras"
     },
     "githubCli": {
       "type": "boolean",
       "default": false,
-      "description": "Install GitHub CLI tools (gh, glab) in utilities bundle"
+      "description": "Install GitHub CLI (gh)"
+    },
+    "gitlabCli": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install GitLab CLI (glab)"
+    },
+    "buildEssentials": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install build essentials (build-essential, cmake)"
+    },
+    "taskRunner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install task runner"
+    },
+    "justRunner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install just command runner"
+    },
+    "dockerCompose": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Docker Compose"
+    },
+    "crane": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install crane (container registry tool)"
+    },
+    "podman": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install podman (container runtime)"
+    },
+    "buildah": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install buildah (container image builder)"
+    },
+    "trivy": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install trivy (security scanner)"
+    },
+    "dive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install dive (container image analyzer)"
+    },
+    "sshClient": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install SSH client"
+    },
+    "nmap": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install nmap (network scanner)"
+    },
+    "dnsTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install DNS tools (dig, nslookup, whois)"
+    },
+    "networkDebug": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install network debugging tools (netcat, tcpdump, traceroute, etc.)"
+    },
+    "fileTransfer": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install file transfer tools (rsync, wget, curl)"
     }
   }
 }

@@ -112,10 +112,9 @@ EOF
 }
 
 # Check if starship should be installed (individual option or shell bundle)
-if ! should_install_tool "STARSHIP" "SHELLBUNDLE"; then
+if should_install_tool "STARSHIP" "SHELLBUNDLE"; then
+    # Run installation
+    install_starship "true"
+else
     echo "  ⏭️  Skipping starship installation (disabled)"
-    return 0
 fi
-
-# Run installation
-install_starship "true"

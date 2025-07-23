@@ -67,16 +67,6 @@ should_install_tool() {
     fi
   fi
   
-  # Debug output for troubleshooting
-  echo "🔍 DEBUG should_install_tool:" >&2
-  echo "  Tool: $tool_name" >&2
-  echo "  Bundle: $bundle_name" >&2
-  echo "  Tool setting: '$tool_setting'" >&2
-  echo "  Bundle setting: '$bundle_setting'" >&2
-  echo "  Tool env var value: '${!tool_name:-}'" >&2
-  echo "  Bundle env var value: '${!bundle_name:-}'" >&2
-  echo "  All environment variables matching pattern:" >&2
-  env | grep -E "^(SHELL|UTILITIES|NETWORKING|KUBERNETES|WEBDEV|DATAPROCESSING|DEVELOPMENT|CONTAINERS|STARSHIP|BAT|EZA|ZOXIDE|FD|RIPGREP).*=" | sort >&2
   
   # Tool should install if:
   # 1. Individual tool option is explicitly "true", OR

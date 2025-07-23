@@ -1,21 +1,43 @@
 #!/bin/bash
 set -e
 
-# ========================================
-# MOTD CONFIGURATION
-# ========================================
+# Source utils functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../lib/utils.sh"
 
-# Function to install MOTD script
 install_motd() {
-    local user_home="$1"
-    local logo="${2:-onezero}"
-    local instructions="${3:-}"
-    local notice="${4:-}"
+    local INSTALL_MOTD=${1:-true}
+    local MOTD_LOGO=${2:-"onezero"}
+    local MOTD_INSTRUCTIONS=${3:-""}
+    local MOTD_NOTICE=${4:-""}
+
+    if [ "$INSTALL_MOTD" != "true" ]; then
+        echo "  ⚠️  MOTD installation skipped"
+        return 0
+    fi
+
+    echo "📝 Installing enhanced MOTD..."
+
+    # Always setup MOTD script and display
+    setup_motd_script "$MOTD_LOGO" "$MOTD_INSTRUCTIONS" "$MOTD_NOTICE"
+    setup_motd_display
+}
+
+setup_motd_script() {
+    local logo="${1:-onezero}"
+    local instructions="${2:-}"
+    local notice="${3:-}"
     
-    mkdir -p "$user_home/.config"
+    echo "  🔧 Setting up MOTD script..."
     
+    local USER_NAME=$(username)
+    local USER_HOME=$(user_home)
+    
+    # Create config directory
+    mkdir -p "${USER_HOME}/.config"
+
     # Start building the MOTD script
-    cat > "$user_home/.config/modern-shell-motd.sh" << 'MOTD_HEADER'
+    cat > "${USER_HOME}/.config/modern-shell-motd.sh" << 'MOTD_HEADER'
 #!/bin/bash
 
 # Colors
@@ -31,10 +53,10 @@ MOTD_HEADER
 
     # Add logo section based on selection
     if [ "$logo" = "onezero" ]; then
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'ONEZERO_LOGO'
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'ONEZERO_LOGO'
 
 # OneZero ASCII Logo
-printf "\n${PURPLE} ██████╗ ███╗   ██╗███████╗███████╗███████╗██████╗  ██████╗ 
+printf "\n${PURPLE} ██████╗ ███╗   ██╗███████╗███████╗███████╗██████╗  ██████╗
 ██╔═══██╗████╗  ██║██╔════╝╚══███╔╝██╔════╝██╔══██╗██╔═══██╗
 ██║   ██║██╔██╗ ██║█████╗    ███╔╝ █████╗  ██████╔╝██║   ██║
 ██║   ██║██║╚██╗██║██╔══╝   ███╔╝  ██╔══╝  ██╔══██╗██║   ██║
@@ -42,7 +64,7 @@ printf "\n${PURPLE} ██████╗ ███╗   ██╗████�
  ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝${RESET}\n"
 ONEZERO_LOGO
     elif [ "$logo" = "docker" ]; then
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'DOCKER_LOGO'
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'DOCKER_LOGO'
 
 # Docker ASCII Logo
 printf "\n${CYAN}      ##         .
@@ -56,9 +78,9 @@ printf "\n${CYAN}      ##         .
 printf "${BLUE}${BOLD}    D O C K E R${RESET}\n"
 DOCKER_LOGO
     elif [ "$logo" = "kubernetes" ]; then
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'K8S_LOGO'
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'K8S_LOGO'
 
-# Kubernetes ASCII Logo  
+# Kubernetes ASCII Logo
 printf "\n${BLUE}    ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈
   ⎈                       ⎈
 ⎈     K U B E R N E T E S     ⎈
@@ -66,7 +88,7 @@ printf "\n${BLUE}    ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈
     ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈ ⎈${RESET}\n"
 K8S_LOGO
     elif [ "$logo" = "dev" ]; then
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'DEV_LOGO'
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'DEV_LOGO'
 
 # Dev ASCII Logo
 printf "\n${GREEN}╔═══════════════════════════════════╗
@@ -77,43 +99,43 @@ printf "\n${GREEN}╔═══════════════════�
 DEV_LOGO
     elif [ "$logo" != "none" ] && [ -n "$logo" ]; then
         # Custom logo - properly escape for shell script generation
-        escaped_logo=$(printf '%s' "$logo" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'EOF'
+        local escaped_logo=$(printf '%s' "$logo" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'EOF'
 
 # Custom Logo
 printf "\n${CYAN}ESCAPED_LOGO_PLACEHOLDER${RESET}\n"
 EOF
         # Replace placeholder with properly escaped content
-        sed -i "s/ESCAPED_LOGO_PLACEHOLDER/$escaped_logo/g" "$user_home/.config/modern-shell-motd.sh"
+        sed -i "s/ESCAPED_LOGO_PLACEHOLDER/$escaped_logo/g" "${USER_HOME}/.config/modern-shell-motd.sh"
     fi
 
     # Add notice section if provided
     if [ -n "$notice" ]; then
-        escaped_notice=$(printf '%s' "$notice" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'EOF'
+        local escaped_notice=$(printf '%s' "$notice" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'EOF'
 
 # Notice
 printf "\n${RED}${BOLD}⚠️  NOTICE:${RESET} ${YELLOW}ESCAPED_NOTICE_PLACEHOLDER${RESET}\n"
 EOF
         # Replace placeholder with properly escaped content
-        sed -i "s/ESCAPED_NOTICE_PLACEHOLDER/$escaped_notice/g" "$user_home/.config/modern-shell-motd.sh"
+        sed -i "s/ESCAPED_NOTICE_PLACEHOLDER/$escaped_notice/g" "${USER_HOME}/.config/modern-shell-motd.sh"
     fi
 
-    # Add instructions section if provided  
+    # Add instructions section if provided
     if [ -n "$instructions" ]; then
-        escaped_instructions=$(printf '%s' "$instructions" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
-        cat >> "$user_home/.config/modern-shell-motd.sh" << 'EOF'
+        local escaped_instructions=$(printf '%s' "$instructions" | sed "s/'/'\\\\''/g" | sed 's/\\/\\\\/g' | sed 's/\$/\\$/g' | sed 's/`/\\`/g')
+        cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'EOF'
 
 # Instructions
 printf "\n${BLUE}${BOLD}📋 INSTRUCTIONS:${RESET}\n"
 printf "${CYAN}ESCAPED_INSTRUCTIONS_PLACEHOLDER${RESET}\n"
 EOF
         # Replace placeholder with properly escaped content
-        sed -i "s/ESCAPED_INSTRUCTIONS_PLACEHOLDER/$escaped_instructions/g" "$user_home/.config/modern-shell-motd.sh"
+        sed -i "s/ESCAPED_INSTRUCTIONS_PLACEHOLDER/$escaped_instructions/g" "${USER_HOME}/.config/modern-shell-motd.sh"
     fi
 
     # Add tools detection section
-    cat >> "$user_home/.config/modern-shell-motd.sh" << 'TOOLS_SECTION'
+    cat >> "${USER_HOME}/.config/modern-shell-motd.sh" << 'TOOLS_SECTION'
 
 # Tools detection and display
 printf "\n${GREEN}${BOLD}🔧 TOOLS:${RESET} "
@@ -154,11 +176,35 @@ fi
 printf "\n${GREEN}${BOLD}✨ Ready to code!${RESET} 🚀\n\n"
 TOOLS_SECTION
 
-    chmod +x "$user_home/.config/modern-shell-motd.sh"
-    echo "  Installed enhanced MOTD script"
+    chmod +x "${USER_HOME}/.config/modern-shell-motd.sh"
+    
+    # Set ownership if not root
+    if [ "$USER_NAME" != "root" ]; then
+        chown -R "$USER_NAME:$USER_NAME" "${USER_HOME}/.config"
+    fi
+    
+    echo "  ✓ MOTD script created at ${USER_HOME}/.config/modern-shell-motd.sh"
 }
 
-# Get MOTD display content for template replacement
-get_motd_display() {
-    echo "[ -f ~/.config/modern-shell-motd.sh ] && ~/.config/modern-shell-motd.sh"
+setup_motd_display() {
+    echo "  🔧 Setting up MOTD display..."
+    
+    # Add MOTD display to shell initialization
+    add_config "shared" "rc" "$(cat << 'EOF'
+# Display enhanced MOTD for interactive shells
+if [[ $- == *i* ]] && [ -f ~/.config/modern-shell-motd.sh ]; then
+    ~/.config/modern-shell-motd.sh
+fi
+EOF
+)"
+    
+    echo "  ✓ MOTD display configured"
 }
+
+# Run installation with environment variables
+INSTALL_MOTD=${MOTD_INSTALL:-true}
+MOTD_LOGO=${MOTD_LOGO:-"onezero"}
+MOTD_INSTRUCTIONS=${MOTD_INSTRUCTIONS:-""}
+MOTD_NOTICE=${MOTD_NOTICE:-""}
+
+install_motd "$INSTALL_MOTD" "$MOTD_LOGO" "$MOTD_INSTRUCTIONS" "$MOTD_NOTICE"
