@@ -26,7 +26,7 @@ WARNING_COUNT=0
 ERROR_COUNT=0
 
 # Logging configuration
-LOG_LEVEL="${LOG_LEVEL:-INFO}"  # DEBUG, INFO, WARN, ERROR
+LOG_LEVEL="${LOG_LEVEL:-DEBUG}"  # DEBUG, INFO, WARN, ERROR
 LOG_FILE="${LOG_FILE:-/tmp/common-utils-install.log}"
 
 # Initialize logging

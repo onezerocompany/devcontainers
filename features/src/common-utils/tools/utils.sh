@@ -281,24 +281,63 @@ configure_user_shells() {
     safe_log_info "Configuring shells for user: $user"
     
     # Initialize atomic configuration transaction with fallback
-    # Temporarily simplified configuration to resolve prebuild issues
-    safe_log_warn "Using simplified configuration approach (complex config temporarily disabled)"
+    # Ultra-minimal configuration to resolve prebuild issues
+    safe_log_info "Using ultra-minimal configuration approach"
+    safe_log_debug "User: $user, Home: $home_dir"
     
-    # Just create the shell files for now - this is a minimal fix to get prebuilds working
+    # Debug: Check if user exists
+    if id "$user" >/dev/null 2>&1; then
+        safe_log_debug "User $user exists"
+    else
+        safe_log_error "User $user does not exist!"
+        return 1
+    fi
+    
+    # Debug: Check home directory
+    safe_log_debug "Checking home directory: $home_dir"
     if [ ! -d "$home_dir" ]; then
         safe_log_info "Creating home directory: $home_dir"
-        mkdir -p "$home_dir"
+        if ! mkdir -p "$home_dir"; then
+            safe_log_error "Failed to create home directory: $home_dir"
+            return 1
+        fi
+        safe_log_debug "Successfully created home directory"
+    else
+        safe_log_debug "Home directory already exists"
     fi
     
-    # Create basic shell files
-    touch "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv"
+    # Create shell files one by one with error checking
+    safe_log_debug "Creating .bashrc"
+    touch "$home_dir/.bashrc" || { safe_log_error "Failed to create .bashrc"; return 1; }
     
-    # Fix ownership
+    safe_log_debug "Creating .bash_profile"
+    touch "$home_dir/.bash_profile" || { safe_log_error "Failed to create .bash_profile"; return 1; }
+    
+    safe_log_debug "Creating .zshrc"
+    touch "$home_dir/.zshrc" || { safe_log_error "Failed to create .zshrc"; return 1; }
+    
+    safe_log_debug "Creating .zshenv"
+    touch "$home_dir/.zshenv" || { safe_log_error "Failed to create .zshenv"; return 1; }
+    
+    safe_log_debug "All shell files created successfully"
+    
+    # Skip ownership fixing for now - this might be the issue
     if [ "$user" != "root" ]; then
-        chown -R "$user:$(id -gn "$user" 2>/dev/null || echo "$user")" "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv" 2>/dev/null || true
+        safe_log_debug "Attempting to fix ownership for non-root user"
+        # Try to get the user's group safely
+        local user_group
+        user_group=$(id -gn "$user" 2>/dev/null) || user_group="$user"
+        safe_log_debug "User group: $user_group"
+        
+        # Fix ownership without failing the whole process
+        if chown "$user:$user_group" "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv" 2>/dev/null; then
+            safe_log_debug "Successfully fixed ownership"
+        else
+            safe_log_warn "Could not fix ownership, but continuing"
+        fi
     fi
     
-    safe_log_info "Simplified configuration completed for user: $user"
+    safe_log_info "Ultra-minimal configuration completed for user: $user"
     return 0
     
     # Original atomic config code (disabled for now)
