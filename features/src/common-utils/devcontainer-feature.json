@@ -1,7 +1,7 @@
 {
   "id": "common-utils",
   "name": "Common Utilities",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Comprehensive development utilities with modern CLI tools, shell configurations, and customizable tool bundles. Includes modern shell tools (starship, zoxide, eza, bat), web development tools, networking utilities, Kubernetes tools, and system utilities with granular configuration options.",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/common-utils",
   "options": {

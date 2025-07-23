@@ -7,6 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Load error handling framework
 source "${SCRIPT_DIR}/lib/error_handling.sh"
 
+# Load safe logging functions from config manager
+source "${SCRIPT_DIR}/lib/config_manager.sh"
+
 # Initialize error handling
 setup_error_handling
 
@@ -59,7 +62,7 @@ elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
     USERNAME=root
 fi
 
-log_info "Installing Common Utilities for user: ${USERNAME}"
+safe_log_info "Installing Common Utilities for user: ${USERNAME}"
 
 # ========================================
 # ========================================
@@ -75,7 +78,7 @@ BASE_PACKAGES="curl wget git bash ca-certificates gnupg"
 # Add zsh to packages if enabled
 if [ "${INSTALL_ZSH}" = "true" ]; then
     BASE_PACKAGES="$BASE_PACKAGES zsh"
-    log_info "Added zsh to package list"
+    safe_log_info "Added zsh to package list"
 fi
 
 installation_step "base_packages" "Installing base packages: $BASE_PACKAGES" \
@@ -119,43 +122,43 @@ done
 # Install tools based on options
 if [ "${INSTALL_STARSHIP}" = "true" ]; then
     installation_step "starship_install" "Installing Starship prompt" \
-        "${SCRIPT_DIR}/tools/shell/starship/starship.sh" || log_warn "Starship installation failed, continuing..."
+        "${SCRIPT_DIR}/tools/shell/starship/starship.sh" || safe_log_warn "Starship installation failed, continuing..."
 fi
 
 if [ "${INSTALL_ZOXIDE}" = "true" ]; then
     installation_step "zoxide_install" "Installing Zoxide smart cd" \
-        "${SCRIPT_DIR}/tools/shell/zoxide.sh" || log_warn "Zoxide installation failed, continuing..."
+        "${SCRIPT_DIR}/tools/shell/zoxide.sh" || safe_log_warn "Zoxide installation failed, continuing..."
 fi
 
 if [ "${INSTALL_EZA}" = "true" ]; then
     installation_step "eza_install" "Installing Eza modern ls" \
-        "${SCRIPT_DIR}/tools/shell/eza.sh" || log_warn "Eza installation failed, continuing..."
+        "${SCRIPT_DIR}/tools/shell/eza.sh" || safe_log_warn "Eza installation failed, continuing..."
 fi
 
 if [ "${INSTALL_BAT}" = "true" ]; then
     installation_step "bat_install" "Installing Bat syntax highlighter" \
-        "${SCRIPT_DIR}/tools/shell/bat.sh" || log_warn "Bat installation failed, continuing..."
+        "${SCRIPT_DIR}/tools/shell/bat.sh" || safe_log_warn "Bat installation failed, continuing..."
 fi
 
 # Install tool bundles based on options
 if [ "${INSTALL_WEBDEV_BUNDLE}" = "true" ]; then
     installation_step "webdev_bundle" "Installing web development bundle" \
-        install_webdev_bundle "$INSTALL_DATABASE_CLIENTS" || log_warn "Web development bundle had errors"
+        install_webdev_bundle "$INSTALL_DATABASE_CLIENTS" || safe_log_warn "Web development bundle had errors"
 fi
 
 if [ "${INSTALL_NETWORKING_BUNDLE}" = "true" ]; then
     installation_step "networking_bundle" "Installing networking bundle" \
-        install_networking_bundle || log_warn "Networking bundle had errors"
+        install_networking_bundle || safe_log_warn "Networking bundle had errors"
 fi
 
 if [ "${INSTALL_KUBERNETES_BUNDLE}" = "true" ]; then
     installation_step "kubernetes_bundle" "Installing Kubernetes bundle" \
-        install_kubernetes_bundle || log_warn "Kubernetes bundle had errors"
+        install_kubernetes_bundle || safe_log_warn "Kubernetes bundle had errors"
 fi
 
 if [ "${INSTALL_UTILITIES_BUNDLE}" = "true" ]; then
     installation_step "utilities_bundle" "Installing utilities bundle" \
-        install_utilities_bundle "$INSTALL_BUILD_TOOLS" "$INSTALL_GITHUB_CLI" || log_warn "Utilities bundle had errors"
+        install_utilities_bundle "$INSTALL_BUILD_TOOLS" "$INSTALL_GITHUB_CLI" || safe_log_warn "Utilities bundle had errors"
 fi
 
 # ========================================
@@ -313,11 +316,11 @@ installation_step "installation_validation" "Validating installation completenes
     validate_installation_completeness
 
 installation_step "health_check" "Performing installation health check" \
-    validate_installation_health || log_warn "Health check found issues but installation can continue"
+    validate_installation_health || safe_log_warn "Health check found issues but installation can continue"
 
 # Attempt partial recovery if there were any errors during installation
 if [ "$ERROR_COUNT" -gt 0 ]; then
-    log_warn "Installation completed with errors, attempting partial recovery"
+    safe_log_warn "Installation completed with errors, attempting partial recovery"
     recover_partial_installation
 fi
 
