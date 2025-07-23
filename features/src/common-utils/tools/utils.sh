@@ -67,12 +67,12 @@ update_config() {
     local file=$1
     local content=$2
     
-    log_debug "Updating configuration file: $file"
+    safe_log_debug "Updating configuration file: $file"
     
     # Create file if it doesn't exist
     if [ ! -f "$file" ]; then
         touch "$file"
-        log_debug "Created new configuration file: $file"
+        safe_log_debug "Created new configuration file: $file"
     fi
     
     # Only add new content if it's not empty
@@ -107,13 +107,13 @@ $MARKER_END"
         
         # Use atomic configuration update
         if safe_config_update "$file" "$new_content" "644"; then
-            log_info "Updated configuration: $(basename "$file")"
+            safe_log_info "Updated configuration: $(basename "$file")"
         else
-            log_error "Failed to update configuration: $(basename "$file")"
+            safe_log_error "Failed to update configuration: $(basename "$file")"
             return "${ERROR_CODES[CONFIG_FAILED]}"
         fi
     else
-        log_debug "No configuration content for $(basename "$file")"
+        safe_log_debug "No configuration content for $(basename "$file")"
     fi
 }
 
@@ -138,11 +138,11 @@ inject_tmp_to_user_config_atomic() {
     
     # Skip if tmp file doesn't exist or is empty
     if [ ! -f "$tmp_file" ] || [ ! -s "$tmp_file" ]; then
-        log_debug "No configuration content for $(basename "$user_file")"
+        safe_log_debug "No configuration content for $(basename "$user_file")"
         return 1  # Indicate nothing was staged
     fi
     
-    log_debug "Staging configuration injection: $(basename "$tmp_file") -> $(basename "$user_file")"
+    safe_log_debug "Staging configuration injection: $(basename "$tmp_file") -> $(basename "$user_file")"
     
     # Read existing user file content
     local existing_content=""
@@ -178,10 +178,10 @@ $MARKER_END"
     
     # Stage the configuration update
     if stage_config_update "$user_file" "$new_content" "644"; then
-        log_debug "Staged configuration injection: $(basename "$user_file")"
+        safe_log_debug "Staged configuration injection: $(basename "$user_file")"
         return 0  # Success
     else
-        log_error "Failed to stage configuration injection: $(basename "$user_file")"
+        safe_log_error "Failed to stage configuration injection: $(basename "$user_file")"
         return 1  # Failure
     fi
 }
@@ -205,7 +205,7 @@ configure_user_shells_direct() {
     local install_bat=$6
     local install_motd=$7
     
-    log_info "Using direct configuration for user: $user"
+    safe_log_info "Using direct configuration for user: $user"
     
     # Ensure shell files exist
     touch "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv"
@@ -230,7 +230,7 @@ configure_user_shells_direct() {
     # Fix ownership
     chown -R "$user:$(id -gn "$user" 2>/dev/null || echo "$user")" "$home_dir/.bashrc" "$home_dir/.bash_profile" "$home_dir/.zshrc" "$home_dir/.zshenv" 2>/dev/null || true
     
-    log_info "Direct configuration completed for user: $user"
+    safe_log_info "Direct configuration completed for user: $user"
     return 0
 }
 
@@ -244,22 +244,22 @@ configure_user_shells() {
     local install_bat=$6
     local install_motd=$7
     
-    log_info "Configuring shells for user: $user"
+    safe_log_info "Configuring shells for user: $user"
     
     # Initialize atomic configuration transaction with fallback
     if ! init_config_transaction; then
-        log_warn "Atomic configuration failed, using direct configuration approach"
+        safe_log_warn "Atomic configuration failed, using direct configuration approach"
         configure_user_shells_direct "$user" "$home_dir" "$install_starship" "$install_zoxide" "$install_eza" "$install_bat" "$install_motd"
         return $?
     fi
     
     # Check for existing files
-    log_debug "Checking for existing shell configurations..."
-    [ -f "$home_dir/.bashrc" ] && log_debug "Found existing .bashrc"
-    [ -f "$home_dir/.bash_profile" ] && log_debug "Found existing .bash_profile"
-    [ -f "$home_dir/.zshrc" ] && log_debug "Found existing .zshrc"
-    [ -f "$home_dir/.zshenv" ] && log_debug "Found existing .zshenv"
-    [ -f "$home_dir/.zprofile" ] && log_debug "Found existing .zprofile"
+    safe_log_debug "Checking for existing shell configurations..."
+    [ -f "$home_dir/.bashrc" ] && safe_log_debug "Found existing .bashrc"
+    [ -f "$home_dir/.bash_profile" ] && safe_log_debug "Found existing .bash_profile"
+    [ -f "$home_dir/.zshrc" ] && safe_log_debug "Found existing .zshrc"
+    [ -f "$home_dir/.zshenv" ] && safe_log_debug "Found existing .zshenv"
+    [ -f "$home_dir/.zprofile" ] && safe_log_debug "Found existing .zprofile"
     
     # Stage all shell configuration updates
     local config_files=()
@@ -283,15 +283,15 @@ configure_user_shells() {
             config_files+=("$home_dir/.zshenv")
         fi
     else
-        log_debug "Skipping zsh configuration (zsh not installed)"
+        safe_log_debug "Skipping zsh configuration (zsh not installed)"
     fi
     
     # Commit all configuration changes atomically
     if commit_config_transaction; then
-        log_info "Shell configuration completed successfully for $user"
-        log_info "Updated ${#config_files[@]} configuration files"
+        safe_log_info "Shell configuration completed successfully for $user"
+        safe_log_info "Updated ${#config_files[@]} configuration files"
     else
-        log_error "Shell configuration failed for $user"
+        safe_log_error "Shell configuration failed for $user"
         rollback_config_transaction
         cleanup_config_transaction
         return "${ERROR_CODES[CONFIG_FAILED]}"
