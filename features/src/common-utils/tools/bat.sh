@@ -40,18 +40,26 @@ install_bat() {
     local BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_${ARCH}.deb"
     
     echo "  📥 Downloading bat from: $BAT_URL"
-    if curl -fsSL "$BAT_URL" -o /tmp/bat.deb; then
-        if dpkg -i /tmp/bat.deb || apt-get install -f -y; then
+    local bat_log="/tmp/bat-install.log"
+    
+    if curl -fsSL "$BAT_URL" -o /tmp/bat.deb 2>"$bat_log"; then
+        echo "  📦 Installing bat package..."
+        if dpkg -i /tmp/bat.deb >>"$bat_log" 2>&1 || apt-get install -f -y >>"$bat_log" 2>&1; then
             echo "  ✓ bat v${BAT_VERSION} installed successfully"
+            rm -f /tmp/bat.deb "$bat_log"
         else
-            echo "  ⚠️  Failed to install bat package"
-            rm -f /tmp/bat.deb
+            echo "  ❌ Failed to install bat package" >&2
+            echo "  📄 Installation error details:" >&2
+            sed 's/^/    /' "$bat_log" >&2
+            rm -f /tmp/bat.deb "$bat_log"
             return 1
         fi
-        rm -f /tmp/bat.deb
     else
-        echo "  ⚠️  Failed to download bat"
-        rm -f /tmp/bat.deb
+        echo "  ❌ Failed to download bat" >&2
+        echo "  🌐 URL: $BAT_URL" >&2
+        echo "  📄 Download error details:" >&2
+        sed 's/^/    /' "$bat_log" >&2
+        rm -f /tmp/bat.deb "$bat_log"
         return 1
     fi
 

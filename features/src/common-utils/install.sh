@@ -72,18 +72,39 @@ install_and_configure_shell() {
 install_and_configure_shell
 
 # Install all tools - each script will check its own environment variable
+echo "🔧 Installing individual tools..."
+tool_errors=0
 find "${SCRIPT_DIR}/tools" -name "*.sh" -type f | sort | while read -r tool_script; do
-    echo "  🔧 Running $(basename "$tool_script")..."
-    source "$tool_script"
+    tool_name=$(basename "$tool_script" .sh)
+    echo "  🔧 Running $tool_name..."
+    
+    # Capture both stdout and stderr for each tool
+    if ! source "$tool_script" 2>&1; then
+        echo "  ❌ Error in $tool_name installation" >&2
+        ((tool_errors++))
+    fi
 done
 
+if [ $tool_errors -gt 0 ]; then
+    echo "⚠️  $tool_errors tool(s) had installation errors (see above)" >&2
+fi
+
 # Install all collected packages at once
+echo "📦 Installing collected packages..."
 if is_debian_based; then
-    apt_get_update_if_needed
-    install_all_pkgs
+    if ! apt_get_update_if_needed; then
+        echo "❌ Failed to update apt package lists" >&2
+    fi
+    
+    if ! install_all_pkgs; then
+        echo "❌ Package installation failed - some tools may not work correctly" >&2
+    fi
 fi
 
 # Generate shell configuration files from collected configs
-generate_config
+echo "🔧 Generating shell configuration..."
+if ! generate_config; then
+    echo "❌ Failed to generate shell configuration files" >&2
+fi
 
 echo "✅ Common Utilities installation completed!"

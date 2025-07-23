@@ -35,13 +35,25 @@ install_kubectl() {
     local KUBECTL_URL="https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl"
     
     echo "  📥 Downloading kubectl from: $KUBECTL_URL"
-    if curl -fsSL "$KUBECTL_URL" -o /tmp/kubectl; then
-        install -m 755 /tmp/kubectl /usr/local/bin/kubectl
-        rm -f /tmp/kubectl
-        echo "  ✓ kubectl v${KUBECTL_VERSION} installed successfully"
+    local kubectl_log="/tmp/kubectl-install.log"
+    
+    if curl -fsSL "$KUBECTL_URL" -o /tmp/kubectl 2>"$kubectl_log"; then
+        if install -m 755 /tmp/kubectl /usr/local/bin/kubectl 2>>"$kubectl_log"; then
+            rm -f /tmp/kubectl "$kubectl_log"
+            echo "  ✓ kubectl v${KUBECTL_VERSION} installed successfully"
+        else
+            echo "  ❌ Failed to install kubectl binary" >&2
+            echo "  📄 Error details:" >&2
+            sed 's/^/    /' "$kubectl_log" >&2
+            rm -f /tmp/kubectl "$kubectl_log"
+            return 1
+        fi
     else
-        echo "  ⚠️  Failed to download kubectl"
-        rm -f /tmp/kubectl
+        echo "  ❌ Failed to download kubectl" >&2
+        echo "  🌐 URL: $KUBECTL_URL" >&2
+        echo "  📄 Error details:" >&2
+        sed 's/^/    /' "$kubectl_log" >&2
+        rm -f /tmp/kubectl "$kubectl_log"
         return 1
     fi
 

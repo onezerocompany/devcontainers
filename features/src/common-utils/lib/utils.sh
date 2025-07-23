@@ -88,15 +88,27 @@ install_all_pkgs() {
   sort "$TMP_PKGS_FILE" | uniq > "${TMP_PKGS_FILE}.tmp"
   mv "${TMP_PKGS_FILE}.tmp" "$TMP_PKGS_FILE"
   
+  echo "  📋 Packages to install:"
+  sed 's/^/    - /' "$TMP_PKGS_FILE"
+  
+  # Create log file for apt output
+  local apt_log="/tmp/apt-install.log"
+  
   # shellcheck disable=SC2046
-  if ! apt-get install -y $(cat "$TMP_PKGS_FILE"); then
-    echo "✗ Failed to install packages."
-    rm -f "$TMP_PKGS_FILE"
+  if ! apt-get install -y $(cat "$TMP_PKGS_FILE") > "$apt_log" 2>&1; then
+    echo "❌ Failed to install packages. Error details:"
+    echo "  📄 Package list was:"
+    sed 's/^/    - /' "$TMP_PKGS_FILE"
+    echo "  📄 APT error log:"
+    sed 's/^/    /' "$apt_log"
+    rm -f "$TMP_PKGS_FILE" "$apt_log"
     return 1
   fi
 
   echo "✓ Successfully installed all packages"
-  rm -f "$TMP_PKGS_FILE"
+  echo "  📄 Installation log:"
+  tail -20 "$apt_log" | sed 's/^/    /'
+  rm -f "$TMP_PKGS_FILE" "$apt_log"
 }
 
 # Make sure provided packages are installed before proceeding
