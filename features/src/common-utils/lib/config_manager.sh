@@ -2,7 +2,38 @@
 # Atomic Configuration Management for Common Utils Feature
 # Provides safe, atomic configuration updates with rollback capability
 
-set -e
+# Note: Avoiding 'set -e' here to allow graceful fallback when functions aren't available
+
+# Safe logging functions that work even if logging framework is not available
+safe_log_info() {
+    if command -v log_info >/dev/null 2>&1; then
+        log_info "$@"
+    else
+        echo "[INFO] $*"
+    fi
+}
+
+safe_log_warn() {
+    if command -v log_warn >/dev/null 2>&1; then
+        log_warn "$@"
+    else
+        echo "[WARN] $*" >&2
+    fi
+}
+
+safe_log_error() {
+    if command -v log_error >/dev/null 2>&1; then
+        log_error "$@"
+    else
+        echo "[ERROR] $*" >&2
+    fi
+}
+
+safe_log_debug() {
+    if command -v log_debug >/dev/null 2>&1; then
+        log_debug "$@"
+    fi
+}
 
 # Configuration management state
 declare -A PENDING_CONFIGS=()
@@ -16,22 +47,22 @@ init_config_transaction() {
     TRANSACTION_ID="config-$(date +%s)-$$"
     TRANSACTION_DIR="/tmp/common-utils-config-$TRANSACTION_ID"
     
-    mkdir -p "$TRANSACTION_DIR/backups"
-    mkdir -p "$TRANSACTION_DIR/staging"
+    mkdir -p "$TRANSACTION_DIR/backups" 2>/dev/null || return 1
+    mkdir -p "$TRANSACTION_DIR/staging" 2>/dev/null || return 1
     
-    log_info "Configuration transaction started: $TRANSACTION_ID"
-    log_debug "Transaction directory: $TRANSACTION_DIR"
+    safe_log_info "Configuration transaction started: $TRANSACTION_ID"
+    safe_log_debug "Transaction directory: $TRANSACTION_DIR"
     
     # Debug: verify directories were created successfully
     if [ ! -d "$TRANSACTION_DIR/backups" ]; then
-        log_error "Failed to create backups directory: $TRANSACTION_DIR/backups"
+        safe_log_error "Failed to create backups directory: $TRANSACTION_DIR/backups"
         return 1
     fi
     if [ ! -d "$TRANSACTION_DIR/staging" ]; then
-        log_error "Failed to create staging directory: $TRANSACTION_DIR/staging"
+        safe_log_error "Failed to create staging directory: $TRANSACTION_DIR/staging"
         return 1
     fi
-    log_debug "Transaction directories verified successfully"
+    safe_log_debug "Transaction directories verified successfully"
     
     # Track temp directory for cleanup
     if [ -z "${TEMP_DIRS:-}" ]; then
