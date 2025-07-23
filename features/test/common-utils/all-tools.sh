@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Test script for all-bundles common-utils configuration
-# Tests with all bundles enabled
+# Test script for all-tools common-utils configuration  
+# Tests with all individual tools enabled
 
 set -e
 
@@ -137,7 +137,7 @@ test_user_configurations() {
 
 # Main execution
 main() {
-    log_info "Starting all-bundles configuration tests for common-utils"
+    log_info "Starting all-tools configuration tests for common-utils"
     
     # Run all test functions
     test_shell_bundle

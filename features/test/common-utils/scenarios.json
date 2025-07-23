@@ -9,14 +9,20 @@
     "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
       "ghcr.io/onezerocompany/features/common-utils:latest": {
-        "shellBundle": false,
-        "utilitiesBundle": false,
-        "networkingBundle": false,
-        "kubernetesBundle": false,
-        "webDevBundle": false,
-        "dataProcessingBundle": false,
-        "developmentBundle": false,
-        "containersBundle": false
+        "corePackages": false,
+        "bat": false,
+        "eza": false,
+        "starship": false,
+        "zoxide": false,
+        "fd": false,
+        "ripgrep": false,
+        "kubectl": false,
+        "helm": false,
+        "k9s": false,
+        "httpie": false,
+        "jq": false,
+        "yq": false,
+        "nmap": false
       }
     }
   },
@@ -24,29 +30,41 @@
     "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
       "ghcr.io/onezerocompany/features/common-utils:latest": {
-        "shellBundle": true,
-        "utilitiesBundle": false,
-        "networkingBundle": false,
-        "kubernetesBundle": false,
-        "webDevBundle": false,
-        "dataProcessingBundle": false,
-        "developmentBundle": false,
-        "containersBundle": false
+        "corePackages": false,
+        "bat": true,
+        "eza": true,
+        "starship": true,
+        "zoxide": true,
+        "fd": true,
+        "ripgrep": true,
+        "kubectl": false,
+        "helm": false,
+        "k9s": false,
+        "httpie": false,
+        "jq": false,
+        "yq": false,
+        "nmap": false
       }
     }
   },
-  "all-bundles": {
+  "all-tools": {
     "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
       "ghcr.io/onezerocompany/features/common-utils:latest": {
-        "shellBundle": true,
-        "utilitiesBundle": true,
-        "networkingBundle": true,
-        "kubernetesBundle": true,
-        "webDevBundle": true,
-        "dataProcessingBundle": true,
-        "developmentBundle": true,
-        "containersBundle": true
+        "corePackages": true,
+        "bat": true,
+        "eza": true,
+        "starship": true,
+        "zoxide": true,
+        "fd": true,
+        "ripgrep": true,
+        "kubectl": true,
+        "helm": true,
+        "k9s": true,
+        "httpie": true,
+        "jq": true,
+        "yq": true,
+        "nmap": true
       }
     }
   },
@@ -63,14 +81,7 @@
     "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
       "ghcr.io/onezerocompany/features/common-utils:latest": {
-        "shellBundle": false,
-        "utilitiesBundle": false,
-        "networkingBundle": false,
-        "kubernetesBundle": false,
-        "webDevBundle": false,
-        "dataProcessingBundle": false,
-        "developmentBundle": false,
-        "containersBundle": false,
+        "corePackages": false,
         "bat": true,
         "eza": true,
         "starship": true,
