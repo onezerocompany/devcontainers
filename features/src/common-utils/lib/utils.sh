@@ -67,16 +67,31 @@ should_install_tool() {
     fi
   fi
   
+  # Debug output for troubleshooting
+  echo "🔍 DEBUG should_install_tool:" >&2
+  echo "  Tool: $tool_name" >&2
+  echo "  Bundle: $bundle_name" >&2
+  echo "  Tool setting: '$tool_setting'" >&2
+  echo "  Bundle setting: '$bundle_setting'" >&2
+  echo "  Tool env var value: '${!tool_name:-}'" >&2
+  echo "  Bundle env var value: '${!bundle_name:-}'" >&2
+  echo "  All environment variables matching pattern:" >&2
+  env | grep -E "^(SHELL|UTILITIES|NETWORKING|KUBERNETES|WEBDEV|DATAPROCESSING|DEVELOPMENT|CONTAINERS|STARSHIP|BAT|EZA|ZOXIDE|FD|RIPGREP).*=" | sort >&2
+  
   # Tool should install if:
   # 1. Individual tool option is explicitly "true", OR
   # 2. Bundle is enabled AND individual tool option is not explicitly "false"
   if [ "$tool_setting" = "true" ]; then
+    echo "  Decision: INSTALL (explicitly enabled)" >&2
     return 0  # Explicitly enabled
   elif [ "$tool_setting" = "false" ]; then
+    echo "  Decision: SKIP (explicitly disabled)" >&2
     return 1  # Explicitly disabled
   elif [ "$bundle_setting" = "true" ]; then
+    echo "  Decision: INSTALL (bundle enabled, tool not disabled)" >&2
     return 0  # Bundle enabled and tool not explicitly disabled
   else
+    echo "  Decision: SKIP (bundle disabled, tool not enabled)" >&2
     return 1  # Bundle disabled and tool not explicitly enabled
   fi
 }
