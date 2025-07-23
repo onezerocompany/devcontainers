@@ -98,8 +98,8 @@ EOF
     echo "  ✓ bat configuration created at ${BAT_CONFIG_DIR}/config"
 }
 
-# Check if bat should be installed (individual option or shell bundle)
-if should_install_tool "BAT" "SHELLBUNDLE"; then
+# Check if bat should be installed
+if [ "${BAT:-true}" = "true" ]; then
     # Run installation
     BAT_VERSION=${BAT_VERSION:-"latest"}
     install_bat "true" "$BAT_VERSION"

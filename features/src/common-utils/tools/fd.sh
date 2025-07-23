@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../lib/utils.sh"
 
 # Check if fd should be installed (individual option or shell bundle)
-if should_install_tool "FD" "SHELLBUNDLE"; then
+if [ "${FD:-true}" = "true" ]; then
     echo "  🔧 Installing fd (modern find)..."
     if command -v cargo >/dev/null 2>&1; then
         cargo install fd-find

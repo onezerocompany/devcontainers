@@ -83,7 +83,7 @@ setup_zoxide_aliases() {
 }
 
 # Check if zoxide should be installed (individual option or shell bundle)
-if should_install_tool "ZOXIDE" "SHELLBUNDLE"; then
+if [ "${ZOXIDE:-true}" = "true" ]; then
     # Run installation
     ZOXIDE_VERSION=${ZOXIDE_VERSION:-"latest"}
     install_zoxide "true" "$ZOXIDE_VERSION"

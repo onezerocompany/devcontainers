@@ -2,16 +2,11 @@
 # jq JSON processor installation
 set -e
 
-install_jq() {
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    source "${SCRIPT_DIR}/../../lib/utils.sh"
-    
-    # Check if jq should be installed (individual option or data processing bundle)
-    if ! should_install_tool "JQ" "DATAPROCESSINGBUNDLE"; then
-        echo "  ⏭️  Skipping jq installation (disabled)"
-        return 0
-    fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../lib/utils.sh"
 
+# Check if jq should be installed (individual option or data processing bundle)
+if [ "${JQ:-true}" = "true" ]; then
     echo "  🔧 Adding jq (JSON processor) to package list..."
     if is_debian_based; then
         add_pkgs "jq"
@@ -21,13 +16,12 @@ install_jq() {
             echo "  ✅ jq installed successfully via brew"
         else
             echo "  ❌ Failed to install jq via brew"
-            return 1
+            exit 1
         fi
     else
         echo "  ⚠️ No supported package manager found for jq installation"
-        return 1
+        exit 1
     fi
-}
-
-# Execute the installation function
-install_jq
+else
+    echo "  ⏭️  Skipping jq installation (disabled)"
+fi

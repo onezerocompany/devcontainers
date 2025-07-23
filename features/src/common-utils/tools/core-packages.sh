@@ -5,8 +5,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../lib/utils.sh"
 
-# Check if utilities bundle should be installed
-if should_install_tool "CORE_PACKAGES" "UTILITIESBUNDLE"; then
+# Check if core packages should be installed
+if [ "${CORE_PACKAGES:-true}" = "true" ]; then
     echo "  🔧 Adding core system utilities to package list..."
     
     core_packages="curl wget unzip zip p7zip-full tree less ncdu man-db htop lsof procps strace ca-certificates gnupg lsb-release software-properties-common bash-completion vim"

@@ -39,52 +39,6 @@ user_home() {
   fi
 }
 
-# Bundle logic helper function
-# Usage: should_install_tool "TOOL_NAME" "BUNDLE_NAME"
-# Returns 0 (true) if tool should be installed, 1 (false) otherwise
-should_install_tool() {
-  local tool_name="$1"
-  local bundle_name="$2"
-  
-  if [ -z "$tool_name" ]; then
-    echo "Error: Tool name required for should_install_tool" >&2
-    return 1
-  fi
-  
-  # Get the tool's individual setting (default to empty, not true)
-  local tool_setting
-  eval "tool_setting=\${${tool_name}:-}"
-  
-  # Get the bundle setting if bundle name provided
-  # DevContainer features may set boolean false as empty string or "false"
-  local bundle_setting="true"
-  if [ -n "$bundle_name" ]; then
-    eval "bundle_setting=\${${bundle_name}:-}"
-    # If bundle setting is empty (not set) or explicitly "false", consider it disabled
-    # Only "true" enables the bundle - everything else disables it
-    if [ "$bundle_setting" != "true" ]; then
-      bundle_setting="false"
-    fi
-  fi
-  
-  
-  # Tool should install if:
-  # 1. Individual tool option is explicitly "true", OR
-  # 2. Bundle is enabled AND individual tool option is not explicitly "false"
-  if [ "$tool_setting" = "true" ]; then
-    echo "  Decision: INSTALL (explicitly enabled)" >&2
-    return 0  # Explicitly enabled
-  elif [ "$tool_setting" = "false" ]; then
-    echo "  Decision: SKIP (explicitly disabled)" >&2
-    return 1  # Explicitly disabled
-  elif [ "$bundle_setting" = "true" ]; then
-    echo "  Decision: INSTALL (bundle enabled, tool not disabled)" >&2
-    return 0  # Bundle enabled and tool not explicitly disabled
-  else
-    echo "  Decision: SKIP (bundle disabled, tool not enabled)" >&2
-    return 1  # Bundle disabled and tool not explicitly enabled
-  fi
-}
 
 add_pkgs() {
   local pkgs_list="$1"

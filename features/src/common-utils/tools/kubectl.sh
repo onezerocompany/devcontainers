@@ -83,12 +83,11 @@ setup_kubectl_completion() {
     echo "  ✓ kubectl completion configured"
 }
 
-# Check if kubectl should be installed (individual option or kubernetes bundle)
-if ! should_install_tool "KUBECTL" "KUBERNETESBUNDLE"; then
+# Check if kubectl should be installed
+if [ "${KUBECTL:-true}" = "true" ]; then
+    # Run installation
+    KUBECTL_VERSION=${KUBECTL_VERSION:-"latest"}
+    install_kubectl "true" "$KUBECTL_VERSION"
+else
     echo "  ⏭️  Skipping kubectl installation (disabled)"
-    return 0
 fi
-
-# Run installation
-KUBECTL_VERSION=${KUBECTL_VERSION:-"latest"}
-install_kubectl "true" "$KUBECTL_VERSION"

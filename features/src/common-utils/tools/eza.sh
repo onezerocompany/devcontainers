@@ -67,10 +67,9 @@ setup_eza_aliases() {
 }
 
 # Check if eza should be installed (individual option or shell bundle)
-if ! should_install_tool "EZA" "SHELLBUNDLE"; then
+if [ "${EZA:-true}" = "true" ]; then
+    # Run installation
+    install_eza "true"
+else
     echo "  ⏭️  Skipping eza installation (disabled)"
-    return 0
 fi
-
-# Run installation
-install_eza "true"

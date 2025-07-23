@@ -111,8 +111,8 @@ EOF
     echo "  ✓ Starship initialization configured"
 }
 
-# Check if starship should be installed (individual option or shell bundle)
-if should_install_tool "STARSHIP" "SHELLBUNDLE"; then
+# Check if starship should be installed
+if [ "${STARSHIP:-true}" = "true" ]; then
     # Run installation
     install_starship "true"
 else

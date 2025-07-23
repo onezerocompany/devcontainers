@@ -19,45 +19,10 @@
       "default": "zsh",
       "description": "Default shell to set for the user"
     },
-    "shellBundle": {
+    "corePackages": {
       "type": "boolean",
       "default": true,
-      "description": "Install shell enhancement bundle (starship, bat, eza, zoxide, fd, ripgrep)"
-    },
-    "utilitiesBundle": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install core utilities bundle (curl, wget, zip, tree, htop, etc.)"
-    },
-    "networkingBundle": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install networking tools bundle (nmap, netcat, tcpdump, etc.)"
-    },
-    "kubernetesBundle": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install Kubernetes tools bundle (kubectl, helm, k9s, kustomize, etc.)"
-    },
-    "webDevBundle": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install web development bundle (httpie, nginx, database clients)"
-    },
-    "dataProcessingBundle": {
-      "type": "boolean",
-      "default": false,
-      "description": "Install data processing bundle (jq, yq, dasel, miller, csvkit)"
-    },
-    "developmentBundle": {
-      "type": "boolean",
-      "default": false,
-      "description": "Install development tools bundle (git extras, gh, glab, build tools, task runners)"
-    },
-    "containersBundle": {
-      "type": "boolean",
-      "default": false,
-      "description": "Install container tools bundle (podman, buildah, crane, dive, trivy)"
+      "description": "Install core system utilities (curl, wget, zip, tree, htop, vim, etc.)"
     },
     "bat": {
       "type": "boolean",
