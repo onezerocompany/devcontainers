@@ -89,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        feature: [common-utils, docker-in-docker]
+        feature: [docker-in-docker, modern-shell, onezero-motd, sandbox]
         scenario: [default]
     steps:
       - name: Checkout
