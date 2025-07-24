@@ -1,0 +1,291 @@
+
+┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+|    Dev Container Features   |   
+│           v0.80.0           │
+└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+
+>  baseImage:         ubuntu:focal
+>  Target Folder:     /Users/luca/Projects/devcontainers/features
+>  features:          common-utils
+>  workspaceFolder:   /var/folders/cn/27j65mvs6mg8sn_kbmm9fs480000gn/T/devcontainercli/container-features-test/1753352833394
+
+⏳ Building test container...
+
+
+🚀 Launched container.
+>  containerId:          5fb26c4d612b4e581b66d589562ae85ad6a43f6d577a5bf76455183da4dca0e2
+
+🏃 Starting test(s)...
+
+🧪 Starting 'common-utils' tests...
+
+
+🔄 Testing 'feature installation marker'
+[37m
+
+
+Feature appears to have run
+
+
+🔄 Testing 'shell configuration'
+[37m
+
+
+✅  Passed 'shell configuration'!
+
+
+🔄 Testing 'basic commands work'
+[37m
+test successful
+
+
+✅  Passed 'basic commands work'!
+
+
+🧪 Executing scenarios for feature 'common-utils'...
+>  Running scenario:  default
+
+📝 Scenario generated: {
+  "image": "ghcr.io/onezerocompany/base",
+  "features": {
+    "ghcr.io/onezerocompany/features/common-utils": {}
+  }
+}
+>  workspaceFolder:   /var/folders/cn/27j65mvs6mg8sn_kbmm9fs480000gn/T/devcontainercli/container-features-test/1753352927687
+
+⏳ Building test container...
+
+
+🚀 Launched container.
+>  containerId:          54eedfbc485ac20cb30c8cae8d0cdb22a684d3328b8f546762930860f8f2f4ae
+
+
+🔄 Testing 'zsh installed'
+[37m
+zsh 5.9 (aarch64-unknown-linux-gnu)
+
+
+✅  Passed 'zsh installed'!
+
+
+🔄 Testing 'default shell is zsh'
+[37m
+
+
+✅  Passed 'default shell is zsh'!
+
+
+🔄 Testing 'core packages - curl'
+[37m
+curl 7.88.1 (aarch64-unknown-linux-gnu) libcurl/7.88.1 OpenSSL/3.0.16 zlib/1.2.13 brotli/1.0.9 zstd/1.5.4 libidn2/2.3.3 libpsl/0.21.2 (+libidn2/2.3.3) libssh2/1.10.0 nghttp2/1.52.0 librtmp/2.3 OpenLDAP/2.5.13
+Release-Date: 2023-02-20, security patched: 7.88.1-10+deb12u12
+Protocols: dict file ftp ftps gopher gophers http https imap imaps ldap ldaps mqtt pop3 pop3s rtmp rtsp scp sftp smb smbs smtp smtps telnet tftp
+Features: alt-svc AsynchDNS brotli GSS-API HSTS HTTP2 HTTPS-proxy IDN IPv6 Kerberos Largefile libz NTLM NTLM_WB PSL SPNEGO SSL threadsafe TLS-SRP UnixSockets zstd
+
+
+✅  Passed 'core packages - curl'!
+
+
+🔄 Testing 'core packages - wget'
+[37m
+GNU Wget 1.21.3 built on linux-gnu.
+
+-cares +digest -gpgme +https +ipv6 +iri +large-file -metalink +nls 
++ntlm +opie +psl +ssl/gnutls 
+
+Wgetrc: 
+    /etc/wgetrc (system)
+Locale: 
+    /usr/share/locale 
+Compile: 
+    gcc -DHAVE_CONFIG_H -DSYSTEM_WGETRC="/etc/wgetrc" 
+    -DLOCALEDIR="/usr/share/locale" -I. -I../../src -I../lib 
+    -I../../lib -Wdate-time -D_FORTIFY_SOURCE=2 
+    -I/usr/include/p11-kit-1 -DHAVE_LIBGNUTLS -DNDEBUG -g -O2 
+    -ffile-prefix-map=/build/reproducible-path/wget-1.21.3=. 
+    -fstack-protector-strong -Wformat -Werror=format-security 
+    -DNO_SSLv2 -D_FILE_OFFSET_BITS=64 -g -Wall 
+Link: 
+    gcc -I/usr/include/p11-kit-1 -DHAVE_LIBGNUTLS -DNDEBUG -g -O2 
+    -ffile-prefix-map=/build/reproducible-path/wget-1.21.3=. 
+    -fstack-protector-strong -Wformat -Werror=format-security 
+    -DNO_SSLv2 -D_FILE_OFFSET_BITS=64 -g -Wall -Wl,-z,relro -Wl,-z,now 
+    -lpcre2-8 -luuid -lidn2 -lnettle -lgnutls -lz -lpsl ../lib/libgnu.a 
+
+Copyright (C) 2015 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later
+<http://www.gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Originally written by Hrvoje Niksic <hniksic@xemacs.org>.
+Please send bug reports and questions to <bug-wget@gnu.org>.
+
+
+✅  Passed 'core packages - wget'!
+
+
+🔄 Testing 'core packages - tree'
+[37m
+tree v2.1.0 © 1996 - 2022 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro
+
+
+✅  Passed 'core packages - tree'!
+
+
+🔄 Testing 'core packages - htop'
+[37m
+htop 3.2.2
+
+
+✅  Passed 'core packages - htop'!
+
+
+🔄 Testing 'bat installed'
+[37m
+bat 0.24.0 (fc95468)
+
+
+✅  Passed 'bat installed'!
+
+
+🔄 Testing 'eza installed'
+[37m
+eza - A modern, maintained replacement for ls
+v0.21.6 [+git]
+https://github.com/eza-community/eza
+
+
+✅  Passed 'eza installed'!
+
+
+🔄 Testing 'zoxide installed'
+[37m
+zoxide 0.9.6
+
+
+✅  Passed 'zoxide installed'!
+
+
+🔄 Testing 'starship installed'
+[37m
+starship 1.23.0
+branch:master
+commit_hash:661c8a2
+build_time:2025-04-27 15:55:21 +00:00
+build_env:rustc 1.86.0 (05f9846f8 2025-03-31),
+
+
+✅  Passed 'starship installed'!
+
+
+🔄 Testing 'fd installed'
+[37m
+
+
+>  Running scenario:  all-false
+
+📝 Scenario generated: {
+  "image": "ghcr.io/onezerocompany/base",
+  "features": {
+    "ghcr.io/onezerocompany/features/common-utils": {
+      "zsh": false,
+      "defaultShell": "bash",
+      "corePackages": false,
+      "bat": false,
+      "eza": false,
+      "zoxide": false,
+      "starship": false,
+      "fd": false,
+      "ripgrep": false,
+      "httpie": false,
+      "nginx": false,
+      "databaseClients": false,
+      "jq": false,
+      "yq": false,
+      "csvkit": false,
+      "httpstat": false,
+      "sqlite": false,
+      "xmlstarlet": false,
+      "yj": false,
+      "gitExtras": false,
+      "githubCli": false,
+      "gitlabCli": false,
+      "buildEssentials": false,
+      "justRunner": false,
+      "sshClient": false,
+      "nmap": false,
+      "dnsTools": false,
+      "networkDebug": false,
+      "fileTransfer": false
+    }
+  }
+}
+>  workspaceFolder:   /var/folders/cn/27j65mvs6mg8sn_kbmm9fs480000gn/T/devcontainercli/container-features-test/1753353345303
+
+⏳ Building test container...
+
+
+🚀 Launched container.
+>  containerId:          7754837f7ce32f15f0e497149e1b2fddc171deec6a0d253344a036e86c4ea0a8
+
+
+🔄 Testing 'bash shell'
+[37m
+GNU bash, version 5.2.15(1)-release (aarch64-unknown-linux-gnu)
+Copyright (C) 2022 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+
+This is free software; you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+
+✅  Passed 'bash shell'!
+
+
+🔄 Testing 'default shell is bash'
+[37m
+
+
+>  Running scenario:  all-true
+
+📝 Scenario generated: {
+  "image": "ghcr.io/onezerocompany/base",
+  "features": {
+    "ghcr.io/onezerocompany/features/common-utils": {
+      "zsh": true,
+      "defaultShell": "zsh",
+      "corePackages": true,
+      "bat": true,
+      "eza": true,
+      "zoxide": true,
+      "starship": true,
+      "fd": true,
+      "ripgrep": true,
+      "httpie": true,
+      "nginx": true,
+      "databaseClients": true,
+      "jq": true,
+      "yq": true,
+      "csvkit": true,
+      "httpstat": true,
+      "sqlite": true,
+      "xmlstarlet": true,
+      "yj": true,
+      "gitExtras": true,
+      "githubCli": true,
+      "gitlabCli": true,
+      "buildEssentials": true,
+      "justRunner": true,
+      "sshClient": true,
+      "nmap": true,
+      "dnsTools": true,
+      "networkDebug": true,
+      "fileTransfer": true
+    }
+  }
+}
+>  workspaceFolder:   /var/folders/cn/27j65mvs6mg8sn_kbmm9fs480000gn/T/devcontainercli/container-features-test/1753353572660
+
+⏳ Building test container...
+

@@ -1,0 +1,40 @@
+{
+  "default": {
+    "image": "ghcr.io/onezerocompany/base",
+    "features": {
+      "modern-shell": {}
+    }
+  },
+  "all-enabled": {
+    "image": "ghcr.io/onezerocompany/base", 
+    "features": {
+      "modern-shell": {
+        "zsh_default": true,
+        "auto_cd": true,
+        "zoxide_cd": true,
+        "starship": true,
+        "custom_aliases": "g='git status';dc='docker compose';k='kubectl'",
+        "shell_history_size": "20000",
+        "alias_ls": true,
+        "alias_cat": true,
+        "alias_find": true,
+        "alias_grep": true
+      }
+    }
+  },
+  "all-disabled": {
+    "image": "ghcr.io/onezerocompany/base",
+    "features": {
+      "modern-shell": {
+        "zsh_default": false,
+        "auto_cd": false,
+        "zoxide_cd": false,
+        "starship": false,
+        "alias_ls": false,
+        "alias_cat": false,
+        "alias_find": false,
+        "alias_grep": false
+      }
+    }
+  }
+}

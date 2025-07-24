@@ -49,15 +49,34 @@ fi
 apt_get_update()
 {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
+        echo "⏱️  Running apt-get update with timeout (300s)..."
+        if ! timeout 300 apt-get update -y; then
+            local exit_code=$?
+            if [ $exit_code -eq 124 ]; then
+                echo "❌ apt-get update timed out after 300 seconds"
+                return 1
+            else
+                echo "❌ apt-get update failed"
+                return 1
+            fi
+        fi
     fi
 }
 
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
-        apt-get -y install --no-install-recommends "$@"
+        echo "⏱️  Installing packages with timeout (600s): $*"
+        if ! timeout 600 apt-get -y install --no-install-recommends "$@"; then
+            local exit_code=$?
+            if [ $exit_code -eq 124 ]; then
+                echo "❌ Package installation timed out after 600 seconds"
+                return 1
+            else
+                echo "❌ Package installation failed"
+                return 1
+            fi
+        fi
     fi
 }
 
@@ -191,17 +210,29 @@ if [ "${USE_MOBY}" = "true" ]; then
     engine_package_name="moby-engine"
     cli_package_name="moby-cli"
 
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+    echo "⏱️  Adding Microsoft GPG key with timeout (30s)..."
+    if ! timeout 30 curl --max-time 30 --connect-timeout 10 -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg; then
+        echo "❌ Failed to add Microsoft GPG key (timeout or error)"
+        exit 1
+    fi
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
 else
     engine_package_name="docker-ce"
     cli_package_name="docker-ce-cli"
 
-    curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "⏱️  Adding Docker GPG key with timeout (30s)..."
+    if ! timeout 30 curl --max-time 30 --connect-timeout 10 -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg; then
+        echo "❌ Failed to add Docker GPG key (timeout or error)"
+        exit 1
+    fi
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
 fi
 
-apt-get update
+echo "⏱️  Updating package lists with timeout (300s)..."
+if ! timeout 300 apt-get update; then
+    echo "❌ apt-get update timed out after 300 seconds"
+    exit 1
+fi
 
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
     engine_version_suffix=""
@@ -247,7 +278,8 @@ if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
 else
     if [ "${USE_MOBY}" = "true" ]; then
         set +e
-            apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
+            echo "⏱️  Installing Moby packages with timeout (900s)..."
+            timeout 900 apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
             exit_code=$?
         set -e
 
@@ -256,9 +288,14 @@ else
             exit 1
         fi
 
-        apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        echo "⏱️  Installing moby-compose with timeout (300s)..."
+        timeout 300 apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
-        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
+        echo "⏱️  Installing Docker CE packages with timeout (900s)..."
+        if ! timeout 900 apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}; then
+            echo "❌ Docker CE installation timed out or failed"
+            exit 1
+        fi
         apt-mark hold docker-ce docker-ce-cli
         apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     fi
@@ -314,7 +351,8 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         docker_compose_url="https://github.com/docker/compose"
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+        echo "⏱️  Downloading docker-compose with timeout (60s)..."
+        timeout 60 curl --max-time 60 --connect-timeout 10 -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
                  echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
                  fallback_compose "$docker_compose_url"
         }
