@@ -185,15 +185,17 @@ jobs:
               fi
             done
             
-            # Replace ghcr.io/onezerocompany/features/common-utils with local path and disable external downloads
+            # Replace all ghcr.io/onezerocompany/features/* with local paths
             # First, create a backup and then use jq to properly modify the JSON structure
             cp .devcontainer/devcontainer.json .devcontainer/devcontainer.json.bak
             
-            # Use jq to replace the feature reference with local path but keep original settings
+            # Use jq to replace all feature references with local paths
             jq '
               .features |= with_entries(
-                if .key | startswith("ghcr.io/onezerocompany/features/common-utils") then
-                  .key = "./features/common-utils"
+                if .key | startswith("ghcr.io/onezerocompany/features/") then
+                  # Extract feature name from the key
+                  (.key | split("/")[-1] | split(":")[0]) as $feature_name |
+                  .key = "./features/" + $feature_name
                 else
                   .
                 end
