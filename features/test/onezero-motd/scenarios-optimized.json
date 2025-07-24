@@ -1,0 +1,51 @@
+{
+    "smoke": {
+        "image": "busybox:latest",
+        "features": {
+            "onezero-motd": {}
+        },
+        "remoteUser": "root"
+    },
+    "default": {
+        "image": "debian:bookworm-slim",
+        "features": {
+            "onezero-motd": {}
+        }
+    },
+    "custom-logo": {
+        "image": "ubuntu:22.04",
+        "features": {
+            "onezero-motd": {
+                "ascii_logo": "OZ",
+                "info": "Custom",
+                "message": "Test"
+            }
+        }
+    },
+    "disabled": {
+        "image": "alpine:latest",
+        "features": {
+            "onezero-motd": {
+                "enable": false
+            }
+        },
+        "remoteUser": "root"
+    },
+    "minimal-utils": {
+        "image": "alpine:latest", 
+        "features": {
+            "onezero-motd": {}
+        },
+        "remoteUser": "root"
+    },
+    "large-config": {
+        "image": "debian:bookworm-slim",
+        "features": {
+            "onezero-motd": {
+                "ascii_logo": "████████╗███████╗███████╗████████╗\n╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝\n   ██║   █████╗  ███████╗   ██║   \n   ██║   ██╔══╝  ╚════██║   ██║   \n   ██║   ███████╗███████║   ██║   \n   ╚═╝   ╚══════╝╚══════╝   ╚═╝   ",
+                "info": "Performance Test - Large ASCII Art",
+                "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+        }
+    }
+}
