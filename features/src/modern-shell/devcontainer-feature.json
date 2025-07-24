@@ -1,0 +1,72 @@
+{
+  "id": "modern-shell",
+  "name": "Modern Shell",
+  "version": "1.1.1",
+  "description": "A modern shell environment with Zsh, Starship prompt, and essential utilities for a productive development experience.",
+  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/modern-shell",
+  "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+  "keywords": ["shell", "zsh", "bash", "starship", "zoxide", "eza", "bat", "fd", "ripgrep", "productivity"],
+  "options": {
+    "zsh_default": {
+      "type": "boolean",
+      "default": true,
+      "description": "Set Zsh as the default shell"
+    },
+    "auto_cd": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable auto cd in Zsh"
+    },
+    "zoxide_cd": {
+      "type": "boolean",
+      "default": false,
+      "description": "Replace cd with zoxide in Zsh"
+    },
+    "starship": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable Starship prompt in Zsh and Bash"
+    },
+    "custom_aliases": {
+      "type": "string",
+      "default": "",
+      "description": "Additional custom aliases to add (semicolon-separated)"
+    },
+    "zsh_plugins": {
+      "type": "string",
+      "enum": ["none", "minimal", "full"],
+      "default": "minimal",
+      "description": "Zsh plugin preset: none, minimal (syntax highlighting, autosuggestions), or full (includes more plugins)"
+    },
+    "shell_history_size": {
+      "type": "string",
+      "default": "10000",
+      "description": "Number of commands to keep in shell history"
+    },
+    "enable_completions": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable enhanced tab completions for modern tools"
+    },
+    "alias_ls": {
+      "type": "boolean",
+      "default": true,
+      "description": "Alias ls commands to eza"
+    },
+    "alias_cat": {
+      "type": "boolean",
+      "default": true,
+      "description": "Alias cat to bat"
+    },
+    "alias_find": {
+      "type": "boolean",
+      "default": true,
+      "description": "Alias find to fd"
+    },
+    "alias_grep": {
+      "type": "boolean",
+      "default": true,
+      "description": "Alias grep to ripgrep (rg)"
+    }
+  }
+}
