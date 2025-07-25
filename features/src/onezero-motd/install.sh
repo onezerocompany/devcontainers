@@ -32,8 +32,8 @@ EOF
 cat > /etc/update-motd.d/50-onezero << 'MOTD_SCRIPT'
 #!/bin/bash
 
-# Clear default MOTD if it exists
-[ -f /etc/motd ] && > /etc/motd
+# Clear default MOTD if it exists and we have permission
+[ -f /etc/motd ] && [ -w /etc/motd ] && > /etc/motd 2>/dev/null || true
 
 # Load configuration
 if [ -f /etc/onezero/motd.conf ]; then
