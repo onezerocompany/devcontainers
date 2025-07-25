@@ -1,6 +1,6 @@
 # Claude Code
 
-Installs Claude Code CLI via mise (as an npm package), including configuration directories and environment variables.
+Installs Claude Code CLI via mise (as npm package @anthropic-ai/claude-code), including configuration directories and environment variables.
 
 ## Example Usage
 
@@ -75,8 +75,9 @@ This feature installs after:
 
 ## Notes
 
-- Claude Code is installed globally via mise as an npm package
+- Claude Code is installed globally via mise as npm package @anthropic-ai/claude-code
 - This feature requires mise to be pre-installed in the container (use the mise-en-place feature)
+- Node.js LTS is automatically installed via mise to support npm packages
 - A global wrapper script is created at /usr/local/bin/claude-code for easy access
 - The feature creates a configuration directory for Claude Code
 - Environment variables are exported via `/etc/profile.d/claude-code.sh`

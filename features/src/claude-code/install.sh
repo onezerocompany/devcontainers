@@ -85,18 +85,27 @@ install_claude_code_via_mise() {
   
   log_info "Installing claude-code via mise for $user..."
   
+  # First ensure Node.js is installed via mise (required for npm: packages)
+  log_info "Ensuring Node.js is installed for npm packages..."
+  if [ "$user" = "root" ]; then
+    cd "$home_dir" && /usr/local/bin/mise use -g node@lts
+  else
+    su - "$user" -c "cd && /usr/local/bin/mise use -g node@lts"
+  fi
+  log_success "Node.js installed/verified via mise for $user"
+  
   # Install claude-code via mise
   if [ "$CLAUDE_CODE_VERSION" = "latest" ]; then
     if [ "$user" = "root" ]; then
-      cd "$home_dir" && /usr/local/bin/mise use -g npm:claude-code
+      cd "$home_dir" && /usr/local/bin/mise use -g npm:@anthropic-ai/claude-code
     else
-      su - "$user" -c "cd && /usr/local/bin/mise use -g npm:claude-code"
+      su - "$user" -c "cd && /usr/local/bin/mise use -g npm:@anthropic-ai/claude-code"
     fi
   else
     if [ "$user" = "root" ]; then
-      cd "$home_dir" && /usr/local/bin/mise use -g npm:claude-code@$CLAUDE_CODE_VERSION
+      cd "$home_dir" && /usr/local/bin/mise use -g npm:@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION
     else
-      su - "$user" -c "cd && /usr/local/bin/mise use -g npm:claude-code@$CLAUDE_CODE_VERSION"
+      su - "$user" -c "cd && /usr/local/bin/mise use -g npm:@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION"
     fi
   fi
   
@@ -124,8 +133,12 @@ install_claude_code_for_user() {
   cat > /usr/local/bin/claude-code <<'EOF'
 #!/bin/bash
 eval "$(mise activate bash)"
-# Find the actual claude-code binary in mise's shims
-CLAUDE_CODE_BIN="$(mise which claude-code 2>/dev/null || echo "")"
+# Find the actual claude-code binary - it might be named differently after npm install
+CLAUDE_CODE_BIN="$(mise which claude-code 2>/dev/null || mise which claude 2>/dev/null || echo "")"
+if [ -z "$CLAUDE_CODE_BIN" ]; then
+  # Try finding it directly in mise's npm package location
+  CLAUDE_CODE_BIN="$(find "$HOME/.local/share/mise/installs/npm-*anthropic-ai*claude-code*/bin" -name "claude*" -type f 2>/dev/null | head -1)"
+fi
 if [ -z "$CLAUDE_CODE_BIN" ]; then
   echo "Error: claude-code not found in mise" >&2
   exit 1
