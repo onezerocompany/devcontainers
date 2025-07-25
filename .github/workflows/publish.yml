@@ -213,11 +213,90 @@ jobs:
             type=registry,ref=ghcr.io/onezerocompany/settings-gen:latest
           cache-to: type=registry,ref=ghcr.io/onezerocompany/settings-gen:buildcache,mode=max
 
+  # Test published features
+  test-features:
+    name: Test Published Features
+    runs-on: ubuntu-latest
+    needs: [publish-features]
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install devcontainers CLI
+        run: npm install -g @devcontainers/cli
+
+      # Wait for features to be available in registry
+      - name: Wait for features availability
+        run: |
+          echo "Waiting for features to be available..."
+          sleep 60
+
+      - name: Test published features
+        run: |
+          cd features
+          devcontainer features test
+
+  # Test published templates
+  test-templates:
+    name: Test Published Templates
+    runs-on: ubuntu-latest
+    needs: [publish-templates, publish-features, publish-base]
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - base
+          - dind
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install devcontainers CLI
+        run: npm install -g @devcontainers/cli
+
+      # Wait for templates and base image to be available
+      - name: Wait for resources availability
+        run: |
+          echo "Waiting for resources to be available..."
+          sleep 60
+
+      - name: Test template - ${{ matrix.template }}
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: |
+            echo "Testing ${{ matrix.template }} template..."
+            # Basic smoke tests
+            whoami
+            which bash
+            which zsh || echo "zsh not required"
+            # Test features if applicable
+            if [ "${{ matrix.template }}" = "dind" ]; then
+              docker version
+              docker ps
+            fi
+          subFolder: templates/${{ matrix.template }}
+
   # Pre-build dev container images
   prebuild:
     name: Pre-build Dev Container Images
     runs-on: ubuntu-latest
-    needs: [publish-base, publish-templates, publish-features]
+    needs: [publish-base, publish-templates, publish-features, test-features, test-templates]
     permissions:
       contents: read
       packages: write

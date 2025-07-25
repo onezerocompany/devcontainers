@@ -139,8 +139,7 @@ if [ "${USE_BUN_FOR_NPM}" = "true" ]; then
 [settings]
 node_compile = false
 not_found_auto_install = true
-
-[settings.experimental]
+experimental = true
 bun_backend = true
 EOF
     
@@ -149,8 +148,7 @@ EOF
 [settings]
 node_compile = false
 not_found_auto_install = true
-
-[settings.experimental]
+experimental = true
 bun_backend = true
 EOF
     

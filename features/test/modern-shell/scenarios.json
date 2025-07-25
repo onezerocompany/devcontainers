@@ -2,13 +2,13 @@
 	"default": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"modern-shell": {}
+			"ghcr.io/onezerocompany/features/modern-shell": {}
 		}
 	},
 	"all-enabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"modern-shell": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
 				"zsh_default": true,
 				"auto_cd": true,
 				"zoxide_cd": true,
@@ -25,7 +25,7 @@
 	"all-disabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"modern-shell": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
 				"zsh_default": false,
 				"auto_cd": false,
 				"zoxide_cd": false,

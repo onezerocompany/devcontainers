@@ -2,20 +2,20 @@
 	"default": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"claude-code": {}
+			"ghcr.io/onezerocompany/features/claude-code": {}
 		}
 	},
 	"with-modern-shell": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"modern-shell": {},
-			"claude-code": {}
+			"ghcr.io/onezerocompany/features/modern-shell": {},
+			"ghcr.io/onezerocompany/features/claude-code": {}
 		}
 	},
 	"custom-versions": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"claude-code": {
+			"ghcr.io/onezerocompany/features/claude-code": {
 				"nodeVersion": "20",
 				"claudeCodeVersion": "latest",
 				"maxOldSpaceSize": "4096"
@@ -25,7 +25,7 @@
 	"custom-config-dir": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"claude-code": {
+			"ghcr.io/onezerocompany/features/claude-code": {
 				"configDir": "/opt/claude-config"
 			}
 		}

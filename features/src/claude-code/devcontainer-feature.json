@@ -1,7 +1,7 @@
 {
 	"id": "claude-code",
 	"name": "Claude Code",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Claude Code CLI setup with Node.js via mise, including configuration directories and environment variables",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/claude-code",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
@@ -32,9 +32,6 @@
 			"default": true,
 			"description": "Install Node.js and Claude Code globally for all users"
 		}
-	},
-	"containerEnv": {
-		"NODE_OPTIONS": "--max-old-space-size=${options.maxOldSpaceSize}"
 	},
 	"mounts": [
 		{

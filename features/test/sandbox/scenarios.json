@@ -2,13 +2,13 @@
 	"default": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {}
+			"ghcr.io/onezerocompany/features/sandbox": {}
 		}
 	},
 	"allow-policy": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {
+			"ghcr.io/onezerocompany/features/sandbox": {
 				"defaultPolicy": "allow",
 				"blockedDomains": "*.example.com,badsite.com"
 			}
@@ -17,7 +17,7 @@
 	"custom-domains": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {
+			"ghcr.io/onezerocompany/features/sandbox": {
 				"allowedDomains": "*.github.com,api.openai.com,*.googleapis.com",
 				"blockedDomains": "*.facebook.com,*.twitter.com",
 				"defaultPolicy": "block"
@@ -27,7 +27,7 @@
 	"docker-enabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {
+			"ghcr.io/onezerocompany/features/sandbox": {
 				"allowDockerNetworks": true,
 				"allowLocalhost": true
 			}
@@ -36,7 +36,7 @@
 	"strict-mode": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {
+			"ghcr.io/onezerocompany/features/sandbox": {
 				"allowedDomains": "api.github.com",
 				"blockedDomains": "",
 				"defaultPolicy": "block",
@@ -49,7 +49,7 @@
 	"wildcard-test": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {
+			"ghcr.io/onezerocompany/features/sandbox": {
 				"blockedDomains": "*.facebook.com,*.twitter.com,*.example.com",
 				"defaultPolicy": "block"
 			}
@@ -58,7 +58,7 @@
 	"logging-disabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"sandbox": {
+			"ghcr.io/onezerocompany/features/sandbox": {
 				"logBlocked": false
 			}
 		}

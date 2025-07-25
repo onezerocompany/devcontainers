@@ -2,13 +2,13 @@
     "default": {
         "image": "debian:bookworm",
         "features": {
-            "mise-en-place": {}
+            "ghcr.io/onezerocompany/features/mise-en-place": {}
         }
     },
     "with-version": {
         "image": "debian:bookworm",
         "features": {
-            "mise-en-place": {
+            "ghcr.io/onezerocompany/features/mise-en-place": {
                 "version": "2024.1.0"
             }
         }
@@ -16,14 +16,14 @@
     "ubuntu": {
         "image": "ubuntu:22.04",
         "features": {
-            "mise-en-place": {}
+            "ghcr.io/onezerocompany/features/mise-en-place": {}
         }
     },
     "with-common-utils": {
         "image": "debian:bookworm",
         "features": {
             "ghcr.io/devcontainers/features/common-utils": {},
-            "mise-en-place": {}
+            "ghcr.io/onezerocompany/features/mise-en-place": {}
         },
         "remoteUser": "vscode"
     }
