@@ -167,6 +167,49 @@ if [ -f /etc/ssh/sshd_config ]; then
     mv /etc/ssh/sshd_config.tmp /etc/ssh/sshd_config 2>/dev/null || true
 fi
 
+# Add MOTD display to shell initialization files
+# This ensures MOTD shows in devcontainers where login shells aren't used
+
+# Function to add MOTD to shell rc file
+add_motd_to_shell() {
+    local rc_file="$1"
+    local shell_name="$2"
+    
+    if [ -f "$rc_file" ] || touch "$rc_file" 2>/dev/null; then
+        if ! grep -q "# OneZero MOTD Display" "$rc_file"; then
+            cat >> "$rc_file" << 'EOF'
+
+# OneZero MOTD Display
+if [ -x /etc/update-motd.d/50-onezero ] && [ -z "$ONEZERO_MOTD_SHOWN" ]; then
+    /etc/update-motd.d/50-onezero
+    export ONEZERO_MOTD_SHOWN=1
+fi
+EOF
+            echo "Added MOTD display to $shell_name for $rc_file"
+        fi
+    fi
+}
+
+# Add to user's shell configs
+if [ -n "$USERNAME" ] && [ "$USERNAME" != "root" ]; then
+    USER_HOME=$(eval echo ~$USERNAME)
+    add_motd_to_shell "$USER_HOME/.bashrc" "bash"
+    add_motd_to_shell "$USER_HOME/.zshrc" "zsh"
+    
+    # Set ownership
+    chown "$USERNAME:$USERNAME" "$USER_HOME/.bashrc" 2>/dev/null || true
+    chown "$USERNAME:$USERNAME" "$USER_HOME/.zshrc" 2>/dev/null || true
+fi
+
+# Also add to root's shell configs
+add_motd_to_shell "/root/.bashrc" "bash"
+add_motd_to_shell "/root/.zshrc" "zsh"
+
+# Add to /etc/skel for future users
+mkdir -p /etc/skel
+add_motd_to_shell "/etc/skel/.bashrc" "bash"
+add_motd_to_shell "/etc/skel/.zshrc" "zsh"
+
 # Test the MOTD
 echo "Testing OneZero MOTD:"
 echo "===================="
