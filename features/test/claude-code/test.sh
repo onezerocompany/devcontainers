@@ -5,7 +5,8 @@ set -e
 source dev-container-features-test-lib
 
 # Feature-specific tests
-check "node installed" command -v node
+check "mise installed" command -v mise
+check "bun available via mise" bash -c 'eval "$(mise activate bash)" && command -v bun'
 
 # Check if claude-code is available
 check "claude-code executable" which claude-code || command -v claude-code
