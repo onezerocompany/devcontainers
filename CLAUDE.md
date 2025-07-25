@@ -98,3 +98,7 @@ All images and features support both `linux/amd64` and `linux/arm64`. The CI use
 
 - **CI/CD Verification:**
   - Don't assume you've fixed something until you've confirmed the check-suites have completed successfully on GitHub
+
+## Release Management
+
+- Whenever we bump a feature we should also bump the templates that use them
