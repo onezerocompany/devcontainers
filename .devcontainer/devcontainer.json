@@ -1,5 +1,18 @@
 {
   "image": "ghcr.io/onezerocompany/devcontainer:base",
   "remoteUser": "zero",
-  "workspaceFolder": "/workspace"
+  "features": {
+    "ghcr.io/onezerocompany/features/sandbox:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "biomejs.biome",
+        "oven.bun-vscode",
+        "Anthropic.claude-code",
+        "docker.docker"
+      ]
+    }
+  }
 }
