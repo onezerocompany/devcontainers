@@ -3,6 +3,8 @@ set -e
 
 VERSION="${VERSION:-"latest"}"
 CONFIGURE_CACHE="${CONFIGURECACHE:-"true"}"
+AUTO_TRUST="${AUTOTRUST:-"true"}"
+USE_BUN_FOR_NPM="${USEBUNFORNPM:-"false"}"
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
@@ -83,6 +85,7 @@ setup_shell_integration() {
         echo '' >> "${target_home}/.bashrc"
         echo '# mise-en-place' >> "${target_home}/.bashrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.bashrc"
+        echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.bashrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.bashrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.bashrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.bashrc"
@@ -95,6 +98,7 @@ setup_shell_integration() {
         echo '' >> "${target_home}/.zshrc"
         echo '# mise-en-place' >> "${target_home}/.zshrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.zshrc"
+        echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.zshrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.zshrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.zshrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.zshrc"
@@ -123,6 +127,36 @@ setup_shell_integration "${USERNAME}" "${USER_HOME}"
 # Also setup for root if we're not already root
 if [ "${USERNAME}" != "root" ]; then
     setup_shell_integration "root" "/root"
+fi
+
+# Configure mise settings if bun backend is requested
+if [ "${USE_BUN_FOR_NPM}" = "true" ]; then
+    echo "Configuring mise to use bun as npm backend..."
+    
+    # Create mise settings file with bun backend configuration
+    mkdir -p /etc/mise
+    cat > /etc/mise/config.toml << 'EOF'
+[settings]
+node_compile = false
+not_found_auto_install = true
+
+[settings.experimental]
+bun_backend = true
+EOF
+    
+    # Also create default user config with bun backend
+    cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
+[settings]
+node_compile = false
+not_found_auto_install = true
+
+[settings.experimental]
+bun_backend = true
+EOF
+    
+    if [ "${USERNAME}" != "root" ]; then
+        chown "${USERNAME}:${USERNAME}" "${USER_HOME}/.config/mise/config.toml"
+    fi
 fi
 
 # Note: mise directories will be initialized on first container start via mise-init
