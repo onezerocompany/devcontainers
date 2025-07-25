@@ -1,5 +1,5 @@
 add_newline = true
-format = "[](fg:purple)[ ](bg:purple fg:white)[](fg:white)$username[](fg:white)"
+format = "[](fg:purple)[ ](bg:purple fg:black)[](fg:white)$username[](fg:white)"
 right_format = "$directory"
 
 [directory]
