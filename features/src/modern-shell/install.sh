@@ -104,12 +104,32 @@ fi
     
 
 log_info "Installing modern shell utilities: $MISE_PACKAGES"
-if mise use -g -y $MISE_PACKAGES; then
-  log_success "Modern shell utilities installed successfully"
-else
-  log_warning "Failed to install some utilities via mise (may be due to rate limiting)"
-  # Continue installation anyway - tools may not be available but shell config will work
-fi
+
+# Ensure mise is in PATH and activated for the installation
+export PATH="/usr/local/bin:$PATH"
+export MISE_DATA_DIR="/usr/local/share/mise"
+
+# Install tools globally one by one for better error handling
+log_info "Installing tools individually..."
+for tool in $MISE_PACKAGES; do
+  tool=$(echo "$tool" | tr -d ' ')  # Remove spaces
+  if [ -n "$tool" ]; then
+    log_info "Installing $tool..."
+    if /usr/local/bin/mise install -g "$tool@latest" -y; then
+      log_success "Successfully installed $tool"
+    else
+      log_warning "Failed to install $tool (may be due to rate limiting or network issues)"
+    fi
+  fi
+done
+
+# List installed tools for verification
+log_info "Verifying installed tools:"
+/usr/local/bin/mise list -g || true
+
+# Create shims for all installed tools
+log_info "Creating shims for installed tools..."
+/usr/local/bin/mise reshim || true
 
 # Configure shells after tools are installed
 

@@ -68,11 +68,20 @@ ensure_mise_installed() {
   if ! command -v mise >/dev/null 2>&1; then
     echo "🔧 Installing mise..."
     curl https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh
+    
+    # Make sure mise is executable
+    chmod +x /usr/local/bin/mise
   else
     echo "✅ Mise is already installed"
   fi
   
-  # Ensure mise cache directories exist with proper permissions
+  # Ensure global mise directories exist
+  mkdir -p /usr/local/share/mise
+  mkdir -p /usr/local/share/mise/installs
+  mkdir -p /usr/local/share/mise/cache
+  chmod -R 755 /usr/local/share/mise
+  
+  # Ensure mise cache directories exist with proper permissions for each user
   local users=("$(username)" "root")
   for user in "${users[@]}"; do
     local home_dir
@@ -97,6 +106,10 @@ ensure_mise_installed() {
       fi
     fi
   done
+  
+  # Set MISE environment variables for global installations
+  export MISE_DATA_DIR="/usr/local/share/mise"
+  export MISE_INSTALL_PATH="/usr/local/bin/mise"
 }
 
 setup_home_bin() {
@@ -145,20 +158,35 @@ setup_mise_activation() {
 
   echo "🔧 Setting up mise activation for user $user..."
 
+  # Add mise global shims to PATH in .zshenv (loaded before .zshrc)
+  if [ -f "$home_dir/.zshenv" ] || touch "$home_dir/.zshenv" 2>/dev/null; then
+    if ! grep -q 'export PATH="/usr/local/share/mise/shims:\$PATH"' "$home_dir/.zshenv"; then
+      echo 'export PATH="/usr/local/share/mise/shims:$PATH"' >> "$home_dir/.zshenv"
+      echo "🔧 Added mise shims to PATH in .zshenv"
+    fi
+  fi
+
   # Ensure mise activation is in .zshrc
-  if ! grep -q 'eval "\$(mise activate zsh)"' "$home_dir/.zshrc"; then
-    echo 'eval "$(mise activate zsh)"' >> "$home_dir/.zshrc"
+  if ! grep -q 'eval "\$(/usr/local/bin/mise activate zsh)"' "$home_dir/.zshrc"; then
+    echo 'eval "$(/usr/local/bin/mise activate zsh)"' >> "$home_dir/.zshrc"
     echo "🔧 Added mise activation to .zshrc"
   else
     echo "✅ Mise activation already in .zshrc"
   fi
 
   # Ensure mise activation is in .bashrc
-  if ! grep -q 'eval "\$(mise activate bash)"' "$home_dir/.bashrc"; then
-    echo 'eval "$(mise activate bash)"' >> "$home_dir/.bashrc"
+  if ! grep -q 'eval "\$(/usr/local/bin/mise activate bash)"' "$home_dir/.bashrc"; then
+    echo 'eval "$(/usr/local/bin/mise activate bash)"' >> "$home_dir/.bashrc"
     echo "🔧 Added mise activation to .bashrc"
   else
     echo "✅ Mise activation already in .bashrc"
+  fi
+  
+  # Set ownership for shell config files
+  if id "$user" &>/dev/null; then
+    chown "$user:$user" "$home_dir/.zshenv" 2>/dev/null || true
+    chown "$user:$user" "$home_dir/.zshrc" 2>/dev/null || true
+    chown "$user:$user" "$home_dir/.bashrc" 2>/dev/null || true
   fi
 }
 
