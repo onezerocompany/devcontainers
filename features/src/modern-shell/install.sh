@@ -151,6 +151,22 @@ install_mise_tools_for_user "$USERNAME" "$USER_HOME"
 # Install for root
 install_mise_tools_for_user "root" "/root"
 
+# Install shim scripts
+log_info "Installing shim scripts..."
+if [ -d "${SCRIPT_DIR}/bin" ]; then
+  for shim in "${SCRIPT_DIR}/bin"/*; do
+    if [ -f "$shim" ]; then
+      shim_name=$(basename "$shim")
+      log_info "Installing $shim_name..."
+      cp -f "$shim" "/usr/local/bin/$shim_name"
+      chmod +rx "/usr/local/bin/$shim_name"
+    fi
+  done
+  log_success "Shim scripts installed successfully"
+else
+  log_warning "No bin directory found at ${SCRIPT_DIR}/bin"
+fi
+
 # Configure shells after tools are installed
 
 # Configure for both user and root

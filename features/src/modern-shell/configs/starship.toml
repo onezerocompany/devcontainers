@@ -1,5 +1,5 @@
 add_newline = true
-format = "[](fg:purple)[dev ](bg:purple fg:white)$username "
+format = "[](fg:purple)[ ](bg:purple fg:white)[](fg:white)$username[](fg:white)"
 right_format = "$directory"
 
 [directory]
@@ -12,7 +12,7 @@ repo_root_style = "fg:white"
 truncation_length = 3
 
 [username]
-format = "[  $user ]($style)[](fg:white)"
+format = "[  $user ]($style)"
 show_always = true
 style_root = "bg:white fg:black bold"
 style_user = "bg:white fg:black"
