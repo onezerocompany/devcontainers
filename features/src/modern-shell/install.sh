@@ -107,29 +107,43 @@ log_info "Installing modern shell utilities: $MISE_PACKAGES"
 
 # Ensure mise is in PATH and activated for the installation
 export PATH="/usr/local/bin:$PATH"
-export MISE_DATA_DIR="/usr/local/share/mise"
 
-# Install tools globally one by one for better error handling
-log_info "Installing tools individually..."
-for tool in $MISE_PACKAGES; do
-  tool=$(echo "$tool" | tr -d ' ')  # Remove spaces
-  if [ -n "$tool" ]; then
-    log_info "Installing $tool..."
-    if /usr/local/bin/mise install -g "$tool@latest" -y; then
-      log_success "Successfully installed $tool"
-    else
-      log_warning "Failed to install $tool (may be due to rate limiting or network issues)"
+# Install tools for each user (not globally, to avoid permission issues)
+# We'll install for both the main user and root
+install_mise_tools_for_user() {
+  local user="$1"
+  local home_dir="$2"
+  
+  log_info "Installing tools for user: $user"
+  
+  # Install tools one by one for better error handling
+  for tool in $MISE_PACKAGES; do
+    tool=$(echo "$tool" | tr -d ' ')  # Remove spaces
+    if [ -n "$tool" ]; then
+      log_info "Installing $tool for $user..."
+      if su - "$user" -c "/usr/local/bin/mise use -g $tool@latest -y" 2>/dev/null; then
+        log_success "Successfully installed $tool for $user"
+      else
+        # Fallback: try without su if that fails
+        if HOME="$home_dir" /usr/local/bin/mise use -g "$tool@latest" -y; then
+          log_success "Successfully installed $tool for $user (fallback)"
+        else
+          log_warning "Failed to install $tool for $user"
+        fi
+      fi
     fi
-  fi
-done
+  done
+  
+  # List installed tools for verification
+  log_info "Verifying installed tools for $user:"
+  su - "$user" -c "/usr/local/bin/mise list -g" 2>/dev/null || HOME="$home_dir" /usr/local/bin/mise list -g || true
+}
 
-# List installed tools for verification
-log_info "Verifying installed tools:"
-/usr/local/bin/mise list -g || true
+# Install for the main user
+install_mise_tools_for_user "$USERNAME" "$USER_HOME"
 
-# Create shims for all installed tools
-log_info "Creating shims for installed tools..."
-/usr/local/bin/mise reshim || true
+# Install for root
+install_mise_tools_for_user "root" "/root"
 
 # Configure shells after tools are installed
 

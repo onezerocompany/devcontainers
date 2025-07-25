@@ -75,11 +75,8 @@ ensure_mise_installed() {
     echo "✅ Mise is already installed"
   fi
   
-  # Ensure global mise directories exist
-  mkdir -p /usr/local/share/mise
-  mkdir -p /usr/local/share/mise/installs
-  mkdir -p /usr/local/share/mise/cache
-  chmod -R 755 /usr/local/share/mise
+  # Note: We don't create global mise directories anymore
+  # Tools are installed per-user to avoid permission issues
   
   # Ensure mise cache directories exist with proper permissions for each user
   local users=("$(username)" "root")
@@ -107,9 +104,8 @@ ensure_mise_installed() {
     fi
   done
   
-  # Set MISE environment variables for global installations
-  export MISE_DATA_DIR="/usr/local/share/mise"
-  export MISE_INSTALL_PATH="/usr/local/bin/mise"
+  # Note: MISE_DATA_DIR is not set globally anymore
+  # Each user will have their own mise data directory in their home
 }
 
 setup_home_bin() {
@@ -158,13 +154,8 @@ setup_mise_activation() {
 
   echo "🔧 Setting up mise activation for user $user..."
 
-  # Add mise global shims to PATH in .zshenv (loaded before .zshrc)
-  if [ -f "$home_dir/.zshenv" ] || touch "$home_dir/.zshenv" 2>/dev/null; then
-    if ! grep -q 'export PATH="/usr/local/share/mise/shims:\$PATH"' "$home_dir/.zshenv"; then
-      echo 'export PATH="/usr/local/share/mise/shims:$PATH"' >> "$home_dir/.zshenv"
-      echo "🔧 Added mise shims to PATH in .zshenv"
-    fi
-  fi
+  # Note: We don't add global mise shims anymore since tools are installed per-user
+  # mise activate will handle adding the correct paths
 
   # Ensure mise activation is in .zshrc
   if ! grep -q 'eval "\$(/usr/local/bin/mise activate zsh)"' "$home_dir/.zshrc"; then
