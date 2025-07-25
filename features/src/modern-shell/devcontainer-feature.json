@@ -1,7 +1,7 @@
 {
   "id": "modern-shell",
   "name": "Modern Shell",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A modern shell environment with Zsh, Starship prompt, and essential utilities for a productive development experience.",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/modern-shell",
   "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",

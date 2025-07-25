@@ -101,6 +101,9 @@ fi
 if [ "$STARSHIP" = "true" ]; then
   MISE_PACKAGES+=" starship "
 fi
+
+# Install vim as part of modern shell experience
+MISE_PACKAGES+=" vim "
     
 
 log_info "Installing modern shell utilities: $MISE_PACKAGES"
