@@ -16,9 +16,7 @@
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
 			"ghcr.io/onezerocompany/features/claude-code": {
-				"nodeVersion": "20",
-				"claudeCodeVersion": "latest",
-				"maxOldSpaceSize": "4096"
+				"claudeCodeVersion": "latest"
 			}
 		}
 	},

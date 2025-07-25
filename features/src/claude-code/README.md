@@ -1,6 +1,6 @@
 # Claude Code
 
-Installs Claude Code CLI with Node.js via mise, including configuration directories and environment variables.
+Installs Claude Code CLI via mise, including configuration directories and environment variables.
 
 ## Example Usage
 
@@ -14,11 +14,9 @@ Installs Claude Code CLI with Node.js via mise, including configuration director
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| nodeVersion | Node.js version to install via mise (e.g., 'lts', '20', '22.11.0') | string | lts |
 | claudeCodeVersion | Claude Code version to install via mise | string | latest |
 | configDir | Claude Code config directory path. If empty, defaults to /home/$USER/.claude | string | |
-| maxOldSpaceSize | Node.js max-old-space-size in MB for NODE_OPTIONS | string | 8192 |
-| installGlobally | Install Node.js and Claude Code globally for all users | boolean | true |
+| installGlobally | Install Claude Code globally for all users | boolean | true |
 
 ## Customizations
 
@@ -30,7 +28,6 @@ Installs Claude Code CLI with Node.js via mise, including configuration director
 
 This feature sets the following environment variables:
 
-- `NODE_OPTIONS`: Set to `--max-old-space-size=${maxOldSpaceSize}` (default: 8192)
 - `CLAUDE_CONFIG_DIR`: Set to the Claude configuration directory path
 
 ## Volume Mounts

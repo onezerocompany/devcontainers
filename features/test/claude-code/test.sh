@@ -6,17 +6,12 @@ source dev-container-features-test-lib
 
 # Feature-specific tests
 check "mise installed" command -v mise
-check "node installed via mise" mise list | grep -q "node"
 check "claude-code installed via mise" mise list | grep -q "claude-code"
-
-# Check if node is actually executable
-check "node executable" node --version
 
 # Check if claude-code is available
 check "claude-code executable" which claude-code || command -v claude-code || mise which claude-code
 
 # Check environment variables
-check "NODE_OPTIONS set" bash -c 'source /etc/profile.d/claude-code.sh && echo $NODE_OPTIONS' | grep -q "max-old-space-size"
 check "CLAUDE_CONFIG_DIR set" bash -c 'source /etc/profile.d/claude-code.sh && [ -n "$CLAUDE_CONFIG_DIR" ]'
 
 # Check config directory exists

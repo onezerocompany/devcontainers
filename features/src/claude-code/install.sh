@@ -9,10 +9,8 @@ export DEBIAN_FRONTEND=noninteractive
 set -o pipefail
 
 # Feature options
-NODE_VERSION="${NODEVERSION:-lts}"
 CLAUDE_CODE_VERSION="${CLAUDECODEVERSION:-latest}"
 CONFIG_DIR="${CONFIGDIR:-}"
-MAX_OLD_SPACE_SIZE="${MAXOLDSPACESIZE:-8192}"
 INSTALL_GLOBALLY="${INSTALLGLOBALLY:-true}"
 
 # Source utils from modern-shell if available, otherwise define minimal functions
@@ -65,7 +63,7 @@ if [ -z "$CONFIG_DIR" ]; then
 fi
 
 log_info "Starting Claude Code installation..."
-log_info "Options: node=$NODE_VERSION, claude-code=$CLAUDE_CODE_VERSION"
+log_info "Options: claude-code=$CLAUDE_CODE_VERSION"
 log_info "User: $USERNAME, Home: $USER_HOME, Config: $CONFIG_DIR"
 
 # Check if mise is available
@@ -93,14 +91,10 @@ setup_mise_for_user() {
   if [ ! -f "$home_dir/.mise.toml" ]; then
     cat > "$home_dir/.mise.toml" <<EOF
 [tools]
-node = "$NODE_VERSION"
 claude-code = "$CLAUDE_CODE_VERSION"
 EOF
   else
     # Check if tools section exists and add our tools
-    if ! grep -q "^node = " "$home_dir/.mise.toml"; then
-      echo "node = \"$NODE_VERSION\"" >> "$home_dir/.mise.toml"
-    fi
     if ! grep -q "^claude-code = " "$home_dir/.mise.toml"; then
       echo "claude-code = \"$CLAUDE_CODE_VERSION\"" >> "$home_dir/.mise.toml"
     fi
@@ -114,7 +108,7 @@ EOF
   # Note: mise activation should already be in shell configs from mise-en-place feature
   
   # Install tools
-  log_info "Installing Node.js and Claude Code for $user..."
+  log_info "Installing Claude Code for $user..."
   if [ "$user" = "root" ]; then
     cd "$home_dir" && /usr/local/bin/mise install -y
   else
@@ -180,14 +174,10 @@ if [ ! -f /etc/profile.d/claude-code.sh ]; then
   cat > /etc/profile.d/claude-code.sh <<EOF
 #!/bin/sh
 # Claude Code environment variables
-export NODE_OPTIONS="--max-old-space-size=$MAX_OLD_SPACE_SIZE"
 export CLAUDE_CONFIG_DIR="$CONFIG_DIR"
 EOF
 else
   # Append only if not already present
-  if ! grep -q "NODE_OPTIONS.*max-old-space-size" /etc/profile.d/claude-code.sh; then
-    echo "export NODE_OPTIONS=\"--max-old-space-size=$MAX_OLD_SPACE_SIZE\"" >> /etc/profile.d/claude-code.sh
-  fi
   if ! grep -q "CLAUDE_CONFIG_DIR" /etc/profile.d/claude-code.sh; then
     echo "export CLAUDE_CONFIG_DIR=\"$CONFIG_DIR\"" >> /etc/profile.d/claude-code.sh
   fi
@@ -195,7 +185,5 @@ fi
 chmod +x /etc/profile.d/claude-code.sh
 
 log_success "Claude Code feature installation complete!"
-log_info "Node.js version: $NODE_VERSION"
 log_info "Claude Code version: $CLAUDE_CODE_VERSION"
 log_info "Config directory: $CONFIG_DIR"
-log_info "NODE_OPTIONS: --max-old-space-size=$MAX_OLD_SPACE_SIZE"
