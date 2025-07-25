@@ -1,6 +1,6 @@
 # Claude Code
 
-Installs Claude Code CLI via bun with mise, including configuration directories and environment variables.
+Installs Claude Code CLI via mise (as an npm package), including configuration directories and environment variables.
 
 ## Example Usage
 
@@ -14,7 +14,7 @@ Installs Claude Code CLI via bun with mise, including configuration directories 
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| claudeCodeVersion | Claude Code version to install via bun | string | latest |
+| claudeCodeVersion | Claude Code version to install via mise | string | latest |
 | configDir | Claude Code config directory path. If empty, defaults to /home/$USER/.claude | string | |
 | installGlobally | Install Claude Code globally for all users | boolean | true |
 
@@ -53,7 +53,6 @@ This feature installs after:
 ## Tools Installed
 
 - **Claude Code**: Anthropic's CLI for Claude (version specified by `claudeCodeVersion`)
-- **bun**: JavaScript runtime (installed via mise)
 
 ## Example Configurations
 
@@ -76,8 +75,8 @@ This feature installs after:
 
 ## Notes
 
-- Claude Code is installed globally via bunx
+- Claude Code is installed globally via mise as an npm package
 - This feature requires mise to be pre-installed in the container (use the mise-en-place feature)
-- Bun is automatically installed via mise
+- A global wrapper script is created at /usr/local/bin/claude-code for easy access
 - The feature creates a configuration directory for Claude Code
 - Environment variables are exported via `/etc/profile.d/claude-code.sh`

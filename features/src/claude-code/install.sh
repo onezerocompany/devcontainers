@@ -78,22 +78,29 @@ check_mise() {
   fi
 }
 
-# Setup mise for a user
-setup_mise_for_user() {
+# Install claude-code via mise for a user
+install_claude_code_via_mise() {
   local user="$1"
   local home_dir="$2"
   
-  log_info "Setting up mise for $user..."
+  log_info "Installing claude-code via mise for $user..."
   
-  # Install bun via mise
-  log_info "Installing bun for $user..."
-  if [ "$user" = "root" ]; then
-    cd "$home_dir" && /usr/local/bin/mise use -g bun@latest
+  # Install claude-code via mise
+  if [ "$CLAUDE_CODE_VERSION" = "latest" ]; then
+    if [ "$user" = "root" ]; then
+      cd "$home_dir" && /usr/local/bin/mise use -g npm:claude-code
+    else
+      su - "$user" -c "cd && /usr/local/bin/mise use -g npm:claude-code"
+    fi
   else
-    su - "$user" -c "cd && /usr/local/bin/mise use -g bun@latest"
+    if [ "$user" = "root" ]; then
+      cd "$home_dir" && /usr/local/bin/mise use -g npm:claude-code@$CLAUDE_CODE_VERSION
+    else
+      su - "$user" -c "cd && /usr/local/bin/mise use -g npm:claude-code@$CLAUDE_CODE_VERSION"
+    fi
   fi
   
-  log_success "Mise setup complete for $user"
+  log_success "claude-code installed via mise for $user"
 }
 
 # Install Claude Code for a user
@@ -113,36 +120,21 @@ install_claude_code_for_user() {
     return 0
   fi
   
-  # Determine installation command based on version
-  local install_cmd
-  if [ "$CLAUDE_CODE_VERSION" = "latest" ]; then
-    install_cmd="bun x @claude-ai/code"
-  else
-    install_cmd="bun x @claude-ai/code@$CLAUDE_CODE_VERSION"
-  fi
-  
-  # Install Claude Code using bun
-  if [ "$user" = "root" ]; then
-    cd "$home_dir" && eval "$(mise activate bash)" && $install_cmd
-  else
-    su - "$user" -c "cd && eval \"\$(mise activate bash)\" && $install_cmd"
-  fi
-  
-  # Create a global executable script
+  # Create a global wrapper script
   cat > /usr/local/bin/claude-code <<'EOF'
 #!/bin/bash
 eval "$(mise activate bash)"
-exec bun x @claude-ai/code "$@"
+# Find the actual claude-code binary in mise's shims
+CLAUDE_CODE_BIN="$(mise which claude-code 2>/dev/null || echo "")"
+if [ -z "$CLAUDE_CODE_BIN" ]; then
+  echo "Error: claude-code not found in mise" >&2
+  exit 1
+fi
+exec "$CLAUDE_CODE_BIN" "$@"
 EOF
   chmod +x /usr/local/bin/claude-code
   
-  # Verify installation
-  if [ -f /usr/local/bin/claude-code ]; then
-    log_success "Claude Code installed successfully for $user"
-  else
-    log_error "Failed to install Claude Code for $user"
-    exit 1
-  fi
+  log_success "Claude Code wrapper installed successfully for $user"
 }
 
 # Create Claude config directory
@@ -186,14 +178,14 @@ setup_claude_config() {
 # Main installation
 check_mise
 
-# Setup mise and install Claude Code for primary user
-setup_mise_for_user "$USERNAME" "$USER_HOME"
+# Install Claude Code for primary user
+install_claude_code_via_mise "$USERNAME" "$USER_HOME"
 install_claude_code_for_user "$USERNAME" "$USER_HOME"
 setup_claude_config "$USERNAME" "$CONFIG_DIR"
 
 # Install for root if requested
 if [ "$INSTALL_GLOBALLY" = "true" ] && [ "$USERNAME" != "root" ]; then
-  setup_mise_for_user "root" "/root"
+  install_claude_code_via_mise "root" "/root"
   install_claude_code_for_user "root" "/root"
   setup_claude_config "root" "/root/.claude"
 fi

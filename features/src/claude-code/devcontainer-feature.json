@@ -1,16 +1,16 @@
 {
 	"id": "claude-code",
 	"name": "Claude Code",
-	"version": "1.4.1",
-	"description": "Claude Code CLI setup via bun with mise, including configuration directories and environment variables",
+	"version": "1.5.0",
+	"description": "Claude Code CLI setup via mise (npm package), including configuration directories and environment variables",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/claude-code",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
-	"keywords": ["claude", "claude-code", "ai", "cli", "bun", "mise"],
+	"keywords": ["claude", "claude-code", "ai", "cli", "mise", "npm"],
 	"options": {
 		"claudeCodeVersion": {
 			"type": "string",
 			"default": "latest",
-			"description": "Claude Code version to install via bun"
+			"description": "Claude Code version to install via mise"
 		},
 		"configDir": {
 			"type": "string",
