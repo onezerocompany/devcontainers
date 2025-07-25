@@ -180,9 +180,23 @@ add_motd_to_shell() {
             cat >> "$rc_file" << 'EOF'
 
 # OneZero MOTD Display
-if [ -x /etc/update-motd.d/50-onezero ] && [ -z "$ONEZERO_MOTD_SHOWN" ]; then
-    /etc/update-motd.d/50-onezero
-    export ONEZERO_MOTD_SHOWN=1
+# VS Code terminals often don't run as login shells and may preserve environment
+# variables, so we need special handling for them
+if [ -x /etc/update-motd.d/50-onezero ]; then
+    # Check if we're in VS Code terminal
+    if [ -n "$TERM_PROGRAM" ] && [ "$TERM_PROGRAM" = "vscode" ]; then
+        # In VS Code, always show MOTD on first command in a new terminal
+        if [ -z "$ONEZERO_MOTD_SHOWN_IN_THIS_TERMINAL" ]; then
+            /etc/update-motd.d/50-onezero
+            export ONEZERO_MOTD_SHOWN_IN_THIS_TERMINAL=1
+        fi
+    else
+        # For regular terminals, use the standard check
+        if [ -z "$ONEZERO_MOTD_SHOWN" ]; then
+            /etc/update-motd.d/50-onezero
+            export ONEZERO_MOTD_SHOWN=1
+        fi
+    fi
 fi
 EOF
             echo "Added MOTD display to $shell_name for $rc_file"
