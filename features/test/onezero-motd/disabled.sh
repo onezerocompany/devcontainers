@@ -18,7 +18,7 @@ check "motd artifacts absent" test $ARTIFACTS_FOUND -eq 0
 # Optional: Verify other MOTD scripts remain untouched
 if [ -d /etc/update-motd.d ]; then
     ORIGINAL_MOTD_COUNT=$(find /etc/update-motd.d -name "*.bak" 2>/dev/null | wc -l)
-    check "no motd modifications" test $ORIGINAL_MOTD_COUNT -eq 0
+    check "no motd modifications" test "$ORIGINAL_MOTD_COUNT" -eq 0
 fi
 
 reportResults

@@ -34,7 +34,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("zero" "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
     for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+        if id -u "${CURRENT_USER}" > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
         fi
@@ -42,7 +42,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     if [ "${USERNAME}" = "" ]; then
         USERNAME=root
     fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+elif [ "${USERNAME}" = "none" ] || ! id -u "${USERNAME}" > /dev/null 2>&1; then
     USERNAME=root
 fi
 
@@ -97,12 +97,13 @@ find_version_from_git_tags() {
             last_part="${escaped_separator}[0-9]+"
         fi
         local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        local version_list
+        version_list="$(git ls-remote --tags "${repository}" | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
-            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+            declare -g "${variable_name}"="$(echo "${version_list}" | head -n 1)"
         else
             set +e
-                declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+                declare -g "${variable_name}"="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
             set -e
         fi
     fi
@@ -120,7 +121,6 @@ find_prev_version_from_git_tags() {
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
     local last_part_optional=${5:-"false"}
-    local version_suffix_regex=$6
     set +e
         major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
         minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
@@ -128,18 +128,18 @@ find_prev_version_from_git_tags() {
 
         if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
             ((major=major-1))
-            declare -g ${variable_name}="${major}"
+            declare -g "${variable_name}"="${major}"
             find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
         elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
             ((minor=minor-1))
-            declare -g ${variable_name}="${major}.${minor}"
+            declare -g "${variable_name}"="${major}.${minor}"
             find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
         else
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
-                declare -g ${variable_name}="${major}.${minor}"
+                declare -g "${variable_name}"="${major}.${minor}"
             else
-                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+                declare -g "${variable_name}"="${major}.${minor}.${breakfix}"
             fi
         fi
     set -e
@@ -159,12 +159,12 @@ get_previous_version() {
             echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
             echo -e "\nAttempting to find latest version using GitHub tags."
             find_prev_version_from_git_tags prev_version "$url" "tags/v"
-            declare -g ${variable_name}="${prev_version}"
+            declare -g "${variable_name}"="${prev_version}"
        fi
     elif echo "$output" | jq -e 'type == "array"' > /dev/null; then
         echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.[1].tag_name')
-        declare -g ${variable_name}="${version#v}"
+        declare -g "${variable_name}"="${version#v}"
     fi
     echo "${variable_name}=${!variable_name}"
 }
@@ -221,7 +221,7 @@ else
     cli_package_name="docker-ce-cli"
 
     echo "⏱️  Adding Docker GPG key with timeout (30s)..."
-    if ! timeout 30 curl --max-time 30 --connect-timeout 10 -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg; then
+    if ! timeout 30 curl --max-time 30 --connect-timeout 10 -fsSL https://download.docker.com/linux/"${ID}"/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg; then
         echo "❌ Failed to add Docker GPG key (timeout or error)"
         exit 1
     fi
@@ -279,7 +279,7 @@ else
     if [ "${USE_MOBY}" = "true" ]; then
         set +e
             echo "⏱️  Installing Moby packages with timeout (900s)..."
-            timeout 900 apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
+            timeout 900 apt-get -y install --no-install-recommends moby-cli"${cli_version_suffix}" moby-buildx"${buildx_version_suffix}" moby-engine"${engine_version_suffix}"
             exit_code=$?
         set -e
 
@@ -292,7 +292,7 @@ else
         timeout 300 apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
         echo "⏱️  Installing Docker CE packages with timeout (900s)..."
-        if ! timeout 900 apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}; then
+        if ! timeout 900 apt-get -y install --no-install-recommends docker-ce-cli"${cli_version_suffix}" docker-ce"${engine_version_suffix}"; then
             echo "❌ Docker CE installation timed out or failed"
             exit 1
         fi
@@ -308,7 +308,8 @@ cli_plugins_dir="${docker_home}/cli-plugins"
 
 fallback_compose(){
     local url=$1
-    local repo_url=$(get_github_api_repo_url "$url")
+    local repo_url
+    repo_url=$(get_github_api_repo_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
     get_previous_version "${url}" "${repo_url}" compose_version
     echo -e "\nAttempting to install v${compose_version}"
@@ -370,7 +371,8 @@ fi
 
 fallback_compose-switch() {
     local url=$1
-    local repo_url=$(get_github_api_repo_url "$url")
+    local repo_url
+    repo_url=$(get_github_api_repo_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
     get_previous_version "$url" "$repo_url" compose_switch_version
     echo -e "\nAttempting to install v${compose_switch_version}"
@@ -388,8 +390,8 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
         chmod +x /usr/local/bin/compose-switch
         mv "${current_compose_path}" "${target_compose_path}"
-        update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
-        update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
+        update-alternatives --install "${docker_compose_path}" docker-compose /usr/local/bin/compose-switch 99
+        update-alternatives --install "${docker_compose_path}" docker-compose "${target_compose_path}" 1
     else
         err "Skipping installation of compose-switch as docker compose is unavailable..."
     fi
@@ -402,20 +404,21 @@ if [ -f "/usr/local/share/docker-init.sh" ]; then
 fi
 echo "docker-init doesn't exist, adding..."
 
-if ! cat /etc/group | grep -e "^docker:" > /dev/null 2>&1; then
+if ! grep -e "^docker:" < /etc/group > /dev/null 2>&1; then
         groupadd -r docker
 fi
 
-usermod -aG docker ${USERNAME}
+usermod -aG docker "${USERNAME}"
 
 fallback_buildx() {
     local url=$1
-    local repo_url=$(get_github_api_repo_url "$url")
+    local repo_url
+    repo_url=$(get_github_api_repo_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
     get_previous_version "$url" "$repo_url" buildx_version
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     echo -e "\nAttempting to install v${buildx_version}"
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/"${buildx_file_name}"
 }
 
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
@@ -426,13 +429,13 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
 
     cd /tmp
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/"${buildx_file_name}" || fallback_buildx "$docker_buildx_url"
 
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
 
     mkdir -p ${cli_plugins_dir}
-    mv ${buildx_file_name} ${cli_plugins_dir}/docker-buildx
+    mv "${buildx_file_name}" ${cli_plugins_dir}/docker-buildx
     chmod +x ${cli_plugins_dir}/docker-buildx
 
     chown -R "${USERNAME}:docker" "${docker_home}"
@@ -444,8 +447,8 @@ DOCKER_DEFAULT_IP6_TABLES=""
 if [ "$DISABLE_IP6_TABLES" == true ]; then
     requested_version=""
     semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$"
-    if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
-        requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+    if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
+        requested_version=$(echo "$DOCKER_VERSION" | cut -d. -f1)
     elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
         requested_version=$DOCKER_VERSION
     fi
@@ -582,7 +585,7 @@ exec "$@"
 EOF
 
 chmod +x /usr/local/share/docker-init.sh
-chown ${USERNAME}:root /usr/local/share/docker-init.sh
+chown "${USERNAME}":root /usr/local/share/docker-init.sh
 
 # ========================================
 # CONTAINER TOOLS INSTALLATION
@@ -598,7 +601,7 @@ if [ "$INSTALL_PODMAN" = "true" ]; then
     echo "📦 Installing Podman and related tools..."
     container_packages="podman buildah skopeo"
     apt_get_update
-    apt-get install -y $container_packages
+    apt-get install -y "$container_packages"
     echo "  ✓ Podman tools installed successfully"
 fi
 
@@ -676,11 +679,13 @@ add_aliases_to_shell() {
     local marker_end="# <<< Docker Aliases - END <<<"
     
     if [ -f "$shell_file" ] && ! grep -q "$marker_start" "$shell_file"; then
-        echo "" >> "$shell_file"
-        echo "$marker_start" >> "$shell_file"
-        echo "# Docker container aliases" >> "$shell_file"
-        echo "[ -f /usr/local/share/docker-aliases/aliases.sh ] && source /usr/local/share/docker-aliases/aliases.sh" >> "$shell_file"
-        echo "$marker_end" >> "$shell_file"
+        {
+            echo ""
+            echo "$marker_start"
+            echo "# Docker container aliases"
+            echo "[ -f /usr/local/share/docker-aliases/aliases.sh ] && source /usr/local/share/docker-aliases/aliases.sh"
+            echo "$marker_end"
+        } >> "$shell_file"
         echo "  Added Docker aliases to $(basename "$shell_file")"
     fi
 }

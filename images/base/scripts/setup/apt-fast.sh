@@ -2,7 +2,7 @@
 # Install apt-fast for parallel package downloads
 set -e
 
-source ${SCRIPTS_FOLDER}/helpers/utils.sh
+source "${SCRIPTS_FOLDER}/helpers/utils.sh"
 
 echo "📦 Installing package manager optimizations..."
 

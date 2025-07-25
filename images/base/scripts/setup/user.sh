@@ -29,8 +29,8 @@ echo "Created user '$USER'"
 # Setup passwordless sudo (if requested)
 if [ "$PASSWORDLESS_SUDO" = true ]; then
     mkdir -p /etc/sudoers.d
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USER
-    chmod 0440 /etc/sudoers.d/$USER
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$USER"
+    chmod 0440 "/etc/sudoers.d/$USER"
 fi
 
 # Create the user's directories

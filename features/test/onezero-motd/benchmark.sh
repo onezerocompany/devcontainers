@@ -21,13 +21,16 @@ benchmark() {
     eval "$cmd" >/dev/null 2>&1 || true
     
     # Measure
-    local start=$(date +%s.%N 2>/dev/null || date +%s)
+    local start
+    start=$(date +%s.%N 2>/dev/null || date +%s)
     eval "$cmd" >/dev/null 2>&1
-    local end=$(date +%s.%N 2>/dev/null || date +%s)
+    local end
+    end=$(date +%s.%N 2>/dev/null || date +%s)
     
     # Calculate duration
     if command -v bc >/dev/null 2>&1; then
-        local duration=$(echo "scale=3; $end - $start" | bc)
+        local duration
+        duration=$(echo "scale=3; $end - $start" | bc)
         echo "${duration}s"
     else
         echo "$((end - start))s"

@@ -1,0 +1,55 @@
+{
+	"id": "claude-code",
+	"name": "Claude Code",
+	"version": "1.2.0",
+	"description": "Claude Code CLI setup with Node.js via mise, including configuration directories and environment variables",
+	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/claude-code",
+	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+	"keywords": ["claude", "claude-code", "ai", "cli", "node", "mise"],
+	"options": {
+		"nodeVersion": {
+			"type": "string",
+			"default": "lts",
+			"description": "Node.js version to install via mise (e.g., 'lts', '20', '22.11.0')"
+		},
+		"claudeCodeVersion": {
+			"type": "string",
+			"default": "latest",
+			"description": "Claude Code version to install via mise"
+		},
+		"configDir": {
+			"type": "string",
+			"default": "",
+			"description": "Claude Code config directory path. If empty, defaults to /home/$USER/.claude"
+		},
+		"maxOldSpaceSize": {
+			"type": "string",
+			"default": "8192",
+			"description": "Node.js max-old-space-size in MB for NODE_OPTIONS"
+		},
+		"installGlobally": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install Node.js and Claude Code globally for all users"
+		}
+	},
+	"containerEnv": {
+		"NODE_OPTIONS": "--max-old-space-size=${options.maxOldSpaceSize}"
+	},
+	"mounts": [
+		{
+			"source": "claude-code-bashhistory-${devcontainerId}",
+			"target": "/commandhistory",
+			"type": "volume"
+		},
+		{
+			"source": "claude-code-config-${devcontainerId}",
+			"target": "/home/${localEnv:USER}/.claude",
+			"type": "volume"
+		}
+	],
+	"installsAfter": ["ghcr.io/onezerocompany/features/modern-shell"],
+	"dependsOn": {
+		"ghcr.io/onezerocompany/features/mise-en-place": {}
+	}
+}

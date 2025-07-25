@@ -1,32 +1,33 @@
 {
-    "id": "onezero-motd",
-    "version": "1.0.3",
-    "name": "OneZero MOTD",
-    "documentationURL": "https://github.com/onezerocompany/devcontainers",
-    "description": "Adds OneZero ASCII MOTD (Message of the Day) with customizable logo, info, and message",
-    "options": {
-        "ascii_logo": {
-            "type": "string",
-            "default": "   ____              _____              \n  / __ \\            |__  /              \n | |  | |_ __   ___   / / ___ _ __ ___  \n | |  | | '_ \\ / _ \\ / / / _ \\ '__/ _ \\ \n | |__| | | | |  __// /_|  __/ | | (_) |\n  \\____/|_| |_|\\___/____|\\___|_|  \\___/ ",
-            "description": "Custom ASCII logo for OneZero (multi-line supported)"
-        },
-        "info": {
-            "type": "string",
-            "default": "Welcome to OneZero Development Container",
-            "description": "Basic information text to display"
-        },
-        "message": {
-            "type": "string",
-            "default": "Happy coding!",
-            "description": "Custom message to display"
-        },
-        "enable": {
-            "type": "boolean",
-            "default": true,
-            "description": "Enable or disable the MOTD display"
-        }
-    },
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ]
+	"id": "onezero-motd",
+	"version": "1.1.0",
+	"name": "OneZero MOTD",
+	"documentationURL": "https://github.com/onezerocompany/devcontainers",
+	"description": "Adds OneZero ASCII MOTD (Message of the Day) with customizable logo, info, and message",
+	"options": {
+		"ascii_logo": {
+			"type": "string",
+			"default": "   ____              _____              \n  / __ \\            |__  /              \n | |  | |_ __   ___   / / ___ _ __ ___  \n | |  | | '_ \\ / _ \\ / / / _ \\ '__/ _ \\ \n | |__| | | | |  __// /_|  __/ | | (_) |\n  \\____/|_| |_|\\___/____|\\___|_|  \\___/ ",
+			"description": "Custom ASCII logo for OneZero (multi-line supported)"
+		},
+		"info": {
+			"type": "string",
+			"default": "Welcome to OneZero Development Container",
+			"description": "Basic information text to display"
+		},
+		"message": {
+			"type": "string",
+			"default": "Happy coding!",
+			"description": "Custom message to display"
+		},
+		"enable": {
+			"type": "boolean",
+			"default": true,
+			"description": "Enable or disable the MOTD display"
+		}
+	},
+	"installsAfter": ["ghcr.io/onezerocompany/features/modern-shell"],
+	"dependsOn": {
+		"ghcr.io/onezerocompany/features/modern-shell": {}
+	}
 }

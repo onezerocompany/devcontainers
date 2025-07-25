@@ -1,0 +1,9 @@
+# shellcheck configuration
+
+# Ignore SC1091 for test files that source dev-container-features-test-lib
+# This is a standard library provided by the devcontainer features test framework
+disable=SC1091
+
+# Ignore SC2016 for cases where we intentionally want literal strings with $
+# These are used when writing shell configuration files
+disable=SC2016

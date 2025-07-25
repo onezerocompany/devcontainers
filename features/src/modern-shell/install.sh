@@ -63,12 +63,12 @@ else
   log_skip "Skipping zsh default shell setup (disabled)"
 fi
 
-# Ensure mise setup
-ensure_mise_installed
+# Check mise is available
+check_mise_installed
 setup_home_bin "$USERNAME" "$USER_HOME"
 setup_home_bin root "/root"
-setup_mise_activation "$USERNAME" "$USER_HOME"
-setup_mise_activation root "/root"
+check_mise_activation "$USERNAME" "$USER_HOME"
+check_mise_activation root "/root"
 
 # Install modern CLI tools (always install these as they're core to the modern shell experience)
 INSTALL_FD=true

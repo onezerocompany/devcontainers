@@ -5,8 +5,12 @@ set -e
 # Import libraries
 source dev-container-features-test-lib
 SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
-[ -f "$SOURCE_DIR/test-helpers.sh" ] && source "$SOURCE_DIR/test-helpers.sh" || {
+if [ -f "$SOURCE_DIR/test-helpers.sh" ]; then
+    source "$SOURCE_DIR/test-helpers.sh"
+else
+    {
     # Fallback to basic testing
+    export MOTD_OUTPUT CONFIG_CONTENT
     MOTD_OUTPUT=$(/etc/update-motd.d/50-onezero 2>&1)
     CONFIG_CONTENT=$(cat /etc/onezero/motd.conf 2>&1)
     
@@ -24,20 +28,22 @@ SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
     
     reportResults
     exit 0
-}
+    }
+fi
 
 # Initialize
 init_test_env
 
 # Expected custom values
-EXPECTED_LOGO="_____"
-EXPECTED_INFO="Custom OneZero Container"
-EXPECTED_MESSAGE="build something awesome"
+export EXPECTED_LOGO="_____"
+export EXPECTED_INFO="Custom OneZero Container"
+export EXPECTED_MESSAGE="build something awesome"
 
 # Phase 1: Installation check
 check "custom motd installed" test "$(check_files_batch)" = "all_files_ok"
 
 # Phase 2: Configuration validation (single read)
+export CONFIG
 CONFIG=$(get_config_content)
 check "custom config stored" bash -c "
     echo '\$CONFIG' | grep -F '\$EXPECTED_LOGO' >/dev/null &&
@@ -58,6 +64,6 @@ check "system info preserved" bash -c "echo '\$OUTPUT' | grep -q 'System Informa
 
 # Optional: Validate ASCII art integrity
 LOGO_LINES=$(echo "$OUTPUT" | grep -c "_" || true)
-check "logo multi-line" test $LOGO_LINES -ge 2
+check "logo multi-line" test "$LOGO_LINES" -ge 2
 
 reportResults

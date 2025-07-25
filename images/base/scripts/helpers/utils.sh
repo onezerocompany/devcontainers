@@ -7,7 +7,7 @@ if [ -x "$(command -v apt-fast)" ]; then
 fi
 
 install_packages() {
-    $APT_CMD install -y $@
+    $APT_CMD install -y "$@"
 }
 
 upgrade_packages() {

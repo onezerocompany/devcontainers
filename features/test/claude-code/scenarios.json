@@ -1,0 +1,33 @@
+{
+	"default": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"claude-code": {}
+		}
+	},
+	"with-modern-shell": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"modern-shell": {},
+			"claude-code": {}
+		}
+	},
+	"custom-versions": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"claude-code": {
+				"nodeVersion": "20",
+				"claudeCodeVersion": "latest",
+				"maxOldSpaceSize": "4096"
+			}
+		}
+	},
+	"custom-config-dir": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"claude-code": {
+				"configDir": "/opt/claude-config"
+			}
+		}
+	}
+}

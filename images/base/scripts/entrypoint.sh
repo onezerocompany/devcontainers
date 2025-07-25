@@ -7,7 +7,7 @@ echo "🚀 Initializing devcontainer base image..."
 if [ $# -eq 0 ]; then
     if [ -t 0 ]; then
         # Interactive terminal - start user's default shell
-        USER_SHELL=$(getent passwd $(whoami) | cut -d: -f7)
+        USER_SHELL=$(getent passwd "$(whoami)" | cut -d: -f7)
         if [ -z "$USER_SHELL" ]; then
             echo "Error: Could not determine user shell" >&2
             exit 1

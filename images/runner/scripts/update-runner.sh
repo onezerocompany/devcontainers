@@ -16,5 +16,5 @@ if [[ ! $latest_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 # Save the fetched version to a file for use in the Dockerfile
-echo $latest_version > /actions-runner/latest-runner-version
+echo "$latest_version" > /actions-runner/latest-runner-version
 echo "Using GitHub Actions runner version: $latest_version"

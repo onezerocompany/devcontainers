@@ -6,13 +6,13 @@ set -e
 export DEBIAN_FRONTEND=noninteractive
 
 # Feature options
-ALLOWED_DOMAINS="${ALLOWEDDOMAINS:-}"
-BLOCKED_DOMAINS="${BLOCKEDDOMAINS:-*.facebook.com,*.twitter.com,*.instagram.com,*.tiktok.com,*.youtube.com}"
 DEFAULT_POLICY="${DEFAULTPOLICY:-block}"
 ALLOW_DOCKER_NETWORKS="${ALLOWDOCKERNETWORKS:-true}"
 ALLOW_LOCALHOST="${ALLOWLOCALHOST:-true}"
 IMMUTABLE_CONFIG="${IMMUTABLECONFIG:-true}"
 LOG_BLOCKED="${LOGBLOCKED:-true}"
+ALLOW_CLAUDE_WEBFETCH_DOMAINS="${ALLOWCLAUDEWEBFETCHDOMAINS:-true}"
+CLAUDE_SETTINGS_PATHS="${CLAUDESETTINGSPATHS:-.claude/settings.json,.claude/settings.local.json,~/.claude/settings.json}"
 
 echo "Installing Sandbox Network Filter..."
 
@@ -26,169 +26,11 @@ echo -e "*filter\n:INPUT ACCEPT [0:0]\n:FORWARD ACCEPT [0:0]\n:OUTPUT ACCEPT [0:
 echo -e "*filter\n:INPUT ACCEPT [0:0]\n:FORWARD ACCEPT [0:0]\n:OUTPUT ACCEPT [0:0]\nCOMMIT" > /etc/iptables/rules.v6
 
 apt-get update
-apt-get install -y iptables iptables-persistent dnsmasq bind9-dnsutils netfilter-persistent
+apt-get install -y iptables iptables-persistent netfilter-persistent jq dnsutils
 
 # Create sandbox directories
 mkdir -p /usr/local/share/sandbox
 mkdir -p /etc/sandbox
-
-# Create DNS filtering configuration
-cat > /usr/local/share/sandbox/setup-dns-filter.sh << 'EOF'
-#!/bin/bash
-# Setup DNS-based domain filtering with proper wildcard support
-set -e
-
-ALLOWED_DOMAINS="$1"
-BLOCKED_DOMAINS="$2"
-DEFAULT_POLICY="$3"
-
-echo "Setting up DNS-based domain filtering with dnsmasq..."
-
-# Stop dnsmasq if running
-systemctl stop dnsmasq 2>/dev/null || true
-
-# Backup original resolv.conf
-cp /etc/resolv.conf /etc/resolv.conf.sandbox.backup 2>/dev/null || true
-
-# Create dnsmasq configuration for sandbox
-cat > /etc/dnsmasq.d/sandbox.conf << 'DNSMASQ_EOF'
-# Sandbox network filter DNS configuration
-# Listen only on localhost
-interface=lo
-bind-interfaces
-
-# Don't read /etc/hosts for DNS resolution
-no-hosts
-
-# Set cache size
-cache-size=1000
-
-# Log queries for debugging (optional)
-log-queries
-
-# Forward to upstream DNS servers
-server=8.8.8.8
-server=8.8.4.4
-server=1.1.1.1
-DNSMASQ_EOF
-
-# Create hosts file entries for exact domain matches (fallback)
-HOSTS_FILE="/etc/hosts.sandbox"
-cp /etc/hosts "$HOSTS_FILE"
-
-# Function to add domain blocking 
-block_domain() {
-    local domain="$1"
-    
-    if [[ "$domain" == *.* ]]; then
-        # This is a wildcard domain - configure dnsmasq to block it
-        local base_domain="${domain#\*.}"
-        echo "# Block wildcard domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
-        echo "address=/$base_domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
-        
-        # Also add to hosts file for fallback
-        echo "127.0.0.1 $base_domain" >> "$HOSTS_FILE"
-        echo "127.0.0.1 www.$base_domain" >> "$HOSTS_FILE"
-    else
-        # Exact domain match - add to both dnsmasq and hosts
-        echo "# Block exact domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
-        echo "address=/$domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
-        echo "127.0.0.1 $domain" >> "$HOSTS_FILE"
-    fi
-}
-
-# Function to allow domain (override blocking)
-allow_domain() {
-    local domain="$1"
-    
-    if [[ "$domain" == *.* ]]; then
-        # This is a wildcard allow - remove any blocking rules
-        local base_domain="${domain#\*.}"
-        echo "# Allow wildcard domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
-        # Don't add address= rule for allowed domains - let them resolve normally
-    else
-        # Exact domain allow
-        echo "# Allow exact domain: $domain" >> /etc/dnsmasq.d/sandbox.conf
-        # Don't add address= rule for allowed domains
-    fi
-}
-
-# Process blocked domains first
-if [ -n "$BLOCKED_DOMAINS" ]; then
-    echo "Processing blocked domains: $BLOCKED_DOMAINS"
-    IFS=',' read -ra DOMAINS <<< "$BLOCKED_DOMAINS"
-    for domain in "${DOMAINS[@]}"; do
-        domain=$(echo "$domain" | xargs) # trim whitespace
-        if [ -n "$domain" ]; then
-            echo "  Blocking domain: $domain"
-            block_domain "$domain"
-        fi
-    done
-fi
-
-# Process allowed domains (these can override blocked domains)
-if [ -n "$ALLOWED_DOMAINS" ]; then
-    echo "Processing allowed domains: $ALLOWED_DOMAINS"
-    IFS=',' read -ra DOMAINS <<< "$ALLOWED_DOMAINS"
-    for domain in "${DOMAINS[@]}"; do
-        domain=$(echo "$domain" | xargs) # trim whitespace
-        if [ -n "$domain" ]; then
-            echo "  Allowing domain: $domain"
-            allow_domain "$domain"
-        fi
-    done
-fi
-
-# Handle default policy
-if [ "$DEFAULT_POLICY" = "block" ]; then
-    echo "Setting default DNS policy to block unknown domains"
-    # For default block policy, we'll rely on iptables to block unknown external IPs
-    # DNS resolution will work, but iptables will block the connections
-else
-    echo "Setting default DNS policy to allow unknown domains"
-    # Allow all other domains to resolve normally
-fi
-
-# Replace system hosts file with filtered version
-# Handle read-only /etc/hosts during Docker build
-if cp "$HOSTS_FILE" /etc/hosts 2>/dev/null; then
-    echo "Updated /etc/hosts with filtered entries"
-else
-    echo "Warning: Cannot update /etc/hosts (read-only filesystem), DNS filtering will rely on dnsmasq only"
-    # In Docker build context, /etc/hosts is often read-only
-    # The filtering will still work via dnsmasq configuration
-fi
-
-# Configure system to use local dnsmasq
-# Handle read-only /etc/resolv.conf during Docker build
-if echo "nameserver 127.0.0.1" > /etc/resolv.conf 2>/dev/null && echo "nameserver 8.8.8.8" >> /etc/resolv.conf 2>/dev/null; then
-    echo "Updated /etc/resolv.conf to use local dnsmasq"
-else
-    echo "Warning: Cannot update /etc/resolv.conf (read-only filesystem), DNS configuration will be applied at runtime"
-    # In Docker build context, /etc/resolv.conf is often read-only
-    # The configuration will be applied when the container starts
-fi
-
-# Start dnsmasq (handle both systemd and non-systemd environments)
-if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
-    systemctl start dnsmasq
-    systemctl enable dnsmasq 2>/dev/null || true
-    
-    # Test dnsmasq is working
-    if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
-        echo "Warning: dnsmasq failed to start, falling back to hosts file only"
-        # Restore original resolv.conf if dnsmasq fails
-        cp /etc/resolv.conf.sandbox.backup /etc/resolv.conf 2>/dev/null || true
-    fi
-else
-    echo "Systemd not available - dnsmasq will be started at runtime"
-    # In Docker build context, services can't run, but will start at container runtime
-fi
-
-echo "DNS filtering configured with proper wildcard support"
-EOF
-
-chmod +x /usr/local/share/sandbox/setup-dns-filter.sh
 
 # Create iptables rule management script 
 cat > /usr/local/share/sandbox/setup-rules.sh << 'EOF'
@@ -200,8 +42,10 @@ ALLOW_DOCKER_NETWORKS="${1:-true}"
 ALLOW_LOCALHOST="${2:-true}"
 DEFAULT_POLICY="${3:-block}"
 LOG_BLOCKED="${4:-true}"
+ALLOW_CLAUDE_WEBFETCH_DOMAINS="${5:-true}"
+CLAUDE_SETTINGS_PATHS="${6:-.claude/settings.json,.claude/settings.local.json,~/.claude/settings.json}"
 
-echo "Setting up basic network filtering rules..."
+echo "Setting up network filtering rules..."
 
 # Clear existing sandbox rules
 iptables -t filter -F SANDBOX_OUTPUT 2>/dev/null || true
@@ -230,6 +74,42 @@ fi
 iptables -t filter -A SANDBOX_OUTPUT -p udp --dport 53 -j ACCEPT
 iptables -t filter -A SANDBOX_OUTPUT -p tcp --dport 53 -j ACCEPT
 
+# Allow Claude WebFetch domains if enabled
+if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
+    echo "Extracting and allowing Claude WebFetch domains..."
+    
+    # Set workspace folder environment variables for the extraction script
+    # Check multiple possible workspace environment variables
+    if [ -z "$WORKSPACE_FOLDER" ]; then
+        if [ -n "$DEVCONTAINER_WORKSPACE_FOLDER" ]; then
+            export WORKSPACE_FOLDER="$DEVCONTAINER_WORKSPACE_FOLDER"
+        elif [ -n "$VSCODE_WORKSPACE" ]; then
+            export WORKSPACE_FOLDER="$VSCODE_WORKSPACE"
+        elif [ -n "$VSCODE_CWD" ]; then
+            export WORKSPACE_FOLDER="$VSCODE_CWD"
+        elif [ -n "$PWD" ] && [ -d "$PWD/.devcontainer" ]; then
+            export WORKSPACE_FOLDER="$PWD"
+        else
+            export WORKSPACE_FOLDER="/workspace"
+        fi
+    fi
+    
+    # Extract domains and get IPs
+    claude_ips=$(/usr/local/share/sandbox/extract-claude-domains.sh "$CLAUDE_SETTINGS_PATHS" | tail -n +2 | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+    
+    if [ -n "$claude_ips" ]; then
+        echo "Adding rules for Claude WebFetch IPs:"
+        while IFS= read -r ip; do
+            if [ -n "$ip" ]; then
+                echo "  Allowing: $ip"
+                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+            fi
+        done <<< "$claude_ips"
+    else
+        echo "No Claude WebFetch domains found or could not resolve"
+    fi
+fi
+
 # Apply default policy for external traffic
 if [ "$DEFAULT_POLICY" = "block" ]; then
     echo "Setting default policy to BLOCK external traffic"
@@ -247,25 +127,144 @@ fi
 iptables -t filter -C OUTPUT -j SANDBOX_OUTPUT 2>/dev/null || \
     iptables -t filter -A OUTPUT -j SANDBOX_OUTPUT
 
-echo "Basic network filtering rules configured"
+echo "Network filtering rules configured"
 EOF
 
 chmod +x /usr/local/share/sandbox/setup-rules.sh
 
+# Create Claude domain extraction script
+cat > /usr/local/share/sandbox/extract-claude-domains.sh << 'EOF'
+#!/bin/bash
+# Extract WebFetch domains from Claude settings files and resolve to IPs
+set -e
+
+CLAUDE_SETTINGS_PATHS="$1"
+
+echo "Extracting Claude WebFetch domains..."
+
+# Detect workspace folder from various environment variables
+if [ -n "$WORKSPACE_FOLDER" ]; then
+    workspace_dir="$WORKSPACE_FOLDER"
+elif [ -n "$DEVCONTAINER_WORKSPACE_FOLDER" ]; then
+    workspace_dir="$DEVCONTAINER_WORKSPACE_FOLDER"
+elif [ -n "$VSCODE_WORKSPACE" ]; then
+    workspace_dir="$VSCODE_WORKSPACE"
+elif [ -n "$VSCODE_CWD" ]; then
+    workspace_dir="$VSCODE_CWD"
+elif [ -n "$PWD" ] && [ -d "$PWD/.devcontainer" ]; then
+    # If we're in a directory with .devcontainer, assume it's the workspace
+    workspace_dir="$PWD"
+else
+    # Default fallback
+    workspace_dir="/workspace"
+fi
+
+echo "  Detected workspace folder: $workspace_dir"
+
+# Array to store unique domains
+declare -a domains=()
+
+# Function to extract domains from a settings file
+extract_domains_from_file() {
+    local file="$1"
+    
+    if [ ! -f "$file" ]; then
+        echo "  Not found: $file"
+        return
+    fi
+    
+    echo "  Reading: $file"
+    
+    # Extract WebFetch rules from permissions.allow array
+    local webfetch_rules=$(jq -r '.permissions.allow[]? | select(startswith("WebFetch(domain:"))' "$file" 2>/dev/null || true)
+    
+    while IFS= read -r rule; do
+        if [ -n "$rule" ]; then
+            # Extract domain from WebFetch(domain:example.com) format
+            local domain=$(echo "$rule" | sed -n 's/WebFetch(domain:\([^)]*\))/\1/p')
+            if [ -n "$domain" ]; then
+                # Remove wildcard prefix if present
+                domain=${domain#\*.}
+                domains+=("$domain")
+                echo "    Found domain: $domain"
+            fi
+        fi
+    done <<< "$webfetch_rules"
+}
+
+# Process each settings file path
+IFS=',' read -ra PATHS <<< "$CLAUDE_SETTINGS_PATHS"
+for path in "${PATHS[@]}"; do
+    # Trim whitespace
+    path=$(echo "$path" | xargs)
+    
+    # Expand tilde to home directory
+    expanded_path="${path/#\~/$HOME}"
+    
+    # If path doesn't start with /, assume it's relative to workspace
+    if [[ "$expanded_path" != /* ]]; then
+        expanded_path="$workspace_dir/$expanded_path"
+    fi
+    
+    extract_domains_from_file "$expanded_path"
+done
+
+# Remove duplicates
+domains=($(printf "%s\n" "${domains[@]}" | sort -u))
+
+echo "\nResolving domains to IP addresses..."
+
+# Array to store unique IPs
+declare -a ips=()
+
+# Resolve each domain to IPs
+for domain in "${domains[@]}"; do
+    echo -n "  Resolving $domain... "
+    
+    # Try to resolve using dig (more reliable)
+    if command -v dig >/dev/null 2>&1; then
+        resolved_ips=$(dig +short "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+    elif command -v nslookup >/dev/null 2>&1; then
+        # Fallback to nslookup
+        resolved_ips=$(nslookup "$domain" 2>/dev/null | grep -A 1 "Name:" | grep "Address:" | awk '{print $2}' | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+    else
+        resolved_ips=""
+    fi
+    
+    if [ -n "$resolved_ips" ]; then
+        echo "OK"
+        while IFS= read -r ip; do
+            if [ -n "$ip" ]; then
+                ips+=("$ip")
+                echo "    -> $ip"
+            fi
+        done <<< "$resolved_ips"
+    else
+        echo "FAILED (could not resolve)"
+    fi
+done
+
+# Remove duplicate IPs
+ips=($(printf "%s\n" "${ips[@]}" | sort -u))
+
+# Output unique IPs one per line
+echo "\nResolved ${#ips[@]} unique IP addresses from Claude settings"
+printf "%s\n" "${ips[@]}"
+EOF
+
+chmod +x /usr/local/share/sandbox/extract-claude-domains.sh
+
 # Create configuration file
 cat > /etc/sandbox/config << EOF
 # Sandbox Network Filter Configuration
-ALLOWED_DOMAINS="$ALLOWED_DOMAINS"
-BLOCKED_DOMAINS="$BLOCKED_DOMAINS"
 DEFAULT_POLICY="$DEFAULT_POLICY"
 ALLOW_DOCKER_NETWORKS="$ALLOW_DOCKER_NETWORKS"
 ALLOW_LOCALHOST="$ALLOW_LOCALHOST"
 IMMUTABLE_CONFIG="$IMMUTABLE_CONFIG"
 LOG_BLOCKED="$LOG_BLOCKED"
+ALLOW_CLAUDE_WEBFETCH_DOMAINS="$ALLOW_CLAUDE_WEBFETCH_DOMAINS"
+CLAUDE_SETTINGS_PATHS="$CLAUDE_SETTINGS_PATHS"
 EOF
-
-# Setup initial DNS filtering (skip iptables during build)
-/usr/local/share/sandbox/setup-dns-filter.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY"
 
 # Skip iptables setup during Docker build - will be configured at runtime
 echo "Skipping iptables configuration during build (will be applied at container startup)"
@@ -281,22 +280,23 @@ if [ -f /etc/sandbox/config ]; then
     source /etc/sandbox/config
 fi
 
-# Setup DNS filtering
-/usr/local/share/sandbox/setup-dns-filter.sh "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$DEFAULT_POLICY"
+# Set workspace folder for scripts - check multiple environment variables
+if [ -z "$WORKSPACE_FOLDER" ]; then
+    if [ -n "$DEVCONTAINER_WORKSPACE_FOLDER" ]; then
+        export WORKSPACE_FOLDER="$DEVCONTAINER_WORKSPACE_FOLDER"
+    elif [ -n "$VSCODE_WORKSPACE" ]; then
+        export WORKSPACE_FOLDER="$VSCODE_WORKSPACE"
+    elif [ -n "$VSCODE_CWD" ]; then
+        export WORKSPACE_FOLDER="$VSCODE_CWD"
+    elif [ -n "$PWD" ] && [ -d "$PWD/.devcontainer" ]; then
+        export WORKSPACE_FOLDER="$PWD"
+    else
+        export WORKSPACE_FOLDER="/workspace"
+    fi
+fi
 
 # Setup iptables rules
-/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED"
-
-# Ensure dnsmasq is running for DNS filtering
-if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
-    systemctl start dnsmasq 2>/dev/null || true
-    if ! systemctl is-active dnsmasq >/dev/null 2>&1; then
-        echo "Warning: dnsmasq is not running - wildcard DNS blocking may not work properly"
-    fi
-else
-    # Try to start dnsmasq with service command as fallback
-    service dnsmasq start 2>/dev/null || echo "Warning: Could not start dnsmasq service"
-fi
+/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS"
 
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
@@ -306,13 +306,9 @@ if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     # Make config files read-only
     chmod 444 /etc/sandbox/config
     chattr +i /etc/sandbox/config 2>/dev/null || true
-    # Protect hosts file
-    chattr +i /etc/hosts 2>/dev/null || true
-    # Protect dnsmasq configuration
-    chattr +i /etc/dnsmasq.d/sandbox.conf 2>/dev/null || true
 fi
 
-echo "Sandbox network filtering initialized with proper wildcard support"
+echo "Sandbox network filtering initialized"
 EOF
 
 chmod +x /usr/local/share/sandbox/sandbox-init.sh
@@ -350,8 +346,6 @@ if [ "$IMMUTABLE_CONFIG" = "true" ]; then
 fi
 
 echo "✓ Sandbox Network Filter installed successfully"
-echo "  Allowed domains: $ALLOWED_DOMAINS"
-echo "  Blocked domains: $BLOCKED_DOMAINS" 
 echo "  Default policy: $DEFAULT_POLICY"
 echo "  Docker networks allowed: $ALLOW_DOCKER_NETWORKS"
 echo "  Localhost allowed: $ALLOW_LOCALHOST"

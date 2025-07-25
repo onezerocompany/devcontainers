@@ -1,3 +1,25 @@
 [tools]
+biome = "latest"
 claude-code = "latest"
 node = "lts"
+shellcheck = "latest"
+
+[tasks.biomecheck]
+description = "Run linters"
+run = "biome check ."
+
+[tasks.biomeformat]
+description = "Run formatters"
+run = "biome format --write ."
+
+[tasks.shellcheck]
+description = "Run shellcheck"
+run = "find . -type f -name '*.sh' -exec shellcheck {} +"
+
+[tasks.lint]
+description = "Run linters and formatters"
+depends = ["biomecheck", "shellcheck"]
+
+[tasks.format]
+description = "Run formatters"
+depends = ["biomeformat"]

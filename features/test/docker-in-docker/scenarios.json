@@ -1,70 +1,70 @@
 {
-    "docker_default": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "features": {
-            "docker-in-docker": {}
-        }
-    },
-    "docker_with_compose_v2": {
-        "image": "mcr.microsoft.com/devcontainers/base:debian",
-        "features": {
-            "docker-in-docker": {
-                "version": "latest",
-                "dockerDashComposeVersion": "v2"
-            }
-        }
-    },
-    "docker_with_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "features": {
-            "docker-in-docker": {
-                "version": "latest",
-                "moby": true,
-                "dockerDashComposeVersion": "v2"
-            }
-        }
-    },
-    "docker_with_buildx": {
-        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
-        "features": {
-            "docker-in-docker": {
-                "moby": false,
-                "installDockerBuildx": true
-            }
-        }
-    },
-    "docker_specific_version": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "features": {
-            "docker-in-docker": {
-                "version": "20.10",
-                "moby": false
-            }
-        }
-    },
-    "docker_no_compose": {
-        "image": "mcr.microsoft.com/devcontainers/base:debian",
-        "features": {
-            "docker-in-docker": {
-                "dockerDashComposeVersion": "none"
-            }
-        }
-    },
-    "docker_with_custom_pool": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "features": {
-            "docker-in-docker": {
-                "dockerDefaultAddressPool": "base=192.168.0.0/16,size=24"
-            }
-        }
-    },
-    "docker_disable_ip6tables": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "features": {
-            "docker-in-docker": {
-                "version": "latest",
-                "disableIp6tables": true
-            }
-        }
-    }
+	"docker_default": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"docker-in-docker": {}
+		}
+	},
+	"docker_with_compose_v2": {
+		"image": "mcr.microsoft.com/devcontainers/base:debian",
+		"features": {
+			"docker-in-docker": {
+				"version": "latest",
+				"dockerDashComposeVersion": "v2"
+			}
+		}
+	},
+	"docker_with_moby": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"docker-in-docker": {
+				"version": "latest",
+				"moby": true,
+				"dockerDashComposeVersion": "v2"
+			}
+		}
+	},
+	"docker_with_buildx": {
+		"image": "mcr.microsoft.com/devcontainers/base:bookworm",
+		"features": {
+			"docker-in-docker": {
+				"moby": false,
+				"installDockerBuildx": true
+			}
+		}
+	},
+	"docker_specific_version": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"docker-in-docker": {
+				"version": "20.10",
+				"moby": false
+			}
+		}
+	},
+	"docker_no_compose": {
+		"image": "mcr.microsoft.com/devcontainers/base:debian",
+		"features": {
+			"docker-in-docker": {
+				"dockerDashComposeVersion": "none"
+			}
+		}
+	},
+	"docker_with_custom_pool": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"docker-in-docker": {
+				"dockerDefaultAddressPool": "base=192.168.0.0/16,size=24"
+			}
+		}
+	},
+	"docker_disable_ip6tables": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"docker-in-docker": {
+				"version": "latest",
+				"disableIp6tables": true
+			}
+		}
+	}
 }

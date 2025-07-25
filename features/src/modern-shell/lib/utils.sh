@@ -1,7 +1,5 @@
 #!/bin/bash
 
-TMP_PKGS_FILE="/tmp/pkgs"
-
 username() {
   local username="${_REMOTE_USER:-"automatic"}"
   if [ "${username}" = "auto" ] || [ "${username}" = "automatic" ]; then
@@ -31,7 +29,8 @@ username() {
 }
 
 user_home() {
-  local user=$(username)
+  local user
+  user=$(username)
   if [ "$user" = "root" ]; then
     echo "/root"
   else
@@ -64,48 +63,15 @@ ensure_prerequisites() {
   done
 }
 
-ensure_mise_installed() {
+check_mise_installed() {
   if ! command -v mise >/dev/null 2>&1; then
-    echo "🔧 Installing mise..."
-    curl https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh
-    
-    # Make sure mise is executable
-    chmod +x /usr/local/bin/mise
+    echo "❌ mise is required but not installed!" >&2
+    echo "❌ Please install the mise-en-place feature before using modern-shell." >&2
+    echo "❌ Add 'ghcr.io/onezerocompany/features/mise-en-place' to your devcontainer.json features." >&2
+    exit 1
   else
-    echo "✅ Mise is already installed"
+    echo "✅ mise is available"
   fi
-  
-  # Note: We don't create global mise directories anymore
-  # Tools are installed per-user to avoid permission issues
-  
-  # Ensure mise cache directories exist with proper permissions for each user
-  local users=("$(username)" "root")
-  for user in "${users[@]}"; do
-    local home_dir
-    if [ "$user" = "root" ]; then
-      home_dir="/root"
-    else
-      home_dir="/home/$user"
-    fi
-    
-    # Create mise cache directories with proper ownership
-    if [ -d "$home_dir" ]; then
-      mkdir -p "$home_dir/.cache/mise"
-      mkdir -p "$home_dir/.local/share/mise"
-      mkdir -p "$home_dir/.config/mise"
-      
-      # Set ownership if user exists
-      if id "$user" &>/dev/null; then
-        chown -R "$user:$user" "$home_dir/.cache/mise" 2>/dev/null || true
-        chown -R "$user:$user" "$home_dir/.local/share/mise" 2>/dev/null || true
-        chown -R "$user:$user" "$home_dir/.config/mise" 2>/dev/null || true
-        echo "✅ Set mise cache permissions for $user"
-      fi
-    fi
-  done
-  
-  # Note: MISE_DATA_DIR is not set globally anymore
-  # Each user will have their own mise data directory in their home
 }
 
 setup_home_bin() {
@@ -148,29 +114,27 @@ setup_home_bin() {
   fi
 }
 
-setup_mise_activation() {
+check_mise_activation() {
   local user="$1"
   local home_dir="$2"
 
-  echo "🔧 Setting up mise activation for user $user..."
+  echo "🔧 Checking mise activation for user $user..."
 
-  # Note: We don't add global mise shims anymore since tools are installed per-user
-  # mise activate will handle adding the correct paths
+  # Note: mise activation should already be configured by mise-en-place feature
+  # Just verify it's there
 
-  # Ensure mise activation is in .zshrc
-  if ! grep -q 'eval "\$(/usr/local/bin/mise activate zsh)"' "$home_dir/.zshrc"; then
-    echo 'eval "$(/usr/local/bin/mise activate zsh)"' >> "$home_dir/.zshrc"
-    echo "🔧 Added mise activation to .zshrc"
+  # Check if mise activation is in .zshrc
+  if grep -q 'mise activate zsh' "$home_dir/.zshrc"; then
+    echo "✅ mise activation found in .zshrc"
   else
-    echo "✅ Mise activation already in .zshrc"
+    echo "⚠️  mise activation not found in .zshrc - it should have been added by mise-en-place feature"
   fi
 
-  # Ensure mise activation is in .bashrc
-  if ! grep -q 'eval "\$(/usr/local/bin/mise activate bash)"' "$home_dir/.bashrc"; then
-    echo 'eval "$(/usr/local/bin/mise activate bash)"' >> "$home_dir/.bashrc"
-    echo "🔧 Added mise activation to .bashrc"
+  # Check if mise activation is in .bashrc
+  if grep -q 'mise activate bash' "$home_dir/.bashrc"; then
+    echo "✅ mise activation found in .bashrc"
   else
-    echo "✅ Mise activation already in .bashrc"
+    echo "⚠️  mise activation not found in .bashrc - it should have been added by mise-en-place feature"
   fi
   
   # Set ownership for shell config files

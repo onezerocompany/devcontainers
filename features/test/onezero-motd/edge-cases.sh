@@ -22,7 +22,7 @@ check "handles empty values" bash -c '
 '
 
 # Test 2: Special characters in configuration
-SPECIAL_CHARS='$`"\\'
+SPECIAL_CHARS="\$\`\"'\\"
 if [ -f /etc/onezero/motd.conf ]; then
     cp /etc/onezero/motd.conf /etc/onezero/motd.conf.bak
     cat > /etc/onezero/motd.conf << EOF

@@ -1,50 +1,49 @@
 {
-  "id": "sandbox",
-  "name": "Sandbox Network Filter",
-  "version": "1.0.0",
-  "description": "Network traffic filtering for sandboxed environments with domain rule support. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication.",
-  "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
-  "options": {
-    "allowedDomains": {
-      "type": "string",
-      "default": "",
-      "description": "Comma-separated list of allowed domains (supports wildcards like *.example.com)"
-    },
-    "blockedDomains": {
-      "type": "string", 
-      "default": "*.facebook.com,*.twitter.com,*.instagram.com,*.tiktok.com,*.youtube.com",
-      "description": "Comma-separated list of blocked domains (supports wildcards like *.example.com)"
-    },
-    "defaultPolicy": {
-      "type": "string",
-      "enum": ["allow", "block"],
-      "default": "block",
-      "description": "Default policy for domains not explicitly listed (allow or block)"
-    },
-    "allowDockerNetworks": {
-      "type": "boolean",
-      "default": true,
-      "description": "Allow traffic to Docker internal networks (required for Docker Compose services)"
-    },
-    "allowLocalhost": {
-      "type": "boolean", 
-      "default": true,
-      "description": "Allow traffic to localhost and 127.0.0.1"
-    },
-    "immutableConfig": {
-      "type": "boolean",
-      "default": true, 
-      "description": "Make configuration immutable after setup (prevents runtime changes)"
-    },
-    "logBlocked": {
-      "type": "boolean",
-      "default": true,
-      "description": "Log blocked connections for debugging"
-    }
-  },
-  "privileged": true,
-  "containerEnv": {
-    "SANDBOX_NETWORK_FILTER": "enabled"
-  },
-  "installsAfter": ["ghcr.io/onezerocompany/features/common-utils"]
+	"id": "sandbox",
+	"name": "Sandbox Network Filter",
+	"version": "2.1.1",
+	"description": "Network traffic filtering for sandboxed environments using iptables. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication. Automatically allows domains from Claude Code WebFetch permissions.",
+	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
+	"options": {
+		"defaultPolicy": {
+			"type": "string",
+			"enum": ["allow", "block"],
+			"default": "block",
+			"description": "Default policy for domains not explicitly listed (allow or block)"
+		},
+		"allowDockerNetworks": {
+			"type": "boolean",
+			"default": true,
+			"description": "Allow traffic to Docker internal networks (required for Docker Compose services)"
+		},
+		"allowLocalhost": {
+			"type": "boolean",
+			"default": true,
+			"description": "Allow traffic to localhost and 127.0.0.1"
+		},
+		"immutableConfig": {
+			"type": "boolean",
+			"default": true,
+			"description": "Make configuration immutable after setup (prevents runtime changes)"
+		},
+		"logBlocked": {
+			"type": "boolean",
+			"default": true,
+			"description": "Log blocked connections for debugging"
+		},
+		"allowClaudeWebFetchDomains": {
+			"type": "boolean",
+			"default": true,
+			"description": "Automatically allow domains from Claude Code WebFetch permissions"
+		},
+		"claudeSettingsPaths": {
+			"type": "string",
+			"default": ".claude/settings.json,.claude/settings.local.json,~/.claude/settings.json",
+			"description": "Comma-separated list of paths to Claude settings files to read WebFetch rules from (relative paths are resolved from workspace root)"
+		}
+	},
+	"privileged": true,
+	"containerEnv": {
+		"SANDBOX_NETWORK_FILTER": "enabled"
+	}
 }

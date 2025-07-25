@@ -26,7 +26,8 @@ if systemctl is-active dnsmasq >/dev/null 2>&1; then
     # Test various subdomains of blocked domains
     test_subdomain_blocked() {
         local subdomain="$1"
-        local ip=$(nslookup "$subdomain" 127.0.0.1 2>/dev/null | grep -A1 "Name:" | tail -n1 | awk '{print $2}' || echo "failed")
+        local ip
+        ip=$(nslookup "$subdomain" 127.0.0.1 2>/dev/null | grep -A1 "Name:" | tail -n1 | awk '{print $2}' || echo "failed")
         [ "$ip" = "127.0.0.1" ]
     }
     

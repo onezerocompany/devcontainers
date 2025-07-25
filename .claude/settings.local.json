@@ -103,7 +103,11 @@
       "Bash(./manual-test.sh:*)",
       "Bash(git remote get-url:*)",
       "mcp__github__get_pull_request_status",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "Bash(mise run lint:*)",
+      "Bash(mise run shellcheck:*)",
+      "Bash(mise run:*)",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   }

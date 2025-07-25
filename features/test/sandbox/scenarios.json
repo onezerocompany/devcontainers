@@ -1,66 +1,66 @@
 {
-  "default": {
-    "image": "debian:bookworm",
-    "features": {
-      "sandbox": {}
-    }
-  },
-  "allow-policy": {
-    "image": "debian:bookworm",
-    "features": {
-      "sandbox": {
-        "defaultPolicy": "allow",
-        "blockedDomains": "*.example.com,badsite.com"
-      }
-    }
-  },
-  "custom-domains": {
-    "image": "debian:bookworm", 
-    "features": {
-      "sandbox": {
-        "allowedDomains": "*.github.com,api.openai.com,*.googleapis.com",
-        "blockedDomains": "*.facebook.com,*.twitter.com",
-        "defaultPolicy": "block"
-      }
-    }
-  },
-  "docker-enabled": {
-    "image": "debian:bookworm",
-    "features": {
-      "sandbox": {
-        "allowDockerNetworks": true,
-        "allowLocalhost": true
-      }
-    }
-  },
-  "strict-mode": {
-    "image": "debian:bookworm",
-    "features": {
-      "sandbox": {
-        "allowedDomains": "api.github.com",
-        "blockedDomains": "",
-        "defaultPolicy": "block",
-        "allowDockerNetworks": false,
-        "allowLocalhost": false,
-        "immutableConfig": true
-      }
-    }
-  },
-  "wildcard-test": {
-    "image": "debian:bookworm",
-    "features": {
-      "sandbox": {
-        "blockedDomains": "*.facebook.com,*.twitter.com,*.example.com",
-        "defaultPolicy": "block"
-      }
-    }
-  },
-  "logging-disabled": {
-    "image": "debian:bookworm",
-    "features": {
-      "sandbox": {
-        "logBlocked": false
-      }
-    }
-  }
+	"default": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {}
+		}
+	},
+	"allow-policy": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {
+				"defaultPolicy": "allow",
+				"blockedDomains": "*.example.com,badsite.com"
+			}
+		}
+	},
+	"custom-domains": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {
+				"allowedDomains": "*.github.com,api.openai.com,*.googleapis.com",
+				"blockedDomains": "*.facebook.com,*.twitter.com",
+				"defaultPolicy": "block"
+			}
+		}
+	},
+	"docker-enabled": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {
+				"allowDockerNetworks": true,
+				"allowLocalhost": true
+			}
+		}
+	},
+	"strict-mode": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {
+				"allowedDomains": "api.github.com",
+				"blockedDomains": "",
+				"defaultPolicy": "block",
+				"allowDockerNetworks": false,
+				"allowLocalhost": false,
+				"immutableConfig": true
+			}
+		}
+	},
+	"wildcard-test": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {
+				"blockedDomains": "*.facebook.com,*.twitter.com,*.example.com",
+				"defaultPolicy": "block"
+			}
+		}
+	},
+	"logging-disabled": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"sandbox": {
+				"logBlocked": false
+			}
+		}
+	}
 }

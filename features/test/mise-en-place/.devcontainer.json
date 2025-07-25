@@ -1,0 +1,6 @@
+{
+    "image": "debian:bookworm",
+    "features": {
+        "./local-features/mise-en-place": {}
+    }
+}

@@ -1,7 +1,7 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/base:debian",
-    "features": {
-        "./docker-in-docker": {}
-    },
-    "remoteUser": "vscode"
+	"image": "mcr.microsoft.com/devcontainers/base:debian",
+	"features": {
+		"./docker-in-docker": {}
+	},
+	"remoteUser": "vscode"
 }

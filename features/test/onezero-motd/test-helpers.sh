@@ -60,7 +60,6 @@ get_config_content() {
 # Batch file existence and permission checks
 check_files_batch() {
     local result=0
-    local checks=""
     
     # Build batch check command
     [ -f /etc/update-motd.d/50-onezero ] || result=1
@@ -77,7 +76,8 @@ check_files_batch() {
 
 # Efficient content validation
 validate_motd_content() {
-    local output=$(get_motd_output)
+    local output
+    output=$(get_motd_output)
     local required_patterns="$1"
     local optional_patterns="$2"
     
@@ -117,8 +117,10 @@ check_system_capability() {
 
 # Performance report
 report_test_performance() {
-    local end_time=$(date +%s.%N)
-    local duration=$(echo "$end_time - $TEST_START_TIME" | bc 2>/dev/null || echo "N/A")
+    local end_time
+    end_time=$(date +%s.%N)
+    local duration
+    duration=$(echo "$end_time - $TEST_START_TIME" | bc 2>/dev/null || echo "N/A")
     
     echo "# Test Performance Report"
     echo "Duration: ${duration}s"
@@ -132,12 +134,15 @@ check_optimized() {
     local test_func="$2"
     
     # Time individual check
-    local start=$(date +%s.%N 2>/dev/null || date +%s)
+    local start
+    start=$(date +%s.%N 2>/dev/null || date +%s)
     
     check "$description" bash -c "$test_func"
     
-    local end=$(date +%s.%N 2>/dev/null || date +%s)
-    local duration=$(echo "$end - $start" | bc 2>/dev/null || echo "0")
+    local end
+    end=$(date +%s.%N 2>/dev/null || date +%s)
+    local duration
+    duration=$(echo "$end - $start" | bc 2>/dev/null || echo "0")
     
     # Log slow tests
     if [ "${MOTD_DEBUG:-}" = "true" ] && [ "$duration" != "0" ]; then

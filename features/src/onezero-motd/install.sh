@@ -2,10 +2,10 @@
 
 set -e
 
-ASCII_LOGO="${ASCII_LOGO}"
-INFO="${INFO}"
-MESSAGE="${MESSAGE}"
-ENABLE="${ENABLE}"
+ASCII_LOGO="${ASCII_LOGO:-}"
+INFO="${INFO:-}"
+MESSAGE="${MESSAGE:-}"
+ENABLE="${ENABLE:-}"
 
 USERNAME="${USERNAME:-${_REMOTE_USER:-root}}"
 
@@ -206,7 +206,7 @@ EOF
 
 # Add to user's shell configs
 if [ -n "$USERNAME" ] && [ "$USERNAME" != "root" ]; then
-    USER_HOME=$(eval echo ~$USERNAME)
+    USER_HOME=$(eval echo ~"$USERNAME")
     add_motd_to_shell "$USER_HOME/.bashrc" "bash"
     add_motd_to_shell "$USER_HOME/.zshrc" "zsh"
     

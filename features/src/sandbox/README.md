@@ -1,13 +1,12 @@
 # Sandbox Network Filter
 
-A development container feature that provides network traffic filtering for sandboxed environments with domain rule support. This feature is designed to control and restrict outbound network traffic according to user-defined rules while allowing Docker service communication.
+A development container feature that provides network traffic filtering for sandboxed environments using iptables. This feature is designed to control and restrict outbound network traffic according to user-defined rules while allowing Docker service communication. It can automatically allow domains from Claude Code WebFetch permissions.
 
 ## Features
 
-- **Advanced wildcard domain filtering**: Full support for wildcard patterns (e.g., `*.example.com`) using dnsmasq DNS interception
-- **DNS-level blocking**: Uses dnsmasq for true wildcard DNS blocking and hosts file manipulation for exact domains
-- **iptables integration**: Additional packet filtering for comprehensive network control
+- **iptables-based filtering**: Simple and reliable packet filtering for network control
 - **Docker compatibility**: Preserves communication with Docker Compose services
+- **Claude Code integration**: Automatically allows domains from Claude Code WebFetch permissions
 - **Immutable configuration**: Prevents runtime modification of filtering rules
 - **Flexible policies**: Configurable default allow/block behavior
 - **Logging support**: Optional logging of blocked connection attempts
@@ -18,8 +17,6 @@ A development container feature that provides network traffic filtering for sand
 {
   "features": {
     "ghcr.io/onezerocompany/features/sandbox": {
-      "allowedDomains": "api.github.com,*.openai.com",
-      "blockedDomains": "*.facebook.com,*.twitter.com",
       "defaultPolicy": "block",
       "allowDockerNetworks": true,
       "immutableConfig": true
@@ -32,36 +29,24 @@ A development container feature that provides network traffic filtering for sand
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `allowedDomains` | string | `""` | Comma-separated list of allowed domains (supports wildcards) |
-| `blockedDomains` | string | `"*.facebook.com,*.twitter.com,*.instagram.com,*.tiktok.com,*.youtube.com"` | Comma-separated list of blocked domains |
-| `defaultPolicy` | string | `"block"` | Default policy for unlisted domains (`"allow"` or `"block"`) |
+| `defaultPolicy` | string | `"block"` | Default policy for external traffic (`"allow"` or `"block"`) |
 | `allowDockerNetworks` | boolean | `true` | Allow traffic to Docker internal networks |
 | `allowLocalhost` | boolean | `true` | Allow traffic to localhost and 127.0.0.1 |
 | `immutableConfig` | boolean | `true` | Make configuration immutable after setup |
 | `logBlocked` | boolean | `true` | Log blocked connections for debugging |
+| `allowClaudeWebFetchDomains` | boolean | `true` | Automatically allow domains from Claude Code WebFetch permissions |
+| `claudeSettingsPaths` | string | `".claude/settings.json,.claude/settings.local.json,~/.claude/settings.json"` | Comma-separated list of paths to Claude settings files (relative paths are resolved from workspace root) |
 
 ## How It Works
 
-The sandbox feature implements multi-layered network filtering with enhanced wildcard support:
+The sandbox feature implements network filtering using iptables:
 
-1. **DNS Filtering**: Uses dnsmasq DNS server to intercept and block wildcard domain patterns (e.g., `*.example.com` blocks all subdomains)
-2. **Hosts File Fallback**: Modifies `/etc/hosts` for exact domain matches and as backup when dnsmasq is unavailable  
-3. **iptables Rules**: Creates packet filtering rules for comprehensive traffic control
-4. **Docker Network Preservation**: Allows communication with Docker services by permitting traffic to private network ranges
-5. **Immutable Enforcement**: Optional protection against runtime configuration changes
-
-## Domain Rule Formats
-
-- **Exact domain**: `example.com` - blocks exactly `example.com`
-- **Wildcard**: `*.example.com` - blocks all subdomains of `example.com` (api.example.com, test.example.com, etc.)
-- **Multiple domains**: `"domain1.com,*.domain2.com,domain3.com"`
-
-### Wildcard Implementation
-
-The improved wildcard handling uses dnsmasq to provide true DNS-level blocking:
-- `*.facebook.com` blocks any subdomain like `api.facebook.com`, `mobile.facebook.com`, `xyz.facebook.com`
-- No need to manually specify common subdomains - all possible subdomains are blocked automatically
-- Fallback hosts file entries ensure blocking works even if dnsmasq fails to start
+1. **iptables Rules**: Creates packet filtering rules for comprehensive traffic control
+2. **Docker Network Preservation**: Allows communication with Docker services by permitting traffic to private network ranges
+3. **Claude Code Integration**: Reads Claude settings files to extract WebFetch domain permissions and resolves them to IP addresses
+4. **DNS Resolution**: Allows DNS queries (port 53) to enable name resolution
+5. **Established Connections**: Permits established and related connections for proper network functionality
+6. **Immutable Enforcement**: Optional protection against runtime configuration changes
 
 ## Network Ranges
 
@@ -70,34 +55,82 @@ When `allowDockerNetworks` is enabled, the following ranges are permitted:
 - `10.0.0.0/8` - Docker custom networks
 - `192.168.0.0/16` - Local networks
 
+## Claude Code Integration
+
+When `allowClaudeWebFetchDomains` is enabled, the feature will:
+
+1. Read Claude settings files from the specified paths (relative paths are resolved from `/workspace`)
+2. Extract WebFetch domain rules like `"WebFetch(domain:github.com)"` or `"WebFetch(domain:*.github.com)"`
+3. Resolve domains to IP addresses at container startup
+4. Add iptables rules to allow traffic to those IPs
+
+This ensures that domains Claude Code is allowed to fetch are also accessible through the network sandbox.
+
+### Path Resolution
+- Relative paths (e.g., `.claude/settings.json`) are resolved from the workspace root
+- Absolute paths (e.g., `/home/user/.claude/settings.json`) are used as-is
+- Tilde paths (e.g., `~/.claude/settings.json`) are expanded to the user's home directory
+
+### Workspace Detection
+The feature automatically detects the workspace folder by checking these environment variables in order:
+1. `WORKSPACE_FOLDER` - Custom workspace folder variable
+2. `DEVCONTAINER_WORKSPACE_FOLDER` - Set by some devcontainer implementations
+3. `VSCODE_WORKSPACE` - VS Code workspace variable
+4. `VSCODE_CWD` - VS Code current working directory
+5. `PWD` - Current directory (if it contains `.devcontainer`)
+6. Default: `/workspace`
+
+### Claude Settings Example
+```json
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:*.github.com)",
+      "WebFetch(domain:docs.anthropic.com)"
+    ]
+  }
+}
+```
+
 ## Example Configurations
 
-### Strict LLM Sandbox
+### Strict Development Sandbox with Claude Integration
 ```json
 {
   "features": {
     "ghcr.io/onezerocompany/features/sandbox": {
-      "allowedDomains": "api.openai.com",
-      "blockedDomains": "",
       "defaultPolicy": "block",
       "allowDockerNetworks": true,
       "allowLocalhost": false,
+      "allowClaudeWebFetchDomains": true,
       "immutableConfig": true
     }
   }
 }
 ```
 
-### Development Environment with Social Media Blocking
+### Development Environment with External Access
 ```json
 {
   "features": {
     "ghcr.io/onezerocompany/features/sandbox": {
-      "allowedDomains": "*.github.com,*.stackoverflow.com,*.npmjs.com",
-      "blockedDomains": "*.facebook.com,*.twitter.com,*.reddit.com",
       "defaultPolicy": "allow",
       "allowDockerNetworks": true,
-      "logBlocked": true
+      "logBlocked": false
+    }
+  }
+}
+```
+
+### Custom Claude Settings Paths
+```json
+{
+  "features": {
+    "ghcr.io/onezerocompany/features/sandbox": {
+      "defaultPolicy": "block",
+      "allowClaudeWebFetchDomains": true,
+      "claudeSettingsPaths": "/workspace/.claude/settings.json,~/.claude/custom-settings.json"
     }
   }
 }
@@ -108,33 +141,31 @@ When `allowDockerNetworks` is enabled, the following ranges are permitted:
 After container startup, you can test the filtering:
 
 ```bash
-# Test DNS blocking with wildcards
-nslookup api.facebook.com  # Should resolve to 127.0.0.1
-nslookup mobile.twitter.com  # Should resolve to 127.0.0.1
-
-# Check dnsmasq is running
-systemctl status dnsmasq
-
-# Check dnsmasq configuration
-cat /etc/dnsmasq.d/sandbox.conf
-
 # Check iptables rules
-iptables -L SANDBOX_OUTPUT
+iptables -L SANDBOX_OUTPUT -n -v
 
 # View configuration
 cat /etc/sandbox/config
 
-# Check logs (if logging enabled)
+# Check logs (if logging enabled and default policy is block)
 dmesg | grep SANDBOX_BLOCKED
+
+# Test external connectivity
+curl -I https://example.com  # Will be blocked if defaultPolicy="block"
+
+# Test Docker network connectivity
+# Should work if allowDockerNetworks=true
+ping another-container
 ```
 
 ## Limitations
 
-- DNS filtering requires applications to respect system DNS configuration
-- Some applications may use hardcoded DNS servers or their own DNS resolution
 - iptables rules require privileged container mode
-- dnsmasq service needs to be running for full wildcard functionality
+- This provides IP-level filtering only (no domain-based filtering)
+- Claude WebFetch domain resolution happens at container startup - dynamic IP changes require container restart
+- Wildcard domains (*.example.com) are resolved as the base domain (example.com)
+- Some applications may attempt to bypass system network configuration
 
 ## Security Notes
 
-This feature is designed for development container sandboxing and should not be considered a complete security solution. It provides a reasonable barrier for containing automated tools and scripts but may not prevent determined attempts to bypass restrictions.
+This feature is designed for development container sandboxing and should not be considered a complete security solution. It provides a reasonable barrier for containing network traffic but may not prevent determined attempts to bypass restrictions.

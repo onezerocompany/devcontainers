@@ -5,7 +5,10 @@ set -e
 # Import libraries
 source dev-container-features-test-lib
 SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
-[ -f "$SOURCE_DIR/test-helpers.sh" ] && source "$SOURCE_DIR/test-helpers.sh" || {
+if [ -f "$SOURCE_DIR/test-helpers.sh" ]; then
+    source "$SOURCE_DIR/test-helpers.sh"
+else
+    {
     # Fallback to basic testing if helpers not available
     echo "# Warning: test-helpers.sh not found, using basic tests" >&2
     
@@ -14,6 +17,7 @@ SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
     check "config file exists" test -f /etc/onezero/motd.conf
     check "motd runs successfully" bash -c "/etc/update-motd.d/50-onezero >/dev/null 2>&1"
     
+    export MOTD_OUTPUT
     MOTD_OUTPUT=$(/etc/update-motd.d/50-onezero 2>&1)
     check "motd content" bash -c "
         echo '\$MOTD_OUTPUT' | grep -q 'OneZero' &&
@@ -24,7 +28,8 @@ SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
     
     reportResults
     exit 0
-}
+    }
+fi
 
 # Initialize optimized test environment
 init_test_env
