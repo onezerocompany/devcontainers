@@ -47,7 +47,15 @@ else
 fi
 
 # Move mise to system location
-mv "${USER_HOME}/.local/bin/mise" /usr/local/bin/mise
+# Find where mise was actually installed (could be in root's home during container build)
+if [ -f "${USER_HOME}/.local/bin/mise" ]; then
+    mv "${USER_HOME}/.local/bin/mise" /usr/local/bin/mise
+elif [ -f "/root/.local/bin/mise" ]; then
+    mv "/root/.local/bin/mise" /usr/local/bin/mise
+else
+    echo "ERROR: Could not find mise binary in expected locations"
+    exit 1
+fi
 chmod +x /usr/local/bin/mise
 
 # Copy initialization script
