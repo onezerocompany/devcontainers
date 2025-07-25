@@ -116,9 +116,9 @@ install_claude_code_for_user() {
   # Determine installation command based on version
   local install_cmd
   if [ "$CLAUDE_CODE_VERSION" = "latest" ]; then
-    install_cmd="bunx @claude-ai/code"
+    install_cmd="bun x @claude-ai/code"
   else
-    install_cmd="bunx @claude-ai/code@$CLAUDE_CODE_VERSION"
+    install_cmd="bun x @claude-ai/code@$CLAUDE_CODE_VERSION"
   fi
   
   # Install Claude Code using bun
@@ -132,7 +132,7 @@ install_claude_code_for_user() {
   cat > /usr/local/bin/claude-code <<'EOF'
 #!/bin/bash
 eval "$(mise activate bash)"
-exec bunx @claude-ai/code "$@"
+exec bun x @claude-ai/code "$@"
 EOF
   chmod +x /usr/local/bin/claude-code
   

@@ -1,7 +1,7 @@
 {
 	"id": "claude-code",
 	"name": "Claude Code",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "Claude Code CLI setup via bun with mise, including configuration directories and environment variables",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/claude-code",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
