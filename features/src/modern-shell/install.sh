@@ -21,6 +21,7 @@ ALIAS_LS="${ALIAS_LS:-true}"
 ALIAS_CAT="${ALIAS_CAT:-true}"
 ALIAS_FIND="${ALIAS_FIND:-true}"
 ALIAS_GREP="${ALIAS_GREP:-true}"
+INSTALL_NEOVIM="${INSTALL_NEOVIM:-true}"
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -102,8 +103,10 @@ if [ "$STARSHIP" = "true" ]; then
   MISE_PACKAGES+=" starship "
 fi
 
-# Install vim as part of modern shell experience
-MISE_PACKAGES+=" vim "
+# Install Neovim if requested
+if [ "$INSTALL_NEOVIM" = "true" ]; then
+  MISE_PACKAGES+=" neovim "
+fi
     
 
 log_info "Installing modern shell utilities: $MISE_PACKAGES"

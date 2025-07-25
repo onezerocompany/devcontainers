@@ -1,0 +1,5 @@
+{
+  "image": "ghcr.io/onezerocompany/devcontainer:base",
+  "remoteUser": "zero",
+  "workspaceFolder": "/workspace"
+}

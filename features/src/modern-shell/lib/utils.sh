@@ -308,6 +308,13 @@ add_modern_aliases() {
     aliases_content+="alias grep='rg'\n"
   fi
   
+  # Add Neovim aliases if Neovim is installed
+  if [ "$INSTALL_NEOVIM" = "true" ]; then
+    aliases_content+="\n# Neovim aliases\n"
+    aliases_content+="alias vi='nvim'\n"
+    aliases_content+="alias vim='nvim'\n"
+  fi
+  
   # Add custom aliases if provided
   if [ -n "$CUSTOM_ALIASES" ]; then
     aliases_content+="\n# Custom aliases\n"

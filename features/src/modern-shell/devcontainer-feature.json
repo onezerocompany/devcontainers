@@ -1,7 +1,7 @@
 {
   "id": "modern-shell",
   "name": "Modern Shell",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "description": "A modern shell environment with Zsh, Starship prompt, and essential utilities for a productive development experience.",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/modern-shell",
   "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
@@ -67,6 +67,11 @@
       "type": "boolean",
       "default": true,
       "description": "Alias grep to ripgrep (rg)"
+    },
+    "install_neovim": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Neovim and create vi/vim aliases"
     }
   }
 }
