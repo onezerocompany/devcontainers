@@ -1,12 +1,11 @@
-#\!/bin/bash
+#!/bin/bash
 
 set -e
 
 source dev-container-features-test-lib
 
-# Custom versions scenario test - verify claude-code works with specific version
+# Basic scenario test with modern-shell feature - just verify claude-code works
 check "claude-code command exists" command -v claude-code
 
 # Report results
 reportResults
-EOF < /dev/null
