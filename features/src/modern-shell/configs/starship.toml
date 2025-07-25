@@ -20,7 +20,7 @@ symbol = " "
 tag_symbol = '  '
 
 [character]
-format = "[](fg:black)"
+format = "[](fg:black) "
 
 [directory]
 disabled = false

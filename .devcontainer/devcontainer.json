@@ -4,6 +4,9 @@
   "features": {
     "ghcr.io/onezerocompany/features/sandbox:1": {}
   },
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,type=bind,consistency=cached"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
