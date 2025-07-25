@@ -71,6 +71,32 @@ ensure_mise_installed() {
   else
     echo "✅ Mise is already installed"
   fi
+  
+  # Ensure mise cache directories exist with proper permissions
+  local users=("$(username)" "root")
+  for user in "${users[@]}"; do
+    local home_dir
+    if [ "$user" = "root" ]; then
+      home_dir="/root"
+    else
+      home_dir="/home/$user"
+    fi
+    
+    # Create mise cache directories with proper ownership
+    if [ -d "$home_dir" ]; then
+      mkdir -p "$home_dir/.cache/mise"
+      mkdir -p "$home_dir/.local/share/mise"
+      mkdir -p "$home_dir/.config/mise"
+      
+      # Set ownership if user exists
+      if id "$user" &>/dev/null; then
+        chown -R "$user:$user" "$home_dir/.cache/mise" 2>/dev/null || true
+        chown -R "$user:$user" "$home_dir/.local/share/mise" 2>/dev/null || true
+        chown -R "$user:$user" "$home_dir/.config/mise" 2>/dev/null || true
+        echo "✅ Set mise cache permissions for $user"
+      fi
+    fi
+  done
 }
 
 setup_home_bin() {
@@ -78,6 +104,12 @@ setup_home_bin() {
   local home_dir="$2"
 
   echo "🔧 Setting up home bin for user $user..."
+
+  # Create .local/bin directory with proper ownership
+  mkdir -p "$home_dir/.local/bin"
+  if id "$user" &>/dev/null; then
+    chown -R "$user:$user" "$home_dir/.local" 2>/dev/null || true
+  fi
 
   # Ensure .zshenv sets the PATH
   if [ -f "$home_dir/.zshenv" ]; then
@@ -98,6 +130,12 @@ setup_home_bin() {
     echo "🔧 Added PATH to .bashrc"
   else
     echo "✅ PATH already set in .bashrc"
+  fi
+  
+  # Set ownership for shell config files
+  if id "$user" &>/dev/null; then
+    chown "$user:$user" "$home_dir/.zshenv" 2>/dev/null || true
+    chown "$user:$user" "$home_dir/.bashrc" 2>/dev/null || true
   fi
 }
 
