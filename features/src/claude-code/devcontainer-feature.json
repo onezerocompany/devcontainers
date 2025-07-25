@@ -1,16 +1,16 @@
 {
 	"id": "claude-code",
 	"name": "Claude Code",
-	"version": "1.3.0",
-	"description": "Claude Code CLI setup via mise, including configuration directories and environment variables",
+	"version": "1.3.1",
+	"description": "Claude Code CLI setup via npm, including configuration directories and environment variables",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/claude-code",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
-	"keywords": ["claude", "claude-code", "ai", "cli", "mise"],
+	"keywords": ["claude", "claude-code", "ai", "cli", "npm"],
 	"options": {
 		"claudeCodeVersion": {
 			"type": "string",
 			"default": "latest",
-			"description": "Claude Code version to install via mise"
+			"description": "Claude Code version to install via npm"
 		},
 		"configDir": {
 			"type": "string",
@@ -35,8 +35,5 @@
 			"type": "volume"
 		}
 	],
-	"installsAfter": ["ghcr.io/onezerocompany/features/modern-shell"],
-	"dependsOn": {
-		"ghcr.io/onezerocompany/features/mise-en-place": {}
-	}
+	"installsAfter": ["ghcr.io/onezerocompany/features/modern-shell"]
 }

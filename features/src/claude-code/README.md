@@ -1,6 +1,6 @@
 # Claude Code
 
-Installs Claude Code CLI via mise, including configuration directories and environment variables.
+Installs Claude Code CLI via npm, including configuration directories and environment variables.
 
 ## Example Usage
 
@@ -14,7 +14,7 @@ Installs Claude Code CLI via mise, including configuration directories and envir
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| claudeCodeVersion | Claude Code version to install via mise | string | latest |
+| claudeCodeVersion | Claude Code version to install via npm | string | latest |
 | configDir | Claude Code config directory path. If empty, defaults to /home/$USER/.claude | string | |
 | installGlobally | Install Claude Code globally for all users | boolean | true |
 
@@ -43,13 +43,14 @@ For persistence across container rebuilds, mount these directories:
 
 ## Dependencies
 
+This feature requires:
+- **Node.js**: Must be available in the container (use a Node.js base image or install Node.js separately)
+
 This feature installs after:
 - `ghcr.io/onezerocompany/features/modern-shell` (if used)
 
 ## Tools Installed
 
-- **mise**: Modern tool version manager
-- **Node.js**: JavaScript runtime (version specified by `nodeVersion`)
 - **Claude Code**: Anthropic's CLI for Claude (version specified by `claudeCodeVersion`)
 
 ## Example Configurations
@@ -61,15 +62,6 @@ This feature installs after:
 }
 ```
 
-### Custom Node Version
-```json
-"features": {
-    "ghcr.io/onezerocompany/features/claude-code:1": {
-        "nodeVersion": "20",
-        "maxOldSpaceSize": "4096"
-    }
-}
-```
 
 ### Custom Config Directory
 ```json
@@ -82,7 +74,7 @@ This feature installs after:
 
 ## Notes
 
-- Claude Code and Node.js are installed via mise for consistent version management
-- The feature creates a `.mise.toml` file in each user's home directory
-- Shell integration is automatically configured for both bash and zsh
+- Claude Code is installed globally via npm
+- This feature requires Node.js to be pre-installed in the container
+- The feature creates a configuration directory for Claude Code
 - Environment variables are exported via `/etc/profile.d/claude-code.sh`

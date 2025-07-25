@@ -195,7 +195,7 @@ else
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
 fi
 
-check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq
+check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq sudo
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
