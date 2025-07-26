@@ -4,7 +4,7 @@ set -e
 VERSION="${VERSION:-"latest"}"
 CONFIGURE_CACHE="${CONFIGURECACHE:-"true"}"
 AUTO_TRUST="${AUTOTRUST:-"true"}"
-USE_BUN_FOR_NPM="${USEBUNFORNPM:-"false"}"
+INSTALL_NODE_LTS="${INSTALLNODELTS:-"true"}"
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
@@ -107,7 +107,6 @@ setup_shell_integration() {
         echo '# mise-en-place' >> "${target_home}/.bashrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.bashrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.bashrc"
-        echo "export MISE_NPM_BUN=\"${USE_BUN_FOR_NPM}\"" >> "${target_home}/.bashrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.bashrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.bashrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.bashrc"
@@ -121,7 +120,6 @@ setup_shell_integration() {
         echo '# mise-en-place' >> "${target_home}/.zshrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.zshrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.zshrc"
-        echo "export MISE_NPM_BUN=\"${USE_BUN_FOR_NPM}\"" >> "${target_home}/.zshrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.zshrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.zshrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.zshrc"
@@ -170,9 +168,23 @@ if [ "${USERNAME}" != "root" ]; then
     chown "${USERNAME}:${USERNAME}" "${USER_HOME}/.config/mise/config.toml"
 fi
 
-# Warn about deprecated bun backend option
-if [ "${USE_BUN_FOR_NPM}" = "true" ]; then
-    mise settings set npm.bun true
+# Install Node.js LTS globally if requested
+if [ "${INSTALL_NODE_LTS}" = "true" ]; then
+    echo "Installing Node.js LTS globally..."
+    
+    # Install as the main user
+    if [ "${USERNAME}" != "root" ]; then
+        su - "${USERNAME}" -c "mise use -g node@lts"
+    else
+        cd "${USER_HOME}" && mise use -g node@lts
+    fi
+    
+    # Also install for root if we're not already root
+    if [ "${USERNAME}" != "root" ]; then
+        cd "/root" && mise use -g node@lts
+    fi
+    
+    echo "Node.js LTS installed globally via mise"
 fi
 
 # Note: mise directories will be initialized on first container start via mise-init

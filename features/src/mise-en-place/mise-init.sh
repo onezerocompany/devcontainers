@@ -16,7 +16,7 @@ mkdir -p "${HOME}/.local/share/mise"
 mkdir -p "${HOME}/.config/mise"
 
 # Fix any legacy invalid system config if we have permission
-if [ -w "/etc/mise/config.toml" ] && grep -q "node_compile\|bun_backend" /etc/mise/config.toml 2>/dev/null; then
+if [ -w "/etc/mise/config.toml" ] && grep -q "node_compile\|bun_backend\|npm\.bun" /etc/mise/config.toml 2>/dev/null; then
     echo "Fixing legacy invalid system config..."
     cat > /etc/mise/config.toml << 'EOF'
 [settings]
@@ -43,12 +43,8 @@ experimental = true
 
 EOF
 
-# Add the appropriate runtime to tools section
-if [ "${MISE_NPM_BUN}" = "true" ]; then
-    echo "bun = \"latest\"" >> /tmp/tools_section
-else
-    echo "node = \"lts\"" >> /tmp/tools_section
-fi
+# Add Node.js LTS to tools section
+echo "node = \"lts\"" >> /tmp/tools_section
 
 cat /tmp/tools_section >> "${HOME}/.config/mise/config.toml"
 rm -f /tmp/tools_section

@@ -94,9 +94,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        feature: [mise-en-place, modern-shell, onezero-motd, sandbox]
+        feature: [claude-code, mise-en-place, modern-shell, onezero-motd, sandbox]
         scenario: [default]
         include:
+          # Additional scenarios for claude-code
+          - feature: claude-code
+            scenario: with-modern-shell
+          - feature: claude-code
+            scenario: custom-versions
+          - feature: claude-code
+            scenario: custom-config-dir
+          - feature: claude-code
+            scenario: install-locally
+          - feature: claude-code
+            scenario: specific-version
+
           # Additional scenarios for mise-en-place
           - feature: mise-en-place
             scenario: ubuntu

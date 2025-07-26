@@ -1,0 +1,49 @@
+{
+	"id": "claude-code",
+	"name": "Claude Code",
+	"version": "1.6.0",
+	"description": "Claude Code CLI setup via mise (npm package @anthropic-ai/claude-code), including configuration directories and environment variables",
+	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/claude-code",
+	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+	"keywords": [
+		"claude",
+		"claude-code",
+		"ai",
+		"cli",
+		"mise",
+		"npm"
+	],
+	"options": {
+		"claudeCodeVersion": {
+			"type": "string",
+			"default": "latest",
+			"description": "Claude Code version to install via mise"
+		},
+		"configDir": {
+			"type": "string",
+			"default": "",
+			"description": "Claude Code config directory path. If empty, defaults to /home/$USER/.claude"
+		},
+		"installGlobally": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install Claude Code globally for all users"
+		}
+	},
+	"mounts": [
+		{
+			"source": "claude-code-bashhistory-${devcontainerId}",
+			"target": "/mnt/claude/bashhistory",
+			"type": "volume"
+		},
+		{
+			"source": "claude-code-config-${devcontainerId}",
+			"target": "/mnt/claude/config",
+			"type": "volume"
+		}
+	],
+	"installsAfter": [
+		"ghcr.io/onezerocompany/features/modern-shell",
+		"ghcr.io/onezerocompany/features/mise-en-place"
+	]
+}

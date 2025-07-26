@@ -1,6 +1,6 @@
 {
   "id": "mise-en-place",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "name": "mise-en-place",
   "description": "Installs mise (formerly rtx) - a fast polyglot runtime manager with persistent volumes for cache, installs, and config directories",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/mise-en-place",
@@ -21,10 +21,10 @@
       "default": true,
       "description": "Automatically trust workspace directories on initialization"
     },
-    "useBunForNpm": {
+    "installNodeLTS": {
       "type": "boolean",
       "default": true,
-      "description": "Use bun as npm backend for mise"
+      "description": "Install Node.js LTS globally via mise"
     }
   },
   "customizations": {
