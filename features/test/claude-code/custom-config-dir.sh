@@ -1,4 +1,4 @@
-#\!/bin/bash
+#!/bin/bash
 
 set -e
 
@@ -9,4 +9,3 @@ check "claude-code command exists" command -v claude-code
 
 # Report results
 reportResults
-EOF < /dev/null
