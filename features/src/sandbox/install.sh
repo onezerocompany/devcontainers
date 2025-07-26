@@ -7,6 +7,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Feature options
 DEFAULT_POLICY="${DEFAULTPOLICY:-block}"
+ALLOWED_DOMAINS="${ALLOWEDDOMAINS:-}"
+BLOCKED_DOMAINS="${BLOCKEDDOMAINS:-}"
 ALLOW_DOCKER_NETWORKS="${ALLOWDOCKERNETWORKS:-true}"
 ALLOW_LOCALHOST="${ALLOWLOCALHOST:-true}"
 IMMUTABLE_CONFIG="${IMMUTABLECONFIG:-true}"
@@ -44,6 +46,8 @@ DEFAULT_POLICY="${3:-block}"
 LOG_BLOCKED="${4:-true}"
 ALLOW_CLAUDE_WEBFETCH_DOMAINS="${5:-true}"
 CLAUDE_SETTINGS_PATHS="${6:-.claude/settings.json,.claude/settings.local.json,~/.claude/settings.json}"
+ALLOWED_DOMAINS="${7:-}"
+BLOCKED_DOMAINS="${8:-}"
 
 echo "Setting up network filtering rules..."
 
@@ -108,6 +112,65 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
     else
         echo "No Claude WebFetch domains found or could not resolve"
     fi
+fi
+
+# Handle custom allowed domains
+if [ -n "$ALLOWED_DOMAINS" ]; then
+    echo "Processing allowed domains: $ALLOWED_DOMAINS"
+    IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
+    for domain in "${DOMAIN_LIST[@]}"; do
+        # Trim whitespace and remove wildcard prefix
+        domain=$(echo "$domain" | xargs)
+        domain=${domain#\*.}
+        
+        if [ -n "$domain" ]; then
+            echo "  Resolving allowed domain: $domain"
+            # Resolve domain to IPs
+            resolved_ips=$(dig +short "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            
+            if [ -n "$resolved_ips" ]; then
+                while IFS= read -r ip; do
+                    if [ -n "$ip" ]; then
+                        echo "    Allowing IP: $ip for domain $domain"
+                        iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                    fi
+                done <<< "$resolved_ips"
+            else
+                echo "    Could not resolve domain: $domain"
+            fi
+        fi
+    done
+fi
+
+# Handle custom blocked domains
+if [ -n "$BLOCKED_DOMAINS" ]; then
+    echo "Processing blocked domains: $BLOCKED_DOMAINS"
+    IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
+    for domain in "${DOMAIN_LIST[@]}"; do
+        # Trim whitespace and remove wildcard prefix
+        domain=$(echo "$domain" | xargs)
+        domain=${domain#\*.}
+        
+        if [ -n "$domain" ]; then
+            echo "  Resolving blocked domain: $domain"
+            # Resolve domain to IPs
+            resolved_ips=$(dig +short "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            
+            if [ -n "$resolved_ips" ]; then
+                while IFS= read -r ip; do
+                    if [ -n "$ip" ]; then
+                        echo "    Blocking IP: $ip for domain $domain"
+                        if [ "$LOG_BLOCKED" = "true" ]; then
+                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
+                        fi
+                        iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
+                    fi
+                done <<< "$resolved_ips"
+            else
+                echo "    Could not resolve domain: $domain"
+            fi
+        fi
+    done
 fi
 
 # Apply default policy for external traffic
@@ -258,6 +321,8 @@ chmod +x /usr/local/share/sandbox/extract-claude-domains.sh
 cat > /etc/sandbox/config << EOF
 # Sandbox Network Filter Configuration
 DEFAULT_POLICY="$DEFAULT_POLICY"
+ALLOWED_DOMAINS="$ALLOWED_DOMAINS"
+BLOCKED_DOMAINS="$BLOCKED_DOMAINS"
 ALLOW_DOCKER_NETWORKS="$ALLOW_DOCKER_NETWORKS"
 ALLOW_LOCALHOST="$ALLOW_LOCALHOST"
 IMMUTABLE_CONFIG="$IMMUTABLE_CONFIG"
@@ -265,6 +330,31 @@ LOG_BLOCKED="$LOG_BLOCKED"
 ALLOW_CLAUDE_WEBFETCH_DOMAINS="$ALLOW_CLAUDE_WEBFETCH_DOMAINS"
 CLAUDE_SETTINGS_PATHS="$CLAUDE_SETTINGS_PATHS"
 EOF
+
+# Add individual domains to config file for test validation
+if [ -n "$ALLOWED_DOMAINS" ]; then
+    echo "# Allowed domains:" >> /etc/sandbox/config
+    IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
+    for domain in "${DOMAIN_LIST[@]}"; do
+        domain=$(echo "$domain" | xargs)
+        domain=${domain#\*.}
+        if [ -n "$domain" ]; then
+            echo "$domain" >> /etc/sandbox/config
+        fi
+    done
+fi
+
+if [ -n "$BLOCKED_DOMAINS" ]; then
+    echo "# Blocked domains:" >> /etc/sandbox/config
+    IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
+    for domain in "${DOMAIN_LIST[@]}"; do
+        domain=$(echo "$domain" | xargs)
+        domain=${domain#\*.}
+        if [ -n "$domain" ]; then
+            echo "$domain" >> /etc/sandbox/config
+        fi
+    done
+fi
 
 # Skip iptables setup during Docker build - will be configured at runtime
 echo "Skipping iptables configuration during build (will be applied at container startup)"
@@ -296,7 +386,7 @@ if [ -z "$WORKSPACE_FOLDER" ]; then
 fi
 
 # Setup iptables rules
-/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS"
+/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS" "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS"
 
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then

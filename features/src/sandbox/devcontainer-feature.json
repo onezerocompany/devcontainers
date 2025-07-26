@@ -11,6 +11,16 @@
 			"default": "block",
 			"description": "Default policy for domains not explicitly listed (allow or block)"
 		},
+		"allowedDomains": {
+			"type": "string",
+			"default": "",
+			"description": "Comma-separated list of domains to explicitly allow (supports wildcards like *.example.com)"
+		},
+		"blockedDomains": {
+			"type": "string", 
+			"default": "",
+			"description": "Comma-separated list of domains to explicitly block (supports wildcards like *.example.com)"
+		},
 		"allowDockerNetworks": {
 			"type": "boolean",
 			"default": true,
