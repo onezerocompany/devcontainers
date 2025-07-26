@@ -36,7 +36,7 @@ init_test_env
 
 # Expected custom values (matching the scenario configuration)
 # The ASCII logo from scenarios.json contains escaped characters, when rendered it contains ___ patterns
-export EXPECTED_LOGO="___"  # This appears in the rendered ASCII art
+export EXPECTED_LOGO="/ _ \\\\"  # This appears in the rendered ASCII art
 export EXPECTED_INFO="Custom OneZero Container"
 export EXPECTED_MESSAGE="Let's build something awesome!"
 

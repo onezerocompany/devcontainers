@@ -13,8 +13,8 @@ check "claude-webfetch-disabled" grep -q 'ALLOW_CLAUDE_WEBFETCH_DOMAINS="false"'
 check "default-policy-block" grep -q 'DEFAULT_POLICY="block"' /etc/sandbox/config
 
 # Create mock Claude settings files
-mkdir -p /workspace/.claude
-cat > /workspace/.claude/settings.json << 'EOF'
+mkdir -p /tmp/.claude
+cat > /tmp/.claude/settings.json << 'EOF'
 {
   "tools": {
     "WebFetch": {
@@ -28,8 +28,9 @@ EOF
 
 # Test that Claude settings are NOT processed when disabled
 check "claude-settings-ignored" bash -c '
-    # Run the setup rules script
-    /usr/local/share/sandbox/setup-rules.sh
+    # Run the setup rules script with proper arguments (from claude-disabled scenario)
+    # ALLOW_DOCKER_NETWORKS, ALLOW_LOCALHOST, DEFAULT_POLICY, LOG_BLOCKED, ALLOW_CLAUDE_WEBFETCH_DOMAINS, CLAUDE_SETTINGS_PATHS, ALLOWED_DOMAINS, BLOCKED_DOMAINS
+    /usr/local/share/sandbox/setup-rules.sh "true" "true" "block" "true" "false" "/tmp/.claude/settings.json" "" ""
     
     # Claude domains should NOT be in allowed list
     ! grep -q "should.not.be.allowed.com" /etc/sandbox/config &&
