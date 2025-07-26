@@ -2,13 +2,13 @@
 	"default": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {}
+			"sandbox": {}
 		}
 	},
 	"allow-policy": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"defaultPolicy": "allow",
 				"blockedDomains": "*.example.com,badsite.com"
 			}
@@ -17,7 +17,7 @@
 	"custom-domains": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"allowedDomains": "*.github.com,api.openai.com,*.googleapis.com",
 				"blockedDomains": "*.facebook.com,*.twitter.com",
 				"defaultPolicy": "block"
@@ -27,7 +27,7 @@
 	"docker-enabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"allowDockerNetworks": true,
 				"allowLocalhost": true
 			}
@@ -36,7 +36,7 @@
 	"strict-mode": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"allowedDomains": "api.github.com",
 				"blockedDomains": "",
 				"defaultPolicy": "block",
@@ -49,7 +49,7 @@
 	"wildcard-test": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"blockedDomains": "*.facebook.com,*.twitter.com,*.example.com",
 				"defaultPolicy": "block"
 			}
@@ -58,7 +58,7 @@
 	"logging-disabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"logBlocked": false
 			}
 		}
@@ -66,7 +66,7 @@
 	"claude-integration": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"allowClaudeWebFetchDomains": true,
 				"claudeSettingsPaths": ".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json"
 			}
@@ -75,7 +75,7 @@
 	"claude-disabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
-			"ghcr.io/onezerocompany/features/sandbox": {
+			"sandbox": {
 				"allowClaudeWebFetchDomains": false,
 				"defaultPolicy": "block"
 			}

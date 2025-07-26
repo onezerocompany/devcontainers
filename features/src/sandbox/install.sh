@@ -4,6 +4,14 @@ set -e
 
 echo "Starting Sandbox Network Filter installation..."
 
+# Detect if we're in a Docker build context
+if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ]; then
+    echo "Detected Docker build environment - will skip DNS resolution"
+    export IN_DOCKER_BUILD=true
+else
+    export IN_DOCKER_BUILD=false
+fi
+
 # Ensure non-interactive mode for apt
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
@@ -59,7 +67,27 @@ CLAUDE_SETTINGS_PATHS="${6:-.claude/settings.json,.claude/settings.local.json,~/
 ALLOWED_DOMAINS="${7:-}"
 BLOCKED_DOMAINS="${8:-}"
 
+# Detect if we're in a Docker build context
+# Check multiple indicators since different build methods set different variables
+if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ -n "$BUILDX_BUILDER" ] || [ "$container" = "docker" ] || [ -f /run/.containerenv ]; then
+    IN_DOCKER_BUILD=true
+else
+    # Additional check: if iptables doesn't work properly, we're likely in a build
+    if ! iptables -L OUTPUT >/dev/null 2>&1; then
+        IN_DOCKER_BUILD=true
+    else
+        IN_DOCKER_BUILD=false
+    fi
+fi
+
 echo "Setting up network filtering rules..."
+
+# Skip all iptables operations during Docker build
+if [ "$IN_DOCKER_BUILD" = "true" ]; then
+    echo "Detected Docker build environment - skipping iptables configuration"
+    echo "Network filtering will be configured when the container starts"
+    exit 0
+fi
 
 # Clear existing sandbox rules
 iptables -t filter -F SANDBOX_OUTPUT 2>/dev/null || true
@@ -90,37 +118,42 @@ iptables -t filter -A SANDBOX_OUTPUT -p tcp --dport 53 -j ACCEPT
 
 # Allow Claude WebFetch domains if enabled
 if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
-    echo "Extracting and allowing Claude WebFetch domains..."
-    
-    # Set workspace folder environment variables for the extraction script
-    # Check multiple possible workspace environment variables
-    if [ -z "$WORKSPACE_FOLDER" ]; then
-        if [ -n "$DEVCONTAINER_WORKSPACE_FOLDER" ]; then
-            export WORKSPACE_FOLDER="$DEVCONTAINER_WORKSPACE_FOLDER"
-        elif [ -n "$VSCODE_WORKSPACE" ]; then
-            export WORKSPACE_FOLDER="$VSCODE_WORKSPACE"
-        elif [ -n "$VSCODE_CWD" ]; then
-            export WORKSPACE_FOLDER="$VSCODE_CWD"
-        elif [ -n "$PWD" ] && [ -d "$PWD/.devcontainer" ]; then
-            export WORKSPACE_FOLDER="$PWD"
-        else
-            export WORKSPACE_FOLDER="/workspace"
-        fi
-    fi
-    
-    # Extract domains and get IPs with timeout
-    claude_ips=$(timeout 30 /usr/local/share/sandbox/extract-claude-domains.sh "$CLAUDE_SETTINGS_PATHS" | tail -n +2 | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
-    
-    if [ -n "$claude_ips" ]; then
-        echo "Adding rules for Claude WebFetch IPs:"
-        while IFS= read -r ip; do
-            if [ -n "$ip" ]; then
-                echo "  Allowing: $ip"
-                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
-            fi
-        done <<< "$claude_ips"
+    # Skip DNS resolution during Docker build
+    if [ "$IN_DOCKER_BUILD" = "true" ]; then
+        echo "Skipping Claude WebFetch domain resolution during Docker build"
     else
-        echo "No Claude WebFetch domains found or could not resolve"
+        echo "Extracting and allowing Claude WebFetch domains..."
+        
+        # Set workspace folder environment variables for the extraction script
+        # Check multiple possible workspace environment variables
+        if [ -z "$WORKSPACE_FOLDER" ]; then
+            if [ -n "$DEVCONTAINER_WORKSPACE_FOLDER" ]; then
+                export WORKSPACE_FOLDER="$DEVCONTAINER_WORKSPACE_FOLDER"
+            elif [ -n "$VSCODE_WORKSPACE" ]; then
+                export WORKSPACE_FOLDER="$VSCODE_WORKSPACE"
+            elif [ -n "$VSCODE_CWD" ]; then
+                export WORKSPACE_FOLDER="$VSCODE_CWD"
+            elif [ -n "$PWD" ] && [ -d "$PWD/.devcontainer" ]; then
+                export WORKSPACE_FOLDER="$PWD"
+            else
+                export WORKSPACE_FOLDER="/workspace"
+            fi
+        fi
+        
+        # Extract domains and get IPs with timeout
+        claude_ips=$(timeout 30 /usr/local/share/sandbox/extract-claude-domains.sh "$CLAUDE_SETTINGS_PATHS" | tail -n +2 | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+        
+        if [ -n "$claude_ips" ]; then
+            echo "Adding rules for Claude WebFetch IPs:"
+            while IFS= read -r ip; do
+                if [ -n "$ip" ]; then
+                    echo "  Allowing: $ip"
+                    iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                fi
+            done <<< "$claude_ips"
+        else
+            echo "No Claude WebFetch domains found or could not resolve"
+        fi
     fi
 fi
 
@@ -141,108 +174,118 @@ COMMON_SUBDOMAINS=(
 
 # Handle custom allowed domains
 if [ -n "$ALLOWED_DOMAINS" ]; then
-    echo "Processing allowed domains: $ALLOWED_DOMAINS"
-    IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
-    for domain in "${DOMAIN_LIST[@]}"; do
-        # Trim whitespace
-        domain=$(echo "$domain" | xargs)
-        original_domain="$domain"
-        
-        # Check if it's a wildcard domain
-        if [[ "$domain" == \*.* ]]; then
-            # Remove wildcard prefix
-            base_domain=${domain#\*.}
-            echo "  Scanning common subdomains for wildcard domain: $original_domain"
+    # Skip DNS resolution during Docker build
+    if [ "$IN_DOCKER_BUILD" = "true" ]; then
+        echo "Skipping allowed domains resolution during Docker build: $ALLOWED_DOMAINS"
+    else
+        echo "Processing allowed domains: $ALLOWED_DOMAINS"
+        IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
+        for domain in "${DOMAIN_LIST[@]}"; do
+            # Trim whitespace
+            domain=$(echo "$domain" | xargs)
+            original_domain="$domain"
             
-            # Try common subdomains
-            for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
-                full_domain="$subdomain.$base_domain"
+            # Check if it's a wildcard domain
+            if [[ "$domain" == \*.* ]]; then
+                # Remove wildcard prefix
+                base_domain=${domain#\*.}
+                echo "  Scanning common subdomains for wildcard domain: $original_domain"
+                
+                # Try common subdomains
+                for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
+                    full_domain="$subdomain.$base_domain"
+                    # Resolve domain to IPs with timeout
+                    resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+                    
+                    if [ -n "$resolved_ips" ]; then
+                        while IFS= read -r ip; do
+                            if [ -n "$ip" ]; then
+                                echo "    Allowing IP: $ip for subdomain $full_domain"
+                                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                            fi
+                        done <<< "$resolved_ips"
+                    fi
+                done
+            else
+                # Non-wildcard domain
+                echo "  Resolving allowed domain: $domain"
                 # Resolve domain to IPs with timeout
-                resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+                resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
                 
                 if [ -n "$resolved_ips" ]; then
                     while IFS= read -r ip; do
                         if [ -n "$ip" ]; then
-                            echo "    Allowing IP: $ip for subdomain $full_domain"
+                            echo "    Allowing IP: $ip for domain $domain"
                             iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
                         fi
                     done <<< "$resolved_ips"
+                else
+                    echo "    Could not resolve domain: $domain"
                 fi
-            done
-        else
-            # Non-wildcard domain
-            echo "  Resolving allowed domain: $domain"
-            # Resolve domain to IPs with timeout
-            resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
-            
-            if [ -n "$resolved_ips" ]; then
-                while IFS= read -r ip; do
-                    if [ -n "$ip" ]; then
-                        echo "    Allowing IP: $ip for domain $domain"
-                        iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
-                    fi
-                done <<< "$resolved_ips"
-            else
-                echo "    Could not resolve domain: $domain"
             fi
-        fi
-    done
+        done
+    fi
 fi
 
 # Handle custom blocked domains
 if [ -n "$BLOCKED_DOMAINS" ]; then
-    echo "Processing blocked domains: $BLOCKED_DOMAINS"
-    IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
-    for domain in "${DOMAIN_LIST[@]}"; do
-        # Trim whitespace
-        domain=$(echo "$domain" | xargs)
-        original_domain="$domain"
-        
-        # Check if it's a wildcard domain
-        if [[ "$domain" == \*.* ]]; then
-            # Remove wildcard prefix
-            base_domain=${domain#\*.}
-            echo "  Scanning common subdomains for wildcard domain: $original_domain"
+    # Skip DNS resolution during Docker build
+    if [ "$IN_DOCKER_BUILD" = "true" ]; then
+        echo "Skipping blocked domains resolution during Docker build: $BLOCKED_DOMAINS"
+    else
+        echo "Processing blocked domains: $BLOCKED_DOMAINS"
+        IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
+        for domain in "${DOMAIN_LIST[@]}"; do
+            # Trim whitespace
+            domain=$(echo "$domain" | xargs)
+            original_domain="$domain"
             
-            # Try common subdomains
-            for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
-                full_domain="$subdomain.$base_domain"
+            # Check if it's a wildcard domain
+            if [[ "$domain" == \*.* ]]; then
+                # Remove wildcard prefix
+                base_domain=${domain#\*.}
+                echo "  Scanning common subdomains for wildcard domain: $original_domain"
+                
+                # Try common subdomains
+                for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
+                    full_domain="$subdomain.$base_domain"
+                    # Resolve domain to IPs with timeout
+                    resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+                    
+                    if [ -n "$resolved_ips" ]; then
+                        while IFS= read -r ip; do
+                            if [ -n "$ip" ]; then
+                                echo "    Blocking IP: $ip for subdomain $full_domain"
+                                if [ "$LOG_BLOCKED" = "true" ]; then
+                                    iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
+                                fi
+                                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
+                            fi
+                        done <<< "$resolved_ips"
+                    fi
+                done
+            else
+                # Non-wildcard domain
+                echo "  Resolving blocked domain: $domain"
                 # Resolve domain to IPs with timeout
-                resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+                resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
                 
                 if [ -n "$resolved_ips" ]; then
                     while IFS= read -r ip; do
                         if [ -n "$ip" ]; then
-                            echo "    Blocking IP: $ip for subdomain $full_domain"
+                            echo "    Blocking IP: $ip for domain $domain"
                             if [ "$LOG_BLOCKED" = "true" ]; then
                                 iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
                             fi
                             iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
                         fi
                     done <<< "$resolved_ips"
+                else
+                    echo "    Could not resolve domain: $domain"
                 fi
-            done
-        else
-            # Non-wildcard domain
-            echo "  Resolving blocked domain: $domain"
-            # Resolve domain to IPs with timeout
-            resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
-            
-            if [ -n "$resolved_ips" ]; then
-                while IFS= read -r ip; do
-                    if [ -n "$ip" ]; then
-                        echo "    Blocking IP: $ip for domain $domain"
-                        if [ "$LOG_BLOCKED" = "true" ]; then
-                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
-                        fi
-                        iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
-                    fi
-                done <<< "$resolved_ips"
-            else
-                echo "    Could not resolve domain: $domain"
             fi
-        fi
-    done
+        done
+    fi
 fi
 
 # Apply default policy for external traffic
@@ -499,13 +542,29 @@ else
 fi
 
 # Skip iptables setup during Docker build - will be configured at runtime
-echo "Skipping iptables configuration during build (will be applied at container startup)"
+if [ "$IN_DOCKER_BUILD" = "true" ]; then
+    echo "Skipping iptables configuration during build (will be applied at container startup)"
+else
+    echo "Note: iptables configuration will be applied at container startup"
+fi
 
 # Create startup script that runs the filtering setup
 cat > /usr/local/share/sandbox/sandbox-init.sh << 'EOF'
 #!/bin/bash
 # Initialize sandbox network filtering on container startup
 set -e
+
+# Skip initialization if we're in a build or if the container isn't fully started
+if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ "$1" = "--skip" ]; then
+    echo "Skipping sandbox network filter initialization (build or skip mode)"
+    exit 0
+fi
+
+# Also skip if systemd isn't running properly (indicates we're in build or test setup)
+if ! systemctl is-system-running >/dev/null 2>&1; then
+    echo "Skipping sandbox network filter initialization (systemd not running)"
+    exit 0
+fi
 
 # Load configuration
 if [ -f /etc/sandbox/config ]; then
