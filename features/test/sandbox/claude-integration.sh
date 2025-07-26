@@ -47,10 +47,10 @@ check "claude-wildcard-extraction" bash -c '
     grep -q "Scanning common subdomains for wildcard domain" /usr/local/share/sandbox/extract-claude-domains.sh
 '
 
-# Test that the config processed the wildcard domain
+# Test that the Claude settings file contains the wildcard domain
 check "claude-wildcard-domains" bash -c '
-    # The wildcard domain should be in the config (with the wildcard)
-    grep -q "*.allowed.com" /etc/sandbox/config
+    # The wildcard domain should be in the Claude settings file we created
+    grep -q "*.allowed.com" .claude/settings.json
 '
 
 # Test environment variable is set
