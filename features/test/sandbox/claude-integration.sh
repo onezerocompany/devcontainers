@@ -49,8 +49,8 @@ check "claude-wildcard-extraction" bash -c '
 
 # Test that the config processed the wildcard domain
 check "claude-wildcard-domains" bash -c '
-    # The base domain should be in the config (without the wildcard)
-    grep -q "allowed.com" /etc/sandbox/config
+    # The wildcard domain should be in the config (with the wildcard)
+    grep -q "*.allowed.com" /etc/sandbox/config
 '
 
 # Test environment variable is set

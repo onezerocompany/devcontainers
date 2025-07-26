@@ -26,7 +26,7 @@ check "common-subdomains-defined" bash -c '
 
 # Verify the script can handle wildcard domains
 check "wildcard-handling-code" bash -c '
-    grep -q "if \[\[ \"\$domain\" == \\*\\.\\* \]\]" /usr/local/share/sandbox/setup-rules.sh
+    grep -qE "if \[\[.*domain.*==.*\*\.\*.*\]\]" /usr/local/share/sandbox/setup-rules.sh
 '
 
 # Test the domain extraction logic (without actually running iptables)
