@@ -50,11 +50,17 @@ check "motd executes successfully" test "$EXIT_CODE" -eq 0
 
 # Phase 3: Content validation (simplified for reliability)
 OUTPUT=$(get_motd_output)
-export OUTPUT
-check "default logo present" bash -c "echo '\$OUTPUT' | grep -q '____' || echo '\$OUTPUT' | grep -q 'OneZero'"
-check "system info section" bash -c "echo '\$OUTPUT' | grep -q 'System Information'"
-check "date displayed" bash -c "echo '\$OUTPUT' | grep -q 'Date:'"
-check "default message" bash -c "echo '\$OUTPUT' | grep -q 'Happy coding'"
+# Direct pattern matching without subshell complexity
+if echo "$OUTPUT" | grep -q '____' || echo "$OUTPUT" | grep -q 'OneZero'; then
+    check "default logo present" true
+else
+    echo "MOTD output:"
+    echo "$OUTPUT"
+    check "default logo present" false
+fi
+check "system info section" bash -c "get_motd_output | grep -q 'System Information'"
+check "date displayed" bash -c "get_motd_output | grep -q 'Date:'"
+check "default message" bash -c "get_motd_output | grep -q 'Happy coding'"
 
 # Phase 4: System-specific features
 OUTPUT=$(get_motd_output)
