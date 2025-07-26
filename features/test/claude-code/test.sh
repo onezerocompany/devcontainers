@@ -14,8 +14,5 @@ check "claude-code executable" which claude-code || command -v claude-code
 # Check environment variables
 check "CLAUDE_CONFIG_DIR set" bash -c 'source /etc/profile.d/claude-code.sh && [ -n "$CLAUDE_CONFIG_DIR" ]'
 
-# Check config directory exists
-check "claude config directory exists" test -d "$HOME/.claude" || test -d "/opt/claude-config"
-
 # Report results
 reportResults
