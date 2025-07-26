@@ -1,5 +1,6 @@
 {
   "image": "ghcr.io/onezerocompany/devcontainer-base:latest",
+  "remoteUser": "zero",
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated"
 }

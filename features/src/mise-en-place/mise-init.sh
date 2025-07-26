@@ -25,32 +25,33 @@ experimental = true
 EOF
 fi
 
-# Ensure user config is clean
-if [ -f "${HOME}/.config/mise/config.toml" ] && ! grep -q "node_compile\|bun_backend" "${HOME}/.config/mise/config.toml" 2>/dev/null; then
-    echo "User mise config is already clean"
-elif [ -w "${HOME}/.config/mise/config.toml" ]; then
-    echo "Cleaning user mise config..."
-    # Preserve any existing tools but fix settings
-    if grep -q "\[tools\]" "${HOME}/.config/mise/config.toml" 2>/dev/null; then
-        # Extract tools section
-        sed -n '/\[tools\]/,$p' "${HOME}/.config/mise/config.toml" > /tmp/tools_section
-        # Create new config with valid settings + tools
-        cat > "${HOME}/.config/mise/config.toml" << 'EOF'
+# Ensure user config is clean and add runtime
+echo "Setting up mise config with runtime..."
+# Preserve any existing tools but fix settings and add runtime
+if [ -f "${HOME}/.config/mise/config.toml" ] && grep -q "\[tools\]" "${HOME}/.config/mise/config.toml" 2>/dev/null; then
+    # Extract tools section and filter out any existing node/bun entries
+    sed -n '/\[tools\]/,$p' "${HOME}/.config/mise/config.toml" | grep -v "^node\s*=" | grep -v "^bun\s*=" > /tmp/tools_section
+else
+    echo "[tools]" > /tmp/tools_section
+fi
+
+# Create new config with valid settings + runtime + any existing tools
+cat > "${HOME}/.config/mise/config.toml" << 'EOF'
 [settings]
 not_found_auto_install = true
 experimental = true
 
 EOF
-        cat /tmp/tools_section >> "${HOME}/.config/mise/config.toml"
-        rm -f /tmp/tools_section
-    else
-        cat > "${HOME}/.config/mise/config.toml" << 'EOF'
-[settings]
-not_found_auto_install = true
-experimental = true
-EOF
-    fi
+
+# Add the appropriate runtime to tools section
+if [ "${MISE_NPM_BUN}" = "true" ]; then
+    echo "bun = \"latest\"" >> /tmp/tools_section
+else
+    echo "node = \"lts\"" >> /tmp/tools_section
 fi
+
+cat /tmp/tools_section >> "${HOME}/.config/mise/config.toml"
+rm -f /tmp/tools_section
 
 # Auto-trust directories if enabled
 if [ "${MISE_AUTO_TRUST}" = "true" ]; then

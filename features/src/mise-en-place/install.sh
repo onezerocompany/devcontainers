@@ -172,8 +172,7 @@ fi
 
 # Warn about deprecated bun backend option
 if [ "${USE_BUN_FOR_NPM}" = "true" ]; then
-    echo "WARNING: The useBunForNpm option is deprecated and no longer supported by mise."
-    echo "Please use standard npm with node instead."
+    mise settings set npm.bun true
 fi
 
 # Note: mise directories will be initialized on first container start via mise-init

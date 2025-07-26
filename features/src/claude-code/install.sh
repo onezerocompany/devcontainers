@@ -85,15 +85,6 @@ install_claude_code_via_mise() {
   
   log_info "Installing claude-code via mise for $user..."
   
-  # First ensure Node.js is installed via mise (required for npm: packages)
-  log_info "Ensuring Node.js is installed for npm packages..."
-  if [ "$user" = "root" ]; then
-    cd "$home_dir" && /usr/local/bin/mise use -g node@lts
-  else
-    su - "$user" -c "cd && /usr/local/bin/mise use -g node@lts"
-  fi
-  log_success "Node.js installed/verified via mise for $user"
-  
   # Install claude-code via mise
   if [ "$CLAUDE_CODE_VERSION" = "latest" ]; then
     if [ "$user" = "root" ]; then

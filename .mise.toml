@@ -1,6 +1,5 @@
 [tools]
 biome = "latest"
-claude-code = "latest"
 node = "lts"
 shellcheck = "latest"
 

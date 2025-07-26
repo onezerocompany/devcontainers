@@ -1,6 +1,6 @@
 {
   "id": "mise-en-place",
-  "version": "1.3.6",
+  "version": "1.4.0",
   "name": "mise-en-place",
   "description": "Installs mise (formerly rtx) - a fast polyglot runtime manager with persistent volumes for cache, installs, and config directories",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/mise-en-place",
