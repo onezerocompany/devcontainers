@@ -1,6 +1,6 @@
 {
 	"id": "onezero-motd",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"name": "OneZero MOTD",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers",
 	"description": "Adds OneZero ASCII MOTD (Message of the Day) with customizable message",

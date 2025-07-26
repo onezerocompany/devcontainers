@@ -66,7 +66,7 @@ check "default message" bash -c "get_motd_output | grep -q 'Happy coding'"
 OUTPUT=$(get_motd_output)
 export OUTPUT
 if echo "$OUTPUT" | grep -q "Storage:"; then
-    check "storage info format" bash -c "echo '\$OUTPUT' | grep -E 'Storage:.*[0-9]+.*/.*/'"
+    check "storage info format" bash -c "echo '\$OUTPUT' | grep -E 'Storage:.*[0-9]+.*/.*'"
 fi
 
 # Optional: Performance report
