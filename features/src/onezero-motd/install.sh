@@ -32,16 +32,13 @@ fi
 # Create config file with proper escaping for special characters
 {
     echo "# OneZero MOTD Configuration"
-    echo -n "ASCII_LOGO="
     if [ -n "$ASCII_LOGO_PROCESSED" ]; then
-        printf '%q\n' "$ASCII_LOGO_PROCESSED"
+        printf "ASCII_LOGO=%s\n" "$(printf '%q' "$ASCII_LOGO_PROCESSED")"
     else
-        echo "''"
+        echo "ASCII_LOGO=''"
     fi
-    echo -n "INFO="
-    printf '%q\n' "${INFO}"
-    echo -n "MESSAGE="
-    printf '%q\n' "${MESSAGE}"
+    printf "INFO=%s\n" "$(printf '%q' "${INFO}")"
+    printf "MESSAGE=%s\n" "$(printf '%q' "${MESSAGE}")"
 } > /etc/onezero/motd.conf
 
 # Write the MOTD script that reads config at runtime
