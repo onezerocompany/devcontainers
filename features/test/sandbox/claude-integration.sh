@@ -36,9 +36,8 @@ check "claude-settings-processed" bash -c '
     grep -q "api.example.com" /etc/sandbox/allowed_domains 2>/dev/null
 '
 
-# Test that wildcard domains from Claude settings are processed
+# DNS filtering is no longer used - only check config file
 check "claude-wildcard-domains" bash -c '
-    grep -q "allowed.com" /etc/dnsmasq.d/sandbox.conf 2>/dev/null ||
     grep -q "allowed.com" /etc/sandbox/config
 '
 

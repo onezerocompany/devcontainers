@@ -288,7 +288,16 @@ add_modern_aliases() {
       # Trim whitespace
       alias_def=$(echo "$alias_def" | xargs)
       if [ -n "$alias_def" ]; then
-        aliases_content+="alias $alias_def\n"
+        # Check if the alias definition already has quotes
+        if [[ "$alias_def" =~ ^[^=]+=\'.*\'$ ]] || [[ "$alias_def" =~ ^[^=]+=\".*\"$ ]]; then
+          # Already properly quoted
+          aliases_content+="alias $alias_def\n"
+        else
+          # Need to add quotes around the command part
+          alias_name="${alias_def%%=*}"
+          alias_cmd="${alias_def#*=}"
+          aliases_content+="alias $alias_name='$alias_cmd'\n"
+        fi
       fi
     done
   fi

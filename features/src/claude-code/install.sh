@@ -122,15 +122,18 @@ install_claude_code_for_user() {
   # For testing purposes, create a mock claude-code executable
   if [ "${DEVCONTAINER_FEATURE_TEST:-}" = "true" ] || [ ! -z "${GITHUB_ACTIONS:-}" ]; then
     log_info "Test environment detected - creating mock claude-code executable"
-    echo '#!/bin/sh' > /usr/local/bin/claude-code
-    echo 'echo "Claude Code CLI (mock)"' >> /usr/local/bin/claude-code
-    chmod +x /usr/local/bin/claude-code
+    if [ "${INSTALLGLOBALLY}" = "true" ]; then
+      echo '#!/bin/sh' > /usr/local/bin/claude-code
+      echo 'echo "Claude Code CLI (mock)"' >> /usr/local/bin/claude-code
+      chmod +x /usr/local/bin/claude-code
+    fi
     log_success "Mock Claude Code installed successfully for $user"
     return 0
   fi
   
-  # Create a global wrapper script
-  cat > /usr/local/bin/claude-code <<'EOF'
+  # Create a global wrapper script only if installing globally
+  if [ "${INSTALLGLOBALLY}" = "true" ]; then
+    cat > /usr/local/bin/claude-code <<'EOF'
 #!/bin/bash
 eval "$(mise activate bash)"
 # Find the actual claude-code binary - it might be named differently after npm install
@@ -145,9 +148,10 @@ if [ -z "$CLAUDE_CODE_BIN" ]; then
 fi
 exec "$CLAUDE_CODE_BIN" "$@"
 EOF
-  chmod +x /usr/local/bin/claude-code
+    chmod +x /usr/local/bin/claude-code
+  fi
   
-  log_success "Claude Code wrapper installed successfully for $user"
+  log_success "Claude Code installed successfully for $user"
 }
 
 # Create Claude config directory

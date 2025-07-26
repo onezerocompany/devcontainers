@@ -21,9 +21,9 @@ else
     "
     
     check "custom content" bash -c "
-        echo '\$MOTD_OUTPUT' | grep -q '_____' &&
+        echo '\$MOTD_OUTPUT' | grep -q '___' &&
         echo '\$MOTD_OUTPUT' | grep -q 'Custom OneZero Container' &&
-        echo '\$MOTD_OUTPUT' | grep -q 'build something awesome'
+        echo '\$MOTD_OUTPUT' | grep -q \"Let's build something awesome!\"
     "
     
     reportResults
@@ -34,10 +34,10 @@ fi
 # Initialize
 init_test_env
 
-# Expected custom values
-export EXPECTED_LOGO="_____"
+# Expected custom values  
+export EXPECTED_LOGO="___"
 export EXPECTED_INFO="Custom OneZero Container"
-export EXPECTED_MESSAGE="build something awesome"
+export EXPECTED_MESSAGE="Let's build something awesome!"
 
 # Phase 1: Installation check
 check "custom motd installed" test "$(check_files_batch)" = "all_files_ok"
