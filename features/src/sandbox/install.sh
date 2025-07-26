@@ -114,16 +114,53 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
     fi
 fi
 
+# Common subdomains for developers
+COMMON_SUBDOMAINS=(
+    "api" "docs" "dev" "app" "www" "cdn" "static" "assets" "images" 
+    "support" "help" "dashboard" "console" "admin" "portal" "auth"
+    "login" "secure" "staging" "test" "demo" "sandbox" "beta"
+    "v1" "v2" "v3" "api-v1" "api-v2" "graphql" "rest" "ws"
+    "files" "download" "uploads" "media" "content" "data"
+    "github" "gitlab" "git" "repo" "registry" "packages"
+    "metrics" "logs" "monitor" "status" "health"
+    "mail" "smtp" "email" "notifications"
+    "chat" "messaging" "realtime" "stream"
+    "search" "elasticsearch" "solr"
+    "db" "database" "mysql" "postgres" "mongo" "redis"
+)
+
 # Handle custom allowed domains
 if [ -n "$ALLOWED_DOMAINS" ]; then
     echo "Processing allowed domains: $ALLOWED_DOMAINS"
     IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
     for domain in "${DOMAIN_LIST[@]}"; do
-        # Trim whitespace and remove wildcard prefix
+        # Trim whitespace
         domain=$(echo "$domain" | xargs)
-        domain=${domain#\*.}
+        original_domain="$domain"
         
-        if [ -n "$domain" ]; then
+        # Check if it's a wildcard domain
+        if [[ "$domain" == \*.* ]]; then
+            # Remove wildcard prefix
+            base_domain=${domain#\*.}
+            echo "  Scanning common subdomains for wildcard domain: $original_domain"
+            
+            # Try common subdomains
+            for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
+                full_domain="$subdomain.$base_domain"
+                # Resolve domain to IPs with timeout
+                resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+                
+                if [ -n "$resolved_ips" ]; then
+                    while IFS= read -r ip; do
+                        if [ -n "$ip" ]; then
+                            echo "    Allowing IP: $ip for subdomain $full_domain"
+                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                        fi
+                    done <<< "$resolved_ips"
+                fi
+            done
+        else
+            # Non-wildcard domain
             echo "  Resolving allowed domain: $domain"
             # Resolve domain to IPs with timeout
             resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
@@ -147,11 +184,36 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
     echo "Processing blocked domains: $BLOCKED_DOMAINS"
     IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
     for domain in "${DOMAIN_LIST[@]}"; do
-        # Trim whitespace and remove wildcard prefix
+        # Trim whitespace
         domain=$(echo "$domain" | xargs)
-        domain=${domain#\*.}
+        original_domain="$domain"
         
-        if [ -n "$domain" ]; then
+        # Check if it's a wildcard domain
+        if [[ "$domain" == \*.* ]]; then
+            # Remove wildcard prefix
+            base_domain=${domain#\*.}
+            echo "  Scanning common subdomains for wildcard domain: $original_domain"
+            
+            # Try common subdomains
+            for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
+                full_domain="$subdomain.$base_domain"
+                # Resolve domain to IPs with timeout
+                resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+                
+                if [ -n "$resolved_ips" ]; then
+                    while IFS= read -r ip; do
+                        if [ -n "$ip" ]; then
+                            echo "    Blocking IP: $ip for subdomain $full_domain"
+                            if [ "$LOG_BLOCKED" = "true" ]; then
+                                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
+                            fi
+                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
+                        fi
+                    done <<< "$resolved_ips"
+                fi
+            done
+        else
+            # Non-wildcard domain
             echo "  Resolving blocked domain: $domain"
             # Resolve domain to IPs with timeout
             resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
@@ -226,6 +288,8 @@ echo "  Detected workspace folder: $workspace_dir"
 
 # Array to store unique domains
 declare -a domains=()
+# Array to store original domains (with wildcards)
+declare -a original_domains=()
 
 # Function to extract domains from a settings file
 extract_domains_from_file() {
@@ -246,6 +310,8 @@ extract_domains_from_file() {
             # Extract domain from WebFetch(domain:example.com) format
             local domain=$(echo "$rule" | sed -n 's/WebFetch(domain:\([^)]*\))/\1/p')
             if [ -n "$domain" ]; then
+                # Store original domain (with wildcard if present)
+                original_domains+=("$domain")
                 # Remove wildcard prefix if present
                 domain=${domain#\*.}
                 domains+=("$domain")
@@ -274,36 +340,98 @@ done
 
 # Remove duplicates
 domains=($(printf "%s\n" "${domains[@]}" | sort -u))
+original_domains=($(printf "%s\n" "${original_domains[@]}" | sort -u))
 
 echo "\nResolving domains to IP addresses..."
 
 # Array to store unique IPs
 declare -a ips=()
 
+# Common subdomains for developers
+COMMON_SUBDOMAINS=(
+    "api" "docs" "dev" "app" "www" "cdn" "static" "assets" "images" 
+    "support" "help" "dashboard" "console" "admin" "portal" "auth"
+    "login" "secure" "staging" "test" "demo" "sandbox" "beta"
+    "v1" "v2" "v3" "api-v1" "api-v2" "graphql" "rest" "ws"
+    "files" "download" "uploads" "media" "content" "data"
+    "github" "gitlab" "git" "repo" "registry" "packages"
+    "metrics" "logs" "monitor" "status" "health"
+    "mail" "smtp" "email" "notifications"
+    "chat" "messaging" "realtime" "stream"
+    "search" "elasticsearch" "solr"
+    "db" "database" "mysql" "postgres" "mongo" "redis"
+)
+
 # Resolve each domain to IPs
 for domain in "${domains[@]}"; do
-    echo -n "  Resolving $domain... "
+    # Check if this was originally a wildcard domain
+    is_wildcard=false
+    for original_domain in "${original_domains[@]}"; do
+        if [[ "$original_domain" == "*.$domain" ]]; then
+            is_wildcard=true
+            break
+        fi
+    done
     
-    # Try to resolve using dig (more reliable) with timeout
-    if command -v dig >/dev/null 2>&1; then
-        resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
-    elif command -v nslookup >/dev/null 2>&1; then
-        # Fallback to nslookup
-        resolved_ips=$(nslookup "$domain" 2>/dev/null | grep -A 1 "Name:" | grep "Address:" | awk '{print $2}' | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
-    else
-        resolved_ips=""
-    fi
-    
-    if [ -n "$resolved_ips" ]; then
-        echo "OK"
-        while IFS= read -r ip; do
-            if [ -n "$ip" ]; then
-                ips+=("$ip")
-                echo "    -> $ip"
+    if [ "$is_wildcard" = true ]; then
+        echo "  Scanning common subdomains for wildcard domain: *.$domain"
+        subdomain_count=0
+        
+        # Try common subdomains for wildcard domains
+        for subdomain in "${COMMON_SUBDOMAINS[@]}"; do
+            full_domain="$subdomain.$domain"
+            echo -n "    Trying $full_domain... "
+            
+            # Try to resolve using dig with timeout
+            if command -v dig >/dev/null 2>&1; then
+                resolved_ips=$(timeout 2 dig +short +time=1 +tries=1 "$full_domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            elif command -v nslookup >/dev/null 2>&1; then
+                # Fallback to nslookup
+                resolved_ips=$(timeout 2 nslookup "$full_domain" 2>/dev/null | grep -A 1 "Name:" | grep "Address:" | awk '{print $2}' | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            else
+                resolved_ips=""
             fi
-        done <<< "$resolved_ips"
+            
+            if [ -n "$resolved_ips" ]; then
+                echo "FOUND"
+                while IFS= read -r ip; do
+                    if [ -n "$ip" ]; then
+                        ips+=("$ip")
+                        echo "      -> $ip"
+                    fi
+                done <<< "$resolved_ips"
+                subdomain_count=$((subdomain_count + 1))
+            else
+                echo "not found"
+            fi
+        done
+        
+        echo "    Found $subdomain_count subdomains for *.$domain"
     else
-        echo "FAILED (could not resolve)"
+        # Non-wildcard domain, resolve normally
+        echo -n "  Resolving $domain... "
+        
+        # Try to resolve using dig (more reliable) with timeout
+        if command -v dig >/dev/null 2>&1; then
+            resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+        elif command -v nslookup >/dev/null 2>&1; then
+            # Fallback to nslookup
+            resolved_ips=$(nslookup "$domain" 2>/dev/null | grep -A 1 "Name:" | grep "Address:" | awk '{print $2}' | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+        else
+            resolved_ips=""
+        fi
+        
+        if [ -n "$resolved_ips" ]; then
+            echo "OK"
+            while IFS= read -r ip; do
+                if [ -n "$ip" ]; then
+                    ips+=("$ip")
+                    echo "    -> $ip"
+                fi
+            done <<< "$resolved_ips"
+        else
+            echo "FAILED (could not resolve)"
+        fi
     fi
 done
 
