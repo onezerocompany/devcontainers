@@ -9,8 +9,6 @@
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
 			"ghcr.io/onezerocompany/features/onezero-motd": {
-				"ascii_logo": "  ___  _____\n / _ \\|__  /\n| | | | / / \n| |_| |/ /_ \n \\___//____|",
-				"info": "Custom OneZero Container",
 				"message": "Let's build something awesome!"
 			}
 		}

@@ -2,9 +2,7 @@
 
 set -e
 
-ASCII_LOGO="${ASCII_LOGO:-}"
-INFO="${INFO:-}"
-MESSAGE="${MESSAGE:-}"
+MESSAGE="${MESSAGE:-Happy coding!}"
 ENABLE="${ENABLE:-true}"
 
 USERNAME="${USERNAME:-${_REMOTE_USER:-root}}"
@@ -22,26 +20,13 @@ mkdir -p /etc/update-motd.d
 # Create a config file to store the customizable values
 mkdir -p /etc/onezero
 
-# Convert \n in ASCII_LOGO to actual newlines for proper storage
-ASCII_LOGO_PROCESSED="${ASCII_LOGO}"
-if [ -n "$ASCII_LOGO_PROCESSED" ]; then
-    # Replace literal \n with actual newlines
-    ASCII_LOGO_PROCESSED=$(echo "$ASCII_LOGO_PROCESSED" | sed 's/\\n/\n/g')
-fi
+# Create config file with just the message
+cat > /etc/onezero/motd.conf << EOF
+# OneZero MOTD Configuration
+MESSAGE="$MESSAGE"
+EOF
 
-# Create config file with proper escaping for special characters
-{
-    echo "# OneZero MOTD Configuration"
-    if [ -n "$ASCII_LOGO_PROCESSED" ]; then
-        printf "ASCII_LOGO=%s\n" "$(printf '%q' "$ASCII_LOGO_PROCESSED")"
-    else
-        echo "ASCII_LOGO=''"
-    fi
-    printf "INFO=%s\n" "$(printf '%q' "${INFO}")"
-    printf "MESSAGE=%s\n" "$(printf '%q' "${MESSAGE}")"
-} > /etc/onezero/motd.conf
-
-# Write the MOTD script that reads config at runtime
+# Write the MOTD script with hardcoded logo and info
 cat > /etc/update-motd.d/50-onezero << 'MOTD_SCRIPT'
 #!/bin/bash
 
@@ -53,17 +38,18 @@ if [ -f /etc/onezero/motd.conf ]; then
     source /etc/onezero/motd.conf
 fi
 
-# Default values if not set
-if [ -z "$ASCII_LOGO" ]; then
-  ASCII_LOGO="   ____              _____              
+# Default message if not set
+MESSAGE="${MESSAGE:-Happy coding!}"
+
+# Hardcoded logo and info
+ASCII_LOGO="   ____              _____              
   / __ \\            |__  /              
  | |  | |_ __   ___   / / ___ _ __ ___  
  | |  | | '_ \\ / _ \\ / / / _ \\ '__/ _ \\ 
  | |__| | | | |  __// /_|  __/ | | (_) |
   \\____/|_| |_|\\___/____|\\___|_|  \\___/ "
-fi
-INFO="${INFO:-Welcome to OneZero Development Container}"
-MESSAGE="${MESSAGE:-Happy coding!}"
+
+INFO="Welcome to OneZero Development Container"
 
 # ANSI color codes
 BLUE='\033[0;34m'

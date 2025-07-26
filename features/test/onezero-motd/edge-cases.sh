@@ -9,26 +9,19 @@ source dev-container-features-test-lib
 
 echo "# Testing edge cases..."
 
-# Test 1: Empty configuration values
-export ASCII_LOGO=""
-export INFO=""
-export MESSAGE=""
-
-check "handles empty values" bash -c '
+# Test 1: Empty message value
+check "handles empty message" bash -c '
     # Should still execute without errors
     /etc/update-motd.d/50-onezero >/dev/null 2>&1 &&
-    # Should show system info even with empty custom values
+    # Should show system info even with empty message
     /etc/update-motd.d/50-onezero 2>&1 | grep -q "System Information"
 '
 
-# Test 2: Special characters in configuration
-SPECIAL_CHARS="\$\`\"'\\"
+# Test 2: Special characters in message
 if [ -f /etc/onezero/motd.conf ]; then
     cp /etc/onezero/motd.conf /etc/onezero/motd.conf.bak
     cat > /etc/onezero/motd.conf << EOF
-ASCII_LOGO="Special: ${SPECIAL_CHARS}"
-INFO="Path: /usr/bin/\$PATH"
-MESSAGE="Quote: \"Hello\" and 'World'"
+MESSAGE="Quote: \"Hello\" and 'World' with \$PATH"
 EOF
     
     check "handles special characters" bash -c '/etc/update-motd.d/50-onezero >/dev/null 2>&1'
@@ -61,22 +54,7 @@ check "concurrent execution safe" bash -c '
     true
 '
 
-# Test 5: Large output handling
-if command -v dd >/dev/null 2>&1; then
-    # Create a large ASCII logo
-    LARGE_LOGO=$(dd if=/dev/zero bs=1024 count=10 2>/dev/null | tr '\0' 'X' | fold -w 80)
-    
-    cp /etc/onezero/motd.conf /etc/onezero/motd.conf.bak
-    echo "ASCII_LOGO=\"${LARGE_LOGO:0:1000}\"" > /etc/onezero/motd.conf
-    
-    check "handles large content" bash -c '
-        timeout 5s /etc/update-motd.d/50-onezero >/dev/null 2>&1
-    '
-    
-    mv /etc/onezero/motd.conf.bak /etc/onezero/motd.conf
-fi
-
-# Test 6: Permission edge cases
+# Test 5: Permission edge cases
 if [ "$EUID" -eq 0 ]; then
     # Test with restricted permissions
     chmod 400 /etc/onezero/motd.conf
