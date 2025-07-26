@@ -1,0 +1,10 @@
+{
+  "image": "ghcr.io/onezerocompany/base",
+  "remoteUser": "zero",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "features": {
+    "ghcr.io/onezerocompany/features/modern-shell:1": {},
+    "ghcr.io/onezerocompany/features/onezero-motd:1": {}
+  }
+}
