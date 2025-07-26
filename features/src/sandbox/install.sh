@@ -2,8 +2,11 @@
 # Sandbox Network Filter Feature Installation Script
 set -e
 
+echo "Starting Sandbox Network Filter installation..."
+
 # Ensure non-interactive mode for apt
 export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
 
 # Feature options
 DEFAULT_POLICY="${DEFAULTPOLICY:-block}"
@@ -27,8 +30,15 @@ mkdir -p /etc/iptables
 echo -e "*filter\n:INPUT ACCEPT [0:0]\n:FORWARD ACCEPT [0:0]\n:OUTPUT ACCEPT [0:0]\nCOMMIT" > /etc/iptables/rules.v4
 echo -e "*filter\n:INPUT ACCEPT [0:0]\n:FORWARD ACCEPT [0:0]\n:OUTPUT ACCEPT [0:0]\nCOMMIT" > /etc/iptables/rules.v6
 
-apt-get update
-apt-get install -y iptables iptables-persistent netfilter-persistent jq dnsutils
+# Pre-configure iptables-persistent to avoid prompts
+echo iptables-persistent iptables-persistent/autosave_v4 boolean false | debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean false | debconf-set-selections
+
+echo "Running apt-get update..."
+apt-get update -qq
+echo "Installing packages..."
+apt-get install -y -qq --no-install-recommends iptables iptables-persistent netfilter-persistent jq dnsutils
+echo "Package installation complete"
 
 # Create sandbox directories
 mkdir -p /usr/local/share/sandbox
@@ -573,3 +583,5 @@ echo "  Docker networks allowed: $ALLOW_DOCKER_NETWORKS"
 echo "  Localhost allowed: $ALLOW_LOCALHOST"
 echo "  Configuration immutable: $IMMUTABLE_CONFIG"
 echo "  Logging enabled: $LOG_BLOCKED"
+echo ""
+echo "Note: Network filtering rules will be applied when the container starts."
