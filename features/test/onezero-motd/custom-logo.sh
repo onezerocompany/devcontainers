@@ -56,6 +56,7 @@ check "custom config stored" bash -c "
 
 # Phase 3: Runtime validation (single execution)
 OUTPUT=$(get_motd_output)
+export OUTPUT
 check "custom values displayed" bash -c "
     (echo '\$OUTPUT' | grep -q '\$EXPECTED_LOGO_ALT' || echo '\$OUTPUT' | grep -q '/ _ ') &&
     echo '\$OUTPUT' | grep -F '\$EXPECTED_INFO' >/dev/null &&

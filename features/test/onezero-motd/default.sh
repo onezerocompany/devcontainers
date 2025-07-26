@@ -50,6 +50,7 @@ check "motd executes successfully" test "$EXIT_CODE" -eq 0
 
 # Phase 3: Content validation (simplified for reliability)
 OUTPUT=$(get_motd_output)
+export OUTPUT
 check "default logo present" bash -c "echo '\$OUTPUT' | grep -q '____' || echo '\$OUTPUT' | grep -q 'OneZero'"
 check "system info section" bash -c "echo '\$OUTPUT' | grep -q 'System Information'"
 check "date displayed" bash -c "echo '\$OUTPUT' | grep -q 'Date:'"
@@ -57,6 +58,7 @@ check "default message" bash -c "echo '\$OUTPUT' | grep -q 'Happy coding'"
 
 # Phase 4: System-specific features
 OUTPUT=$(get_motd_output)
+export OUTPUT
 if echo "$OUTPUT" | grep -q "Storage:"; then
     check "storage info format" bash -c "echo '\$OUTPUT' | grep -E 'Storage:.*[0-9]+.*/.*/'"
 fi
