@@ -1,10 +1,12 @@
 {
 	"name": "Zero Dev Container",
-	"image": "ghcr.io/onezerocompany/devcontainer:base",
+	"image": "ghcr.io/onezerocompany/base",
 	"remoteUser": "zero",
 	"features": {
-		"ghcr.io/onezerocompany/features/sandbox:1": {},
-		"ghcr.io/onezerocompany/features/claude-code:1": {}
+		"ghcr.io/onezerocompany/features/mise-en-place:1": {},
+		"ghcr.io/onezerocompany/features/modern-shell:1": {},
+		"ghcr.io/onezerocompany/features/claude-code:1": {},
+		"ghcr.io/onezerocompany/features/sandbox:2": {}
 	},
 	"mounts": [
 		// Mount directories for claude code

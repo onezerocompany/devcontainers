@@ -107,7 +107,8 @@
       "Bash(mise run lint:*)",
       "Bash(mise run shellcheck:*)",
       "Bash(mise run:*)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "mcp__github__list_commits"
     ],
     "deny": []
   }

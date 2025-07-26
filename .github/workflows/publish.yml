@@ -257,7 +257,6 @@ jobs:
       matrix:
         template:
           - base
-          - dind
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -286,10 +285,6 @@ jobs:
             which bash
             which zsh || echo "zsh not required"
             # Test features if applicable
-            if [ "${{ matrix.template }}" = "dind" ]; then
-              docker version
-              docker ps
-            fi
           subFolder: templates/${{ matrix.template }}
 
   # Pre-build dev container images
@@ -305,7 +300,6 @@ jobs:
       matrix:
         template:
           - base
-          - dind
     steps:
       - name: Checkout
         uses: actions/checkout@v4
