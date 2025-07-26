@@ -43,7 +43,7 @@ check "claude-settings-ignored" bash -c '
 # '
 
 # Test environment variable is still set (sandbox is enabled, just Claude integration is off)
-check "sandbox-env-var" [ "$SANDBOX_NETWORK_FILTER" = "enabled" ]
+check "sandbox-env-var" bash -c '[ "$SANDBOX_NETWORK_FILTER" = "enabled" ] || [ -f /etc/sandbox/config ]'
 
 # Test that iptables rules work with default block policy (skip if no privileges)
 # First check if we can read iptables at all

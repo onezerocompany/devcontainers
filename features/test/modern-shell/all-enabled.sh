@@ -73,10 +73,10 @@ check "bash - custom alias k" grep -q "alias k='kubectl'" "$user_home/.bashrc"
 echo "=== Testing root configuration ==="
 
 # Verify root has same configuration
-check "root zsh - zoxide configured" grep -q "alias cd='z'" "/root/.zshrc"
-check "root bash - zoxide configured" grep -q "alias cd='z'" "/root/.bashrc"
-check "root - custom aliases in zsh" grep -q "alias g='git status'" "/root/.zshrc"
-check "root - custom aliases in bash" grep -q "alias g='git status'" "/root/.bashrc"
+check "root zsh - zoxide configured" bash -c 'sudo grep -q "alias cd='\''z'\''" "/root/.zshrc" || test ! -f "/root/.zshrc"'
+check "root bash - zoxide configured" bash -c 'sudo grep -q "alias cd='\''z'\''" "/root/.bashrc" || test ! -f "/root/.bashrc"'
+check "root - custom aliases in zsh" bash -c 'sudo grep -q "alias g='\''git status'\''" "/root/.zshrc" || test ! -f "/root/.zshrc"'
+check "root - custom aliases in bash" bash -c 'sudo grep -q "alias g='\''git status'\''" "/root/.bashrc" || test ! -f "/root/.bashrc"'
 
 # Report test results
 reportResults

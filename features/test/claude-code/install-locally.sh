@@ -10,6 +10,7 @@ source dev-container-features-test-lib
 check "mise installed" command -v mise
 
 # Check if claude-code is available in user's path via mise
+# claude-code should be available via mise, not direct PATH check
 check "claude-code in user path" bash -c 'eval "$(mise activate bash)" && command -v claude-code'
 
 # Check that claude-code is NOT installed globally in /usr/local/bin

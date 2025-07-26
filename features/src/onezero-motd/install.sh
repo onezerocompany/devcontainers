@@ -5,7 +5,7 @@ set -e
 ASCII_LOGO="${ASCII_LOGO:-}"
 INFO="${INFO:-}"
 MESSAGE="${MESSAGE:-}"
-ENABLE="${ENABLE:-}"
+ENABLE="${ENABLE:-true}"
 
 USERNAME="${USERNAME:-${_REMOTE_USER:-root}}"
 
