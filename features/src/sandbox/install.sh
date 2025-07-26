@@ -98,8 +98,8 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
         fi
     fi
     
-    # Extract domains and get IPs
-    claude_ips=$(/usr/local/share/sandbox/extract-claude-domains.sh "$CLAUDE_SETTINGS_PATHS" | tail -n +2 | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+    # Extract domains and get IPs with timeout
+    claude_ips=$(timeout 30 /usr/local/share/sandbox/extract-claude-domains.sh "$CLAUDE_SETTINGS_PATHS" | tail -n +2 | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
     
     if [ -n "$claude_ips" ]; then
         echo "Adding rules for Claude WebFetch IPs:"
@@ -125,8 +125,8 @@ if [ -n "$ALLOWED_DOMAINS" ]; then
         
         if [ -n "$domain" ]; then
             echo "  Resolving allowed domain: $domain"
-            # Resolve domain to IPs
-            resolved_ips=$(dig +short "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            # Resolve domain to IPs with timeout
+            resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
             
             if [ -n "$resolved_ips" ]; then
                 while IFS= read -r ip; do
@@ -153,8 +153,8 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
         
         if [ -n "$domain" ]; then
             echo "  Resolving blocked domain: $domain"
-            # Resolve domain to IPs
-            resolved_ips=$(dig +short "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            # Resolve domain to IPs with timeout
+            resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
             
             if [ -n "$resolved_ips" ]; then
                 while IFS= read -r ip; do
@@ -284,9 +284,9 @@ declare -a ips=()
 for domain in "${domains[@]}"; do
     echo -n "  Resolving $domain... "
     
-    # Try to resolve using dig (more reliable)
+    # Try to resolve using dig (more reliable) with timeout
     if command -v dig >/dev/null 2>&1; then
-        resolved_ips=$(dig +short "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+        resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
     elif command -v nslookup >/dev/null 2>&1; then
         # Fallback to nslookup
         resolved_ips=$(nslookup "$domain" 2>/dev/null | grep -A 1 "Name:" | grep "Address:" | awk '{print $2}' | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
@@ -348,6 +348,7 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
     echo "# Blocked domains:" >> /etc/sandbox/config
     echo "Processing blocked domains: $BLOCKED_DOMAINS"
     IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
+    domain_count=0
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
         original_domain="$domain"
@@ -355,6 +356,12 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
         if [ -n "$domain" ]; then
             echo "Adding blocked domain: $original_domain -> $domain"
             echo "$domain" >> /etc/sandbox/config
+            domain_count=$((domain_count + 1))
+            # Limit processing to prevent hangs
+            if [ "$domain_count" -ge 10 ]; then
+                echo "Warning: Limiting blocked domains processing to 10 domains to prevent hangs"
+                break
+            fi
         fi
     done
 else

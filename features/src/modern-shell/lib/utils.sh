@@ -425,13 +425,18 @@ EOF
       log_success "Enabled zsh completions for $user_name"
     fi
   else
-    # Remove bash completions if present
-    if grep -q "bash-completion" "$user_home/.bashrc"; then
+    # Remove bash completions if present (more thorough removal)
+    if grep -q "bash-completion\|bash_completion" "$user_home/.bashrc"; then
       # Remove various forms of bash completion configuration
       sed -i '/# Enable bash completions/,/fi$/d' "$user_home/.bashrc"
-      # Also remove any existing bash-completion sourcing from base image
+      # Remove any bash-completion sourcing from base image
       sed -i '/bash-completion/d' "$user_home/.bashrc"
       sed -i '/bash_completion/d' "$user_home/.bashrc"
+      # Remove common completion sourcing patterns
+      sed -i '/\/usr\/share\/bash-completion/d' "$user_home/.bashrc"
+      sed -i '/\/etc\/bash_completion/d' "$user_home/.bashrc"
+      # Remove any remaining completion-related lines
+      sed -i '/^\s*\.\s*.*bash.completion/d' "$user_home/.bashrc"
       log_success "Disabled bash completions for $user_name"
     else
       log_success "Bash completions already disabled for $user_name"
