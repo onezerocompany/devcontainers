@@ -5,34 +5,10 @@
             "ghcr.io/onezerocompany/features/mise-en-place": {}
         }
     },
-    "with-version": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/onezerocompany/features/mise-en-place": {
-                "version": "2024.1.0"
-            }
-        }
-    },
     "ubuntu": {
         "image": "ubuntu:22.04",
         "features": {
             "ghcr.io/onezerocompany/features/mise-en-place": {}
-        }
-    },
-    "with-common-utils": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/devcontainers/features/common-utils": {},
-            "ghcr.io/onezerocompany/features/mise-en-place": {}
-        },
-        "remoteUser": "vscode"
-    },
-    "deprecated-bun-option": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/onezerocompany/features/mise-en-place": {
-                "useBunForNpm": true
-            }
         }
     }
 }
