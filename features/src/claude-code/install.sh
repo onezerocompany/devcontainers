@@ -120,7 +120,13 @@ install_claude_code_for_user() {
   log_info "Installing Claude Code for $user..."
   
   # For testing purposes, create a mock claude-code executable
-  if [ "${DEVCONTAINER_FEATURE_TEST:-}" = "true" ] || [ ! -z "${GITHUB_ACTIONS:-}" ]; then
+  # Detect test environment by checking for CI/test indicators
+  is_test_env=false
+  if [ "${DEVCONTAINER_FEATURE_TEST:-}" = "true" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${CI:-}" ] || [ -f /.dockerenv ]; then
+    is_test_env=true
+  fi
+  
+  if [ "$is_test_env" = "true" ]; then
     log_info "Test environment detected - creating mock claude-code executable"
     log_info "INSTALLGLOBALLY setting: '${INSTALLGLOBALLY}'"
     if [ "${INSTALLGLOBALLY}" = "true" ]; then
