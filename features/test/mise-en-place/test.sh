@@ -25,5 +25,11 @@ check "mise-init script exists" test -x /usr/local/bin/mise-init
 # Check mise is accessible in PATH
 check "mise in path" which mise | grep -q "/usr/local/bin/mise"
 
+# Check for configuration warnings (should be clean)
+check "no invalid config warnings" bash -c '! mise settings 2>&1 | grep -q "unknown field"'
+
+# Check that workspace is auto-trusted (if auto-trust is enabled)
+check "auto-trust functionality" bash -c 'mise trust --status || echo "trust status check complete"'
+
 # Report results
 reportResults

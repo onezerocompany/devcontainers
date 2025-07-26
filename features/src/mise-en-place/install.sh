@@ -150,32 +150,28 @@ if [ "${USERNAME}" != "root" ]; then
     setup_shell_integration "root" "/root"
 fi
 
-# Configure mise settings if bun backend is requested
+# Configure mise settings - only create user config to avoid permission issues
+echo "Configuring mise settings..."
+
+# Remove any existing problematic system config to avoid conflicts
+# We'll only use user-level config to avoid permission issues
+rm -f /etc/mise/config.toml
+
+# Also create default user config
+cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
+[settings]
+not_found_auto_install = true
+experimental = true
+EOF
+
+if [ "${USERNAME}" != "root" ]; then
+    chown "${USERNAME}:${USERNAME}" "${USER_HOME}/.config/mise/config.toml"
+fi
+
+# Warn about deprecated bun backend option
 if [ "${USE_BUN_FOR_NPM}" = "true" ]; then
-    echo "Configuring mise to use bun as npm backend..."
-    
-    # Create mise settings file with bun backend configuration
-    mkdir -p /etc/mise
-    cat > /etc/mise/config.toml << 'EOF'
-[settings]
-node_compile = false
-not_found_auto_install = true
-experimental = true
-bun_backend = true
-EOF
-    
-    # Also create default user config with bun backend
-    cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
-[settings]
-node_compile = false
-not_found_auto_install = true
-experimental = true
-bun_backend = true
-EOF
-    
-    if [ "${USERNAME}" != "root" ]; then
-        chown "${USERNAME}:${USERNAME}" "${USER_HOME}/.config/mise/config.toml"
-    fi
+    echo "WARNING: The useBunForNpm option is deprecated and no longer supported by mise."
+    echo "Please use standard npm with node instead."
 fi
 
 # Note: mise directories will be initialized on first container start via mise-init

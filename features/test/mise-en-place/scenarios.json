@@ -26,5 +26,13 @@
             "ghcr.io/onezerocompany/features/mise-en-place": {}
         },
         "remoteUser": "vscode"
+    },
+    "deprecated-bun-option": {
+        "image": "debian:bookworm",
+        "features": {
+            "ghcr.io/onezerocompany/features/mise-en-place": {
+                "useBunForNpm": true
+            }
+        }
     }
 }
