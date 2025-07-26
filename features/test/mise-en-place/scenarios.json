@@ -11,14 +11,6 @@
             "ghcr.io/onezerocompany/features/mise-en-place": {}
         }
     },
-    "specific-version": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/onezerocompany/features/mise-en-place": {
-                "version": "2024.1.0"
-            }
-        }
-    },
     "cache-disabled": {
         "image": "debian:bookworm",
         "features": {
@@ -32,14 +24,6 @@
         "features": {
             "ghcr.io/onezerocompany/features/mise-en-place": {
                 "autoTrust": false
-            }
-        }
-    },
-    "deprecated-bun-option": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/onezerocompany/features/mise-en-place": {
-                "useBunForNpm": true
             }
         }
     }
