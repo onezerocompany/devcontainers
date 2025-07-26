@@ -233,6 +233,9 @@ configure_modern_shell() {
     configure_zoxide_replacement "$user_home" "$user_name"
   fi
   
+  # Configure completions based on setting
+  configure_completions "$user_home" "$user_name"
+  
   # Set proper ownership
   if [ "$user_name" != "root" ]; then
     if chown -R "$user_name:$user_name" "$user_home/.config" 2>/dev/null && \
@@ -249,39 +252,43 @@ add_modern_aliases() {
   local user_home="$1"
   local user_name="$2"
   
-  # Build aliases based on configuration
-  local aliases_content=""
-  aliases_content+="\n# Modern CLI aliases\n"
+  # Create a temporary file to build aliases content
+  local aliases_file=$(mktemp)
+  
+  echo "" >> "$aliases_file"
+  echo "# Modern CLI aliases" >> "$aliases_file"
   
   if [ "$ALIAS_LS" = "true" ]; then
-    aliases_content+="alias ls='eza --color=auto --group-directories-first'\n"
-    aliases_content+="alias ll='eza -l --color=auto --group-directories-first'\n"
-    aliases_content+="alias la='eza -la --color=auto --group-directories-first'\n"
-    aliases_content+="alias lt='eza --tree --color=auto'\n"
+    echo "alias ls='eza --color=auto --group-directories-first'" >> "$aliases_file"
+    echo "alias ll='eza -l --color=auto --group-directories-first'" >> "$aliases_file"
+    echo "alias la='eza -la --color=auto --group-directories-first'" >> "$aliases_file"
+    echo "alias lt='eza --tree --color=auto'" >> "$aliases_file"
   fi
   
   if [ "$ALIAS_CAT" = "true" ]; then
-    aliases_content+="alias cat='bat --paging=never'\n"
+    echo "alias cat='bat --paging=never'" >> "$aliases_file"
   fi
   
   if [ "$ALIAS_FIND" = "true" ]; then
-    aliases_content+="alias find='fd'\n"
+    echo "alias find='fd'" >> "$aliases_file"
   fi
   
   if [ "$ALIAS_GREP" = "true" ]; then
-    aliases_content+="alias grep='rg'\n"
+    echo "alias grep='rg'" >> "$aliases_file"
   fi
   
   # Add Neovim aliases if Neovim is installed
   if [ "$INSTALL_NEOVIM" = "true" ]; then
-    aliases_content+="\n# Neovim aliases\n"
-    aliases_content+="alias vi='nvim'\n"
-    aliases_content+="alias vim='nvim'\n"
+    echo "" >> "$aliases_file"
+    echo "# Neovim aliases" >> "$aliases_file"
+    echo "alias vi='nvim'" >> "$aliases_file"
+    echo "alias vim='nvim'" >> "$aliases_file"
   fi
   
   # Add custom aliases if provided
   if [ -n "$CUSTOM_ALIASES" ]; then
-    aliases_content+="\n# Custom aliases\n"
+    echo "" >> "$aliases_file"
+    echo "# Custom aliases" >> "$aliases_file"
     # Split by semicolon and add each alias
     IFS=';' read -ra ALIASES_ARRAY <<< "$CUSTOM_ALIASES"
     for alias_def in "${ALIASES_ARRAY[@]}"; do
@@ -292,12 +299,12 @@ add_modern_aliases() {
         # Check if the alias definition already has quotes
         if [[ "$alias_def" =~ ^[^=]+=\'.*\'$ ]] || [[ "$alias_def" =~ ^[^=]+=\".*\"$ ]]; then
           # Already properly quoted
-          aliases_content+="alias $alias_def\n"
+          echo "alias $alias_def" >> "$aliases_file"
         else
           # Need to add quotes around the command part
           alias_name="${alias_def%%=*}"
           alias_cmd="${alias_def#*=}"
-          aliases_content+="alias $alias_name='$alias_cmd'\n"
+          echo "alias $alias_name='$alias_cmd'" >> "$aliases_file"
         fi
       fi
     done
@@ -305,7 +312,7 @@ add_modern_aliases() {
   
   # Add aliases to .zshrc if not present
   if ! grep -q "# Modern CLI aliases" "$user_home/.zshrc"; then
-    echo -e "$aliases_content" >> "$user_home/.zshrc"
+    cat "$aliases_file" >> "$user_home/.zshrc"
     log_success "Added configured aliases to .zshrc for $user_name"
   fi
   
@@ -315,9 +322,12 @@ add_modern_aliases() {
   fi
   
   if ! grep -q "# Modern CLI aliases" "$user_home/.bashrc"; then
-    echo -e "$aliases_content" >> "$user_home/.bashrc"
+    cat "$aliases_file" >> "$user_home/.bashrc"
     log_success "Added configured aliases to .bashrc for $user_name"
   fi
+  
+  # Clean up
+  rm -f "$aliases_file"
 }
 
 configure_shell_history() {
@@ -384,5 +394,49 @@ eval "$(zoxide init bash)"
 alias cd='z'
 EOF
     log_success "Configured zoxide to replace cd in .bashrc for $user_name"
+  fi
+}
+
+configure_completions() {
+  local user_home="$1"
+  local user_name="$2"
+  
+  if [ "$ENABLE_COMPLETIONS" = "true" ]; then
+    # Enable bash completions
+    if ! grep -q "bash-completion" "$user_home/.bashrc"; then
+      cat >> "$user_home/.bashrc" << 'EOF'
+
+# Enable bash completions
+if [ -f /usr/share/bash-completion/bash_completion ]; then
+  . /usr/share/bash-completion/bash_completion
+fi
+EOF
+      log_success "Enabled bash completions for $user_name"
+    fi
+    
+    # Enable zsh completions
+    if ! grep -q "# Zsh completions" "$user_home/.zshrc"; then
+      cat >> "$user_home/.zshrc" << 'EOF'
+
+# Zsh completions
+autoload -Uz compinit
+compinit
+EOF
+      log_success "Enabled zsh completions for $user_name"
+    fi
+  else
+    # Remove bash completions if present
+    if grep -q "bash-completion" "$user_home/.bashrc"; then
+      # Remove the bash completion section
+      sed -i '/# Enable bash completions/,/fi$/d' "$user_home/.bashrc"
+      log_success "Disabled bash completions for $user_name"
+    fi
+    
+    # Remove zsh completions if present
+    if grep -q "# Zsh completions" "$user_home/.zshrc"; then
+      # Remove the zsh completion section
+      sed -i '/# Zsh completions/,/compinit$/d' "$user_home/.zshrc"
+      log_success "Disabled zsh completions for $user_name"
+    fi
   fi
 }

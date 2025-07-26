@@ -153,6 +153,9 @@ fi
 exec "$CLAUDE_CODE_BIN" "$@"
 EOF
     chmod +x /usr/local/bin/claude-code
+    log_success "Claude Code wrapper installed successfully for $user"
+  else
+    log_info "Skipping global wrapper installation (installGlobally=false)"
   fi
   
   log_success "Claude Code installed successfully for $user"

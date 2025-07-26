@@ -23,8 +23,8 @@
     },
     "useBunForNpm": {
       "type": "boolean",
-      "default": false,
-      "description": "DEPRECATED: This option is no longer supported by mise. Use standard npm with node."
+      "default": true,
+      "description": "Use bun as npm backend for mise"
     }
   },
   "customizations": {

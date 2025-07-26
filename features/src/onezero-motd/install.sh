@@ -41,12 +41,14 @@ if [ -f /etc/onezero/motd.conf ]; then
 fi
 
 # Default values if not set
-ASCII_LOGO="${ASCII_LOGO:-   ____              _____              
+if [ -z "$ASCII_LOGO" ]; then
+  ASCII_LOGO="   ____              _____              
   / __ \\            |__  /              
  | |  | |_ __   ___   / / ___ _ __ ___  
  | |  | | '_ \\ / _ \\ / / / _ \\ '__/ _ \\ 
  | |__| | | | |  __// /_|  __/ | | (_) |
-  \\____/|_| |_|\\___/____|\\___|_|  \\___/ }"
+  \\____/|_| |_|\\___/____|\\___|_|  \\___/ "
+fi
 INFO="${INFO:-Welcome to OneZero Development Container}"
 MESSAGE="${MESSAGE:-Happy coding!}"
 

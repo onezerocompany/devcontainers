@@ -12,9 +12,9 @@ check "claude-webfetch-enabled" grep -q 'ALLOW_CLAUDE_WEBFETCH_DOMAINS="true"' /
 # Test that Claude settings paths are configured
 check "claude-settings-paths-configured" grep -q 'CLAUDE_SETTINGS_PATHS=".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json"' /etc/sandbox/config
 
-# Create mock Claude settings files with WebFetch permissions
-mkdir -p /workspace/.claude
-cat > /workspace/.claude/settings.json << 'EOF'
+# Create mock Claude settings files with WebFetch permissions  
+mkdir -p .claude
+cat > .claude/settings.json << 'EOF'
 {
   "tools": {
     "WebFetch": {
