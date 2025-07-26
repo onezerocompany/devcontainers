@@ -85,6 +85,34 @@ install_claude_code_via_mise() {
   
   log_info "Installing claude-code via mise for $user..."
   
+  # Check if mise is configured to use bun for npm packages
+  local use_bun="false"
+  if /usr/local/bin/mise settings get npm.bun 2>/dev/null | grep -q "true"; then
+    use_bun="true"
+    log_info "mise is configured to use bun for npm packages"
+  else
+    log_info "mise is configured to use npm for npm packages"
+  fi
+  
+  # Install appropriate runtime
+  if [ "$use_bun" = "true" ]; then
+    log_info "Installing bun for npm package management..."
+    if [ "$user" = "root" ]; then
+      cd "$home_dir" && /usr/local/bin/mise use -g bun@latest
+    else
+      su - "$user" -c "cd && /usr/local/bin/mise use -g bun@latest"
+    fi
+    log_success "bun installed via mise for $user"
+  else
+    log_info "Ensuring Node.js is installed for npm packages..."
+    if [ "$user" = "root" ]; then
+      cd "$home_dir" && /usr/local/bin/mise use -g node@22
+    else
+      su - "$user" -c "cd && /usr/local/bin/mise use -g node@22"
+    fi
+    log_success "Node.js installed/verified via mise for $user"
+  fi
+  
   # Install claude-code via mise
   if [ "$CLAUDE_CODE_VERSION" = "latest" ]; then
     if [ "$user" = "root" ]; then
