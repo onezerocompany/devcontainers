@@ -37,7 +37,7 @@
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
 			"ghcr.io/onezerocompany/features/docker-in-docker": {
-				"version": "20.10",
+				"version": "26.0",
 				"moby": false
 			}
 		}
