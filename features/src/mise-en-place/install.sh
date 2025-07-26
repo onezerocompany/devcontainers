@@ -48,12 +48,25 @@ fi
 
 # Move mise to system location
 # Find where mise was actually installed (could be in root's home during container build)
+echo "Looking for mise binary..."
+echo "USER_HOME: ${USER_HOME}"
+echo "Current user: $(whoami)"
+
+# Check all possible locations
 if [ -f "${USER_HOME}/.local/bin/mise" ]; then
+    echo "Found mise at ${USER_HOME}/.local/bin/mise"
     mv "${USER_HOME}/.local/bin/mise" /usr/local/bin/mise
 elif [ -f "/root/.local/bin/mise" ]; then
+    echo "Found mise at /root/.local/bin/mise"
     mv "/root/.local/bin/mise" /usr/local/bin/mise
 else
-    echo "ERROR: Could not find mise binary in expected locations"
+    echo "ERROR: Could not find mise binary in expected locations:"
+    echo "  - ${USER_HOME}/.local/bin/mise"
+    echo "  - /root/.local/bin/mise"
+    echo "Contents of ${USER_HOME}/.local/bin/:"
+    ls -la "${USER_HOME}/.local/bin/" 2>/dev/null || echo "Directory does not exist"
+    echo "Contents of /root/.local/bin/:"
+    ls -la "/root/.local/bin/" 2>/dev/null || echo "Directory does not exist"
     exit 1
 fi
 chmod +x /usr/local/bin/mise
