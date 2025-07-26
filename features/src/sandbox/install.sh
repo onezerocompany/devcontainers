@@ -465,7 +465,7 @@ if [ -n "$ALLOWED_DOMAINS" ]; then
     IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
-        domain=${domain#\*.}
+        # Keep the original domain format (including wildcards) in config
         if [ -n "$domain" ]; then
             echo "$domain" >> /etc/sandbox/config
         fi
@@ -476,20 +476,12 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
     echo "# Blocked domains:" >> /etc/sandbox/config
     echo "Processing blocked domains: $BLOCKED_DOMAINS"
     IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
-    domain_count=0
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
-        original_domain="$domain"
-        domain=${domain#\*.}
+        # Keep the original domain format (including wildcards) in config
         if [ -n "$domain" ]; then
-            echo "Adding blocked domain: $original_domain -> $domain"
+            echo "Adding blocked domain: $domain"
             echo "$domain" >> /etc/sandbox/config
-            domain_count=$((domain_count + 1))
-            # Limit processing to prevent hangs
-            if [ "$domain_count" -ge 10 ]; then
-                echo "Warning: Limiting blocked domains processing to 10 domains to prevent hangs"
-                break
-            fi
         fi
     done
 else

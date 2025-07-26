@@ -10,8 +10,13 @@ echo "Testing allow policy configuration..."
 check "default-policy-allow" grep -q 'DEFAULT_POLICY="allow"' /etc/sandbox/config
 
 # Test that blocked domains are configured
-check "example-blocked" grep -q "example.com" /etc/sandbox/config
+check "example-wildcard-blocked" grep -q "*.example.com" /etc/sandbox/config
 check "badsite-blocked" grep -q "badsite.com" /etc/sandbox/config
+
+# Verify wildcard handling for blocked domains
+check "wildcard-blocking-support" bash -c '
+    grep -q "COMMON_SUBDOMAINS=(" /usr/local/share/sandbox/setup-rules.sh
+'
 
 # DNS filtering is no longer used - removed hosts file tests
 # check "example-in-hosts" grep -q "127.0.0.1.*example.com" /etc/hosts

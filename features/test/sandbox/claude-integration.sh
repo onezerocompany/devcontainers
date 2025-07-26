@@ -39,8 +39,17 @@ check "claude-settings-processed" bash -c '
     echo "$extracted_domains" | grep -E "(api\.example\.com|docs\.test\.com)" >/dev/null
 '
 
-# DNS filtering is no longer used - only check config file
+# Check that wildcard domain support exists in the extraction script
+check "claude-wildcard-extraction" bash -c '
+    # Check the extraction script handles wildcards properly
+    grep -q "original_domains" /usr/local/share/sandbox/extract-claude-domains.sh &&
+    grep -q "COMMON_SUBDOMAINS=(" /usr/local/share/sandbox/extract-claude-domains.sh &&
+    grep -q "Scanning common subdomains for wildcard domain" /usr/local/share/sandbox/extract-claude-domains.sh
+'
+
+# Test that the config processed the wildcard domain
 check "claude-wildcard-domains" bash -c '
+    # The base domain should be in the config (without the wildcard)
     grep -q "allowed.com" /etc/sandbox/config
 '
 
