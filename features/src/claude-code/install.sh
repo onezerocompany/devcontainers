@@ -97,13 +97,32 @@ install_claude_code_via_mise() {
   # Install appropriate runtime
   if [ "$use_bun" = "true" ]; then
     log_info "Installing bun for npm package management..."
+    local bun_install_success="false"
+    
+    # Try to install bun, but handle failures gracefully
     if [ "$user" = "root" ]; then
-      cd "$home_dir" && /usr/local/bin/mise use -g bun@latest
+      if cd "$home_dir" && /usr/local/bin/mise use -g bun@latest 2>/dev/null; then
+        bun_install_success="true"
+      fi
     else
-      su - "$user" -c "cd && /usr/local/bin/mise use -g bun@latest"
+      if su - "$user" -c "cd && /usr/local/bin/mise use -g bun@latest" 2>/dev/null; then
+        bun_install_success="true"
+      fi
     fi
-    log_success "bun installed via mise for $user"
-  else
+    
+    if [ "$bun_install_success" = "true" ]; then
+      log_success "bun installed via mise for $user"
+    else
+      log_warning "Failed to install bun (likely network/timeout issue)"
+      log_info "Falling back to Node.js and disabling bun for npm packages..."
+      # Disable bun for npm packages and use npm instead
+      /usr/local/bin/mise settings set npm.bun false
+      use_bun="false"
+    fi
+  fi
+  
+  # Install Node.js if not using bun or if bun failed
+  if [ "$use_bun" = "false" ]; then
     log_info "Ensuring Node.js is installed for npm packages..."
     if [ "$user" = "root" ]; then
       cd "$home_dir" && /usr/local/bin/mise use -g node@22
