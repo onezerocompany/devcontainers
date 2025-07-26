@@ -30,7 +30,7 @@ EOF
 check "claude-settings-processed" bash -c '
     # Test the domain extraction script directly (without iptables)
     # Set workspace folder for the extraction script
-    export WORKSPACE_FOLDER=/workspaces/*/
+    export WORKSPACE_FOLDER=/workspaces/$(ls /workspaces/ | head -n1)
     
     # Extract domains from Claude settings
     extracted_domains=$(/usr/local/share/sandbox/extract-claude-domains.sh ".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json" 2>/dev/null | tail -n +2)
@@ -61,7 +61,7 @@ EOF
 
 check "multiple-settings-paths" bash -c '
     # Test that the extraction script can read from multiple paths
-    export WORKSPACE_FOLDER=/workspaces/*/
+    export WORKSPACE_FOLDER=/workspaces/$(ls /workspaces/ | head -n1)
     
     # Extract domains from all Claude settings files
     extracted_domains=$(/usr/local/share/sandbox/extract-claude-domains.sh ".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json" 2>/dev/null | tail -n +2)
