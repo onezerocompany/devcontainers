@@ -5,7 +5,7 @@ set -e
 # Import test library
 source dev-container-features-test-lib
 
-# Basic mise functionality tests for default scenario
+# Test for ubuntu scenario - basic functionality on Ubuntu
 check "mise installed" command -v mise
 check "mise version" mise --version
 
@@ -24,6 +24,9 @@ check "mise-init script exists" test -x /usr/local/bin/mise-init
 
 # Check mise is accessible in PATH
 check "mise in path" which mise | grep -q "/usr/local/bin/mise"
+
+# Ubuntu specific checks
+check "ubuntu system" grep -q "Ubuntu" /etc/os-release
 
 # Report results
 reportResults

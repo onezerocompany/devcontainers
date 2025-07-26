@@ -5,9 +5,9 @@ set -e
 # Import test library
 source dev-container-features-test-lib
 
-# Basic mise functionality tests for default scenario
+# Test for with-version scenario - verify specific version is installed
 check "mise installed" command -v mise
-check "mise version" mise --version
+check "mise specific version" bash -c 'mise --version | grep -q "2024.1.0"'
 
 # Check shell integration
 check "bash integration" grep -q "mise activate bash" ~/.bashrc
