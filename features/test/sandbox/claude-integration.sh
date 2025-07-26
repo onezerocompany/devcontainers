@@ -9,19 +9,19 @@ echo "Testing Claude integration configuration..."
 # Test that Claude integration is enabled
 check "claude-webfetch-enabled" grep -q 'ALLOW_CLAUDE_WEBFETCH_DOMAINS="true"' /etc/sandbox/config
 
-# Test that Claude settings paths are configured
+# Test that Claude settings paths are configured (should match scenario config)
 check "claude-settings-paths-configured" grep -q 'CLAUDE_SETTINGS_PATHS=".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json"' /etc/sandbox/config
 
 # Create mock Claude settings files with WebFetch permissions  
 mkdir -p .claude
 cat > .claude/settings.json << 'EOF'
 {
-  "tools": {
-    "WebFetch": {
-      "permissions": {
-        "allowed_domains": ["api.example.com", "docs.test.com", "*.allowed.com"]
-      }
-    }
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.example.com)",
+      "WebFetch(domain:docs.test.com)",
+      "WebFetch(domain:*.allowed.com)"
+    ]
   }
 }
 EOF
@@ -48,12 +48,10 @@ check "sandbox-env-var" [ "$SANDBOX_NETWORK_FILTER" = "enabled" ]
 mkdir -p ~/.claude
 cat > ~/.claude/settings.json << 'EOF'
 {
-  "tools": {
-    "WebFetch": {
-      "permissions": {
-        "allowed_domains": ["home.example.com"]
-      }
-    }
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:home.example.com)"
+    ]
   }
 }
 EOF

@@ -16,12 +16,11 @@ check "default-policy-block" grep -q 'DEFAULT_POLICY="block"' /etc/sandbox/confi
 mkdir -p /tmp/.claude
 cat > /tmp/.claude/settings.json << 'EOF'
 {
-  "tools": {
-    "WebFetch": {
-      "permissions": {
-        "allowed_domains": ["should.not.be.allowed.com", "*.test.com"]
-      }
-    }
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:should.not.be.allowed.com)",
+      "WebFetch(domain:*.test.com)"
+    ]
   }
 }
 EOF
