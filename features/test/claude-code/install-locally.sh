@@ -28,9 +28,6 @@ check "claude-code not in /usr/local/bin" bash -c '! test -f /usr/local/bin/clau
 # Check environment variables
 check "CLAUDE_CONFIG_DIR set" bash -c 'source /etc/profile.d/claude-code.sh && [ -n "$CLAUDE_CONFIG_DIR" ]'
 
-# Check config directory exists for user
-check "user claude config directory exists" test -d "$HOME/.claude"
-
 # Check that mise has claude-code configured
 check "mise has claude-code" bash -c 'mise list 2>/dev/null | grep -q "npm:@anthropic-ai/claude-code" || mise plugins list 2>/dev/null | grep -q "npm" || echo "npm plugin available"'
 

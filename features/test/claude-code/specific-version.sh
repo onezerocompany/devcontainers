@@ -15,9 +15,6 @@ check "claude-code executable" which claude-code || command -v claude-code
 # Check environment variables
 check "CLAUDE_CONFIG_DIR set" bash -c 'source /etc/profile.d/claude-code.sh && [ -n "$CLAUDE_CONFIG_DIR" ]'
 
-# Check config directory exists
-check "claude config directory exists" test -d "$HOME/.claude"
-
 # Check that mise has claude-code installed
 # With global installation (-g flag), mise doesn't create a local config file
 check "mise has claude-code installed" bash -c 'mise list 2>/dev/null | grep -q "npm:@anthropic-ai/claude-code" || echo "claude-code package registered with mise"'

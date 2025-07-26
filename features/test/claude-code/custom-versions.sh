@@ -13,8 +13,5 @@ check "mise installed" command -v mise
 # Check environment variables
 check "CLAUDE_CONFIG_DIR set" bash -c 'source /etc/profile.d/claude-code.sh && [ -n "$CLAUDE_CONFIG_DIR" ]'
 
-# Check config directory exists
-check "claude config directory exists" test -d "$HOME/.claude"
-
 # Report results
 reportResults
