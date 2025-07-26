@@ -11,8 +11,11 @@ This is a devcontainers repository that provides reusable features, images, and 
 The repository consists of three main component types:
 
 1. **Features** (`/features/src/`): Installable components that add functionality to containers
-   - `common-utils`: Comprehensive development utilities with modern CLI tools, shell configurations, and tool bundles (zsh, starship, zoxide, eza, bat, web-dev, networking, containers, utilities)
-   - `docker-in-docker`: Docker daemon support inside containers
+   - `modern-shell`: Modern shell environment with Zsh, Starship prompt, and development utilities (fd, ripgrep, bat, eza, zoxide, neovim)
+   - `mise-en-place`: Fast polyglot runtime manager (formerly rtx) with persistent volumes for tools and configurations
+   - `claude-code`: Claude Code CLI setup via mise, including configuration directories and environment variables
+   - `sandbox`: Network traffic filtering using iptables for sandboxed environments with Claude integration
+   - `onezero-motd`: Customizable ASCII Message of the Day with system information
 
 2. **Images** (`/images/`): Base Docker images
    - `base`: Main development container with essential dev tools
@@ -21,14 +24,13 @@ The repository consists of three main component types:
 
 3. **Templates** (`/templates/`): Pre-configured devcontainer setups
    - `base`: Basic development container
-   - `dind`: Docker-in-Docker enabled container
 
 ## Common Commands
 
 ### Testing Features
 ```bash
 # Run tests for a specific feature
-cd features/test/docker-in-docker
+cd features/test/modern-shell
 ./test.sh
 
 # Tests use the dev-container-features-test-lib
@@ -70,12 +72,6 @@ Publishing is automated via GitHub Actions on push to main. The workflow:
 3. Update `.github/workflows/publish.yml` to include new image job
 
 ## Key Implementation Details
-
-### Docker-in-Docker Setup
-The dind template requires:
-- `runArgs: ["--init", "--privileged"]` for proper Docker daemon execution
-- Volume mount for `/var/lib/docker` to persist data
-- `postStartCommand` to initialize Docker via `/usr/local/share/docker-init.sh`
 
 ### Feature Installation Scripts
 - Must be executable bash scripts

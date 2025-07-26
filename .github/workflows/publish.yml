@@ -291,7 +291,7 @@ jobs:
   prebuild:
     name: Pre-build Dev Container Images
     runs-on: ubuntu-latest
-    needs: [publish-base, publish-templates, publish-features, test-features, test-templates]
+    needs: [publish-base, publish-templates, publish-features]
     permissions:
       contents: read
       packages: write

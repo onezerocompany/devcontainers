@@ -62,5 +62,23 @@
 				"logBlocked": false
 			}
 		}
+	},
+	"claude-integration": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/sandbox": {
+				"allowClaudeWebFetchDomains": true,
+				"claudeSettingsPaths": ".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json"
+			}
+		}
+	},
+	"claude-disabled": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/sandbox": {
+				"allowClaudeWebFetchDomains": false,
+				"defaultPolicy": "block"
+			}
+		}
 	}
 }

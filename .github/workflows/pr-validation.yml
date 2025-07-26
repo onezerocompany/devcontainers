@@ -81,16 +81,89 @@ jobs:
             fi
           done
 
-  # Test features using devcontainer CLI
+  # Test features using devcontainer CLI with parallel scenario execution
   test-features:
-    name: Test Features
+    name: Test ${{ matrix.feature }} - ${{ matrix.scenario }}
     runs-on: ubuntu-latest
     needs: [validate]
     strategy:
       fail-fast: false
       matrix:
-        feature: [docker-in-docker, modern-shell, onezero-motd, sandbox]
-        scenario: [default]
+        include:
+          # Claude Code feature scenarios
+          - feature: claude-code
+            scenario: default
+          - feature: claude-code
+            scenario: with-modern-shell
+          - feature: claude-code
+            scenario: custom-versions
+          - feature: claude-code
+            scenario: custom-config-dir
+          - feature: claude-code
+            scenario: install-locally
+          - feature: claude-code
+            scenario: specific-version
+
+          # Mise-en-place feature scenarios
+          - feature: mise-en-place
+            scenario: default
+          - feature: mise-en-place
+            scenario: ubuntu
+          - feature: mise-en-place
+            scenario: specific-version
+          - feature: mise-en-place
+            scenario: cache-disabled
+          - feature: mise-en-place
+            scenario: auto-trust-disabled
+          - feature: mise-en-place
+            scenario: deprecated-bun-option
+
+          # Modern Shell feature scenarios
+          - feature: modern-shell
+            scenario: default
+          - feature: modern-shell
+            scenario: all-enabled
+          - feature: modern-shell
+            scenario: all-disabled
+          - feature: modern-shell
+            scenario: zsh-plugins-none
+          - feature: modern-shell
+            scenario: zsh-plugins-minimal
+          - feature: modern-shell
+            scenario: zsh-plugins-full
+          - feature: modern-shell
+            scenario: completions-disabled
+          - feature: modern-shell
+            scenario: neovim-disabled
+
+          # OneZero MOTD feature scenarios
+          - feature: onezero-motd
+            scenario: default
+          - feature: onezero-motd
+            scenario: custom-logo
+          - feature: onezero-motd
+            scenario: disabled
+
+          # Sandbox feature scenarios
+          - feature: sandbox
+            scenario: default
+          - feature: sandbox
+            scenario: allow-policy
+          - feature: sandbox
+            scenario: custom-domains
+          - feature: sandbox
+            scenario: docker-enabled
+          - feature: sandbox
+            scenario: strict-mode
+          - feature: sandbox
+            scenario: wildcard-test
+          - feature: sandbox
+            scenario: logging-disabled
+          - feature: sandbox
+            scenario: claude-integration
+          - feature: sandbox
+            scenario: claude-disabled
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,44 +171,57 @@ jobs:
       - name: Install devcontainer CLI
         run: npm install -g @devcontainers/cli
 
-      - name: Test ${{ matrix.feature }} feature with ${{ matrix.scenario }} scenario
+      - name: Build and test ${{ matrix.feature }} - ${{ matrix.scenario }}
         timeout-minutes: 15
         run: |
           cd features/test/${{ matrix.feature }}
           echo "Testing feature ${{ matrix.feature }} with scenario ${{ matrix.scenario }}"
 
-          # Create a test devcontainer.json based on the scenario
+          # Create a test environment for the specific scenario
           if [ -f "scenarios.json" ]; then
-            echo "Found scenarios.json, creating a proper test environment"
-            
-            # Get first scenario key for testing (since we're only testing "default" scenario currently)
-            SCENARIO_KEY=$(jq -r 'keys[0]' scenarios.json)
-            echo "Testing scenario: $SCENARIO_KEY"
+            echo "Found scenarios.json, extracting scenario ${{ matrix.scenario }}"
             
             # Create a proper .devcontainer directory structure
             mkdir -p .devcontainer
             
             # Copy local feature to a location that devcontainer CLI can access
             mkdir -p .devcontainer/features/${{ matrix.feature }}
-            cp -r ../../../features/src/${{ matrix.feature }}/* .devcontainer/features/${{ matrix.feature }}/
+            cp -r ../../src/${{ matrix.feature }}/* .devcontainer/features/${{ matrix.feature }}/
             
-            # Extract the scenario configuration and modify to use local feature
-            # Re-enable external downloads to test actual functionality
-            jq ".\"$SCENARIO_KEY\"" scenarios.json | \
+            # Extract the specific scenario configuration and use local feature
+            jq ".\"${{ matrix.scenario }}\"" scenarios.json | \
             jq --arg feature "${{ matrix.feature }}" \
-              '.features = {("./features/" + $feature): .features[$feature]}' > .devcontainer/devcontainer.json
+              '.features = (.features | to_entries | map(
+                if .key | contains("ghcr.io/onezerocompany/features/" + $feature) then
+                  {key: ("./features/" + $feature), value: .value}
+                else
+                  .
+                end
+              ) | from_entries)' > .devcontainer/devcontainer.json
             
             echo "Generated .devcontainer/devcontainer.json:"
             cat .devcontainer/devcontainer.json
             
-            # Test that the feature can be built (with timeout)
-            timeout 900 devcontainer build --workspace-folder . || {
-              echo "ERROR: devcontainer build timed out after 15 minutes"
-              exit 1
-            }
-            echo "✓ Feature ${{ matrix.feature }} built successfully with scenario $SCENARIO_KEY"
+            # Build the devcontainer
+            devcontainer build --workspace-folder . --image-name test-${{ matrix.feature }}-${{ matrix.scenario }}
+            
+            echo "✓ Feature ${{ matrix.feature }} built successfully with scenario ${{ matrix.scenario }}"
+            
+            # Run the scenario-specific test if it exists
+            if [ -f "${{ matrix.scenario }}.sh" ]; then
+              echo "Running scenario-specific test script: ${{ matrix.scenario }}.sh"
+              
+              # Run the test inside the built container
+              devcontainer exec --workspace-folder . bash -c "cd /workspaces/*/features/test/${{ matrix.feature }} && ./${{ matrix.scenario }}.sh"
+            elif [ -f "test.sh" ]; then
+              echo "Running generic test script: test.sh"
+              devcontainer exec --workspace-folder . bash -c "cd /workspaces/*/features/test/${{ matrix.feature }} && ./test.sh"
+            else
+              echo "No test script found, only testing build"
+            fi
           else
-            echo "No scenarios.json found, skipping detailed test"
+            echo "No scenarios.json found for ${{ matrix.feature }}"
+            exit 1
           fi
 
   # Test templates by building them
@@ -148,8 +234,6 @@ jobs:
       matrix:
         template:
           - base
-          - dind
-          # Note: postgres-app excluded due to build issues (missing init-db.sql)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -227,22 +311,6 @@ jobs:
 
             echo '✓ Template ${{ matrix.template }} built and tested successfully'
           "
-          
-          # For dind template, test Docker functionality with privileged mode
-          if [ '${{ matrix.template }}' = 'dind' ]; then
-            echo 'Testing Docker functionality in dind template...'
-            docker run --rm --privileged test-template-${{ matrix.template }} bash -c "
-              echo 'Testing Docker functionality...'
-              # Start Docker daemon in background
-              dockerd-entrypoint.sh dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 &
-              # Wait a bit for Docker to start
-              sleep 10
-              timeout 30 sh -c 'until docker info >/dev/null 2>&1; do sleep 1; done' || echo 'Docker not ready yet'
-              docker --version || echo 'Docker not available'
-              docker info || echo 'Docker daemon not running'
-              echo '✓ Docker functionality tested'
-            "
-          fi
           
           # Clean up
           cd -

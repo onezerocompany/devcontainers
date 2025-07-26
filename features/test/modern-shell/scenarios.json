@@ -36,5 +36,45 @@
 				"alias_grep": false
 			}
 		}
+	},
+	"zsh-plugins-none": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
+				"zsh_plugins": "none"
+			}
+		}
+	},
+	"zsh-plugins-minimal": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
+				"zsh_plugins": "minimal"
+			}
+		}
+	},
+	"zsh-plugins-full": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
+				"zsh_plugins": "full"
+			}
+		}
+	},
+	"completions-disabled": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
+				"enable_completions": false
+			}
+		}
+	},
+	"neovim-disabled": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"ghcr.io/onezerocompany/features/modern-shell": {
+				"install_neovim": false
+			}
+		}
 	}
 }

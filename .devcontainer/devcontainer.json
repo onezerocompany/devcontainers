@@ -8,19 +8,10 @@
 		"ghcr.io/onezerocompany/features/claude-code:1": {},
 		"ghcr.io/onezerocompany/features/sandbox:2": {}
 	},
-	"mounts": [
-		// Mount directories for claude code
-		"source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-		"source=claude-code-config-${devcontainerId},target=/home/zero/.claude,type=volume",
-		// Mount ssh directory for commit signing and other SSH needs
-		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,type=bind,consistency=cached"
-	],
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"astro-build.astro-vscode",
 				"biomejs.biome",
-				"oven.bun-vscode",
 				"Anthropic.claude-code",
 				"docker.docker",
 				"esbenp.prettier-vscode"
