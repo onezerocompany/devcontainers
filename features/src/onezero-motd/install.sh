@@ -21,11 +21,19 @@ mkdir -p /etc/update-motd.d
 
 # Create a config file to store the customizable values
 mkdir -p /etc/onezero
+
+# Convert \n in ASCII_LOGO to actual newlines for proper storage
+ASCII_LOGO_PROCESSED="${ASCII_LOGO}"
+if [ -n "$ASCII_LOGO_PROCESSED" ]; then
+    # Replace literal \n with actual newlines
+    ASCII_LOGO_PROCESSED=$(echo "$ASCII_LOGO_PROCESSED" | sed 's/\\n/\n/g')
+fi
+
 cat > /etc/onezero/motd.conf << EOF
 # OneZero MOTD Configuration
-ASCII_LOGO="${ASCII_LOGO}"
-INFO="${INFO}"
-MESSAGE="${MESSAGE}"
+ASCII_LOGO='${ASCII_LOGO_PROCESSED}'
+INFO='${INFO}'
+MESSAGE='${MESSAGE}'
 EOF
 
 # Write the MOTD script that reads config at runtime

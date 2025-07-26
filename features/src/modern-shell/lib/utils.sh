@@ -427,9 +427,14 @@ EOF
   else
     # Remove bash completions if present
     if grep -q "bash-completion" "$user_home/.bashrc"; then
-      # Remove the bash completion section
+      # Remove various forms of bash completion configuration
       sed -i '/# Enable bash completions/,/fi$/d' "$user_home/.bashrc"
+      # Also remove any existing bash-completion sourcing from base image
+      sed -i '/bash-completion/d' "$user_home/.bashrc"
+      sed -i '/bash_completion/d' "$user_home/.bashrc"
       log_success "Disabled bash completions for $user_name"
+    else
+      log_success "Bash completions already disabled for $user_name"
     fi
     
     # Remove zsh completions if present

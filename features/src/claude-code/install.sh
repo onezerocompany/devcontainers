@@ -135,24 +135,35 @@ install_claude_code_for_user() {
       chmod +x /usr/local/bin/claude-code
       log_info "Mock binary created in /usr/local/bin/claude-code"
     else
-      # For local installation, create mock in mise location
+      # For local installation, create mock that works with mise
       log_info "Creating mock claude-code for mise environment"
-      # Ensure mise shim directory exists
-      local mise_bin_dir
+      
+      # Create a fake npm package directory structure that mise expects
+      local npm_install_dir
       if [ "$user" = "root" ]; then
-        mise_bin_dir="/root/.local/share/mise/shims"
+        npm_install_dir="/root/.local/share/mise/installs/npm--anthropic-ai-claude-code@1.0.61"
       else
-        mise_bin_dir="/home/$user/.local/share/mise/shims"
+        npm_install_dir="/home/$user/.local/share/mise/installs/npm--anthropic-ai-claude-code@1.0.61"
       fi
-      mkdir -p "$mise_bin_dir"
-      echo '#!/bin/sh' > "$mise_bin_dir/claude-code"
-      echo 'echo "Claude Code CLI (mock)"' >> "$mise_bin_dir/claude-code"
-      chmod +x "$mise_bin_dir/claude-code"
+      
+      mkdir -p "$npm_install_dir/bin"
+      echo '#!/bin/sh' > "$npm_install_dir/bin/claude-code"
+      echo 'echo "Claude Code CLI (mock)"' >> "$npm_install_dir/bin/claude-code"
+      chmod +x "$npm_install_dir/bin/claude-code"
+      
       # Set ownership
       if [ "$user" != "root" ] && id "$user" &>/dev/null; then
-        chown -R "$user:$user" "$mise_bin_dir" 2>/dev/null || true
+        chown -R "$user:$user" "$npm_install_dir" 2>/dev/null || true
       fi
-      log_info "Mock binary created in $mise_bin_dir/claude-code"
+      
+      # Force mise to reshim by running as the user
+      if [ "$user" = "root" ]; then
+        cd "/root" && /usr/local/bin/mise reshim npm:@anthropic-ai/claude-code@1.0.61 2>/dev/null || true
+      else
+        su - "$user" -c "cd && /usr/local/bin/mise reshim npm:@anthropic-ai/claude-code@1.0.61" 2>/dev/null || true
+      fi
+      
+      log_info "Mock binary created in $npm_install_dir/bin/claude-code"
     fi
     log_success "Mock Claude Code installed successfully for $user"
     return 0

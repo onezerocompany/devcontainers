@@ -47,7 +47,8 @@ check "custom motd installed" test "$(check_files_batch)" = "all_files_ok"
 export CONFIG
 CONFIG=$(get_config_content)
 check "custom config stored" bash -c "
-    echo '\$CONFIG' | grep -F '\$EXPECTED_LOGO' >/dev/null &&
+    # Check if config file contains our expected values (may be multiline)
+    echo '\$CONFIG' | grep -q '\$EXPECTED_LOGO' &&
     echo '\$CONFIG' | grep -F '\$EXPECTED_INFO' >/dev/null &&
     echo '\$CONFIG' | grep -F '\$EXPECTED_MESSAGE' >/dev/null
 "

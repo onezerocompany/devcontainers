@@ -346,14 +346,19 @@ fi
 
 if [ -n "$BLOCKED_DOMAINS" ]; then
     echo "# Blocked domains:" >> /etc/sandbox/config
+    echo "Processing blocked domains: $BLOCKED_DOMAINS"
     IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
+        original_domain="$domain"
         domain=${domain#\*.}
         if [ -n "$domain" ]; then
+            echo "Adding blocked domain: $original_domain -> $domain"
             echo "$domain" >> /etc/sandbox/config
         fi
     done
+else
+    echo "No blocked domains specified (BLOCKED_DOMAINS is empty)"
 fi
 
 # Skip iptables setup during Docker build - will be configured at runtime

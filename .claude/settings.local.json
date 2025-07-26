@@ -109,7 +109,8 @@
       "Bash(mise run:*)",
       "WebFetch(domain:docs.anthropic.com)",
       "mcp__github__list_commits",
-      "Bash(/tmp/debug_aliases.sh:*)"
+      "Bash(/tmp/debug_aliases.sh:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }

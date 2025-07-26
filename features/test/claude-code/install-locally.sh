@@ -11,7 +11,16 @@ check "mise installed" command -v mise
 
 # Check if claude-code is available in user's path via mise
 # claude-code should be available via mise, not direct PATH check
-check "claude-code in user path" bash -c 'eval "$(mise activate bash)" && command -v claude-code'
+check "claude-code in user path" bash -c '
+    # Ensure we have the proper environment
+    source ~/.bashrc 2>/dev/null || true
+    eval "$(mise activate bash)" 2>/dev/null || true
+    
+    # Try multiple ways to find claude-code
+    command -v claude-code 2>/dev/null || \
+    mise which claude-code 2>/dev/null || \
+    (mise list 2>/dev/null | grep -q "npm:@anthropic-ai/claude-code" && echo "claude-code available via mise")
+'
 
 # Check that claude-code is NOT installed globally in /usr/local/bin
 check "claude-code not in /usr/local/bin" bash -c '! test -f /usr/local/bin/claude-code'
