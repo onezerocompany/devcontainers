@@ -285,8 +285,9 @@ add_modern_aliases() {
     # Split by semicolon and add each alias
     IFS=';' read -ra ALIASES_ARRAY <<< "$CUSTOM_ALIASES"
     for alias_def in "${ALIASES_ARRAY[@]}"; do
-      # Trim whitespace
-      alias_def=$(echo "$alias_def" | xargs)
+      # Trim whitespace (without removing quotes)
+      alias_def="${alias_def#"${alias_def%%[![:space:]]*}"}" # remove leading whitespace
+      alias_def="${alias_def%"${alias_def##*[![:space:]]}"}" # remove trailing whitespace
       if [ -n "$alias_def" ]; then
         # Check if the alias definition already has quotes
         if [[ "$alias_def" =~ ^[^=]+=\'.*\'$ ]] || [[ "$alias_def" =~ ^[^=]+=\".*\"$ ]]; then

@@ -122,10 +122,14 @@ install_claude_code_for_user() {
   # For testing purposes, create a mock claude-code executable
   if [ "${DEVCONTAINER_FEATURE_TEST:-}" = "true" ] || [ ! -z "${GITHUB_ACTIONS:-}" ]; then
     log_info "Test environment detected - creating mock claude-code executable"
+    log_info "INSTALLGLOBALLY setting: '${INSTALLGLOBALLY}'"
     if [ "${INSTALLGLOBALLY}" = "true" ]; then
       echo '#!/bin/sh' > /usr/local/bin/claude-code
       echo 'echo "Claude Code CLI (mock)"' >> /usr/local/bin/claude-code
       chmod +x /usr/local/bin/claude-code
+      log_info "Mock binary created in /usr/local/bin/claude-code"
+    else
+      log_info "Not creating global mock binary since installGlobally=false"
     fi
     log_success "Mock Claude Code installed successfully for $user"
     return 0

@@ -14,12 +14,12 @@ check "mise available" command -v mise
 
 # Check that completion directories are not created
 check_not "no zsh completions dir" test -d "$HOME/.zsh/completions"
-# Only check bash completions if .bashrc exists
-if [ -f "$HOME/.bashrc" ]; then
-  check_not "no bash completions in profile" grep -q "bash-completion" "$HOME/.bashrc"
-else
-  check "no bash completions in profile" true
-fi
+
+# Check that .bashrc exists (should be created by modern-shell)
+check "bashrc exists" test -f "$HOME/.bashrc"
+
+# Check that bash completions are not enabled
+check_not "no bash completions in profile" grep -q "bash-completion" "$HOME/.bashrc"
 
 # Check that zshrc doesn't have completion configuration
 check "zshrc exists" test -f "$HOME/.zshrc"
