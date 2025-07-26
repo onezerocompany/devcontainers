@@ -51,20 +51,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # claude-code feature tests
-          - feature: claude-code
-            scenario: default
-          - feature: claude-code
-            scenario: custom-config-dir
-          - feature: claude-code
-            scenario: custom-versions
-          - feature: claude-code
-            scenario: install-locally
-          - feature: claude-code
-            scenario: specific-version
-          - feature: claude-code
-            scenario: with-modern-shell
-          
           # mise-en-place feature tests
           - feature: mise-en-place
             scenario: default

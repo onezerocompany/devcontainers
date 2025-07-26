@@ -13,7 +13,6 @@ The repository consists of three main component types:
 1. **Features** (`/features/src/`): Installable components that add functionality to containers
    - `modern-shell`: Modern shell environment with Zsh, Starship prompt, and development utilities (fd, ripgrep, bat, eza, zoxide, neovim)
    - `mise-en-place`: Fast polyglot runtime manager (formerly rtx) with persistent volumes for tools and configurations
-   - `claude-code`: Claude Code CLI setup via mise, including configuration directories and environment variables
    - `sandbox`: Network traffic filtering using iptables for sandboxed environments with Claude integration
    - `onezero-motd`: Customizable ASCII Message of the Day with system information
 
