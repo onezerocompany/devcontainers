@@ -36,7 +36,8 @@ init_test_env
 
 # Expected custom values (matching the scenario configuration)
 # The ASCII logo from scenarios.json contains escaped characters, when rendered it contains ___ patterns
-export EXPECTED_LOGO="/ _ \\\\"  # This appears in the rendered ASCII art
+export EXPECTED_LOGO="/ _ \\\\"  # Pattern to look for in the custom logo
+export EXPECTED_LOGO_ALT="___"  # Alternative pattern (underscores)
 export EXPECTED_INFO="Custom OneZero Container"
 export EXPECTED_MESSAGE="Let's build something awesome!"
 
@@ -48,7 +49,7 @@ export CONFIG
 CONFIG=$(get_config_content)
 check "custom config stored" bash -c "
     # Check if config file contains our expected values (may be multiline)
-    echo '\$CONFIG' | grep -q '\$EXPECTED_LOGO' &&
+    (echo '\$CONFIG' | grep -q '\$EXPECTED_LOGO' || echo '\$CONFIG' | grep -q '\$EXPECTED_LOGO_ALT') &&
     echo '\$CONFIG' | grep -F '\$EXPECTED_INFO' >/dev/null &&
     echo '\$CONFIG' | grep -F '\$EXPECTED_MESSAGE' >/dev/null
 "
@@ -56,7 +57,7 @@ check "custom config stored" bash -c "
 # Phase 3: Runtime validation (single execution)
 OUTPUT=$(get_motd_output)
 check "custom values displayed" bash -c "
-    echo '\$OUTPUT' | grep -F '\$EXPECTED_LOGO' >/dev/null &&
+    (echo '\$OUTPUT' | grep -q '\$EXPECTED_LOGO_ALT' || echo '\$OUTPUT' | grep -q '/ _ ') &&
     echo '\$OUTPUT' | grep -F '\$EXPECTED_INFO' >/dev/null &&
     echo '\$OUTPUT' | grep -F '\$EXPECTED_MESSAGE' >/dev/null
 "

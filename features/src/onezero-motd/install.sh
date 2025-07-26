@@ -29,12 +29,20 @@ if [ -n "$ASCII_LOGO_PROCESSED" ]; then
     ASCII_LOGO_PROCESSED=$(echo "$ASCII_LOGO_PROCESSED" | sed 's/\\n/\n/g')
 fi
 
-cat > /etc/onezero/motd.conf << EOF
-# OneZero MOTD Configuration
-ASCII_LOGO='${ASCII_LOGO_PROCESSED}'
-INFO='${INFO}'
-MESSAGE='${MESSAGE}'
-EOF
+# Create config file with proper escaping for special characters
+{
+    echo "# OneZero MOTD Configuration"
+    echo -n "ASCII_LOGO="
+    if [ -n "$ASCII_LOGO_PROCESSED" ]; then
+        printf '%q\n' "$ASCII_LOGO_PROCESSED"
+    else
+        echo "''"
+    fi
+    echo -n "INFO="
+    printf '%q\n' "${INFO}"
+    echo -n "MESSAGE="
+    printf '%q\n' "${MESSAGE}"
+} > /etc/onezero/motd.conf
 
 # Write the MOTD script that reads config at runtime
 cat > /etc/update-motd.d/50-onezero << 'MOTD_SCRIPT'
