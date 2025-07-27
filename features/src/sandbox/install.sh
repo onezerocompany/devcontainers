@@ -40,7 +40,7 @@ echo iptables-persistent iptables-persistent/autosave_v6 boolean false | debconf
 echo "Running apt-get update..."
 apt-get update -qq
 echo "Installing packages..."
-apt-get install -y -qq --no-install-recommends iptables iptables-persistent netfilter-persistent jq dnsutils
+apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils
 echo "Package installation complete"
 
 # Create sandbox directories
@@ -64,39 +64,57 @@ BLOCKED_DOMAINS="${8:-}"
 
 echo "Setting up network filtering rules..."
 
+# Determine if we need sudo (USE_SUDO should be set by sandbox-init.sh)
+if [ -z "$USE_SUDO" ]; then
+    if [ "$EUID" -ne 0 ]; then
+        USE_SUDO=1
+    else
+        USE_SUDO=0
+    fi
+fi
+
+# Create iptables wrapper function
+iptables_cmd() {
+    if [ "$USE_SUDO" = "1" ]; then
+        sudo iptables "$@"
+    else
+        iptables "$@"
+    fi
+}
+
 # Check if iptables is available and working
-if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
+if ! command -v iptables >/dev/null 2>&1 || ! iptables_cmd -L OUTPUT >/dev/null 2>&1; then
     echo "ERROR: iptables not available or not working properly"
     echo "This script should only be run at container runtime through the entrypoint"
     exit 1
 fi
 
 # Clear existing sandbox rules
-iptables -t filter -F SANDBOX_OUTPUT 2>/dev/null || true
-iptables -t filter -X SANDBOX_OUTPUT 2>/dev/null || true
+iptables_cmd -t filter -F SANDBOX_OUTPUT 2>/dev/null || true
+iptables_cmd -t filter -X SANDBOX_OUTPUT 2>/dev/null || true
 
 # Create sandbox chain
-iptables -t filter -N SANDBOX_OUTPUT
+iptables_cmd -t filter -N SANDBOX_OUTPUT
 
 # Allow loopback if enabled
 if [ "$ALLOW_LOCALHOST" = "true" ]; then
-    iptables -t filter -A SANDBOX_OUTPUT -d 127.0.0.0/8 -j ACCEPT
-    iptables -t filter -A SANDBOX_OUTPUT -d ::1/128 -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -d 127.0.0.0/8 -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -d ::1/128 -j ACCEPT
 fi
 
 # Allow Docker networks if enabled (critical for container communication)
 if [ "$ALLOW_DOCKER_NETWORKS" = "true" ]; then
     # Docker default networks
-    iptables -t filter -A SANDBOX_OUTPUT -d 172.16.0.0/12 -j ACCEPT
-    iptables -t filter -A SANDBOX_OUTPUT -d 10.0.0.0/8 -j ACCEPT
-    iptables -t filter -A SANDBOX_OUTPUT -d 192.168.0.0/16 -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -d 172.16.0.0/12 -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -d 10.0.0.0/8 -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -d 192.168.0.0/16 -j ACCEPT
     # Allow established connections (important for Docker services)
-    iptables -t filter -A SANDBOX_OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 fi
 
 # Allow DNS queries (needed for name resolution)
-iptables -t filter -A SANDBOX_OUTPUT -p udp --dport 53 -j ACCEPT
-iptables -t filter -A SANDBOX_OUTPUT -p tcp --dport 53 -j ACCEPT
+iptables_cmd -t filter -A SANDBOX_OUTPUT -p udp --dport 53 -j ACCEPT
+iptables_cmd -t filter -A SANDBOX_OUTPUT -p tcp --dport 53 -j ACCEPT
 
 # Allow Claude WebFetch domains if enabled
 if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
@@ -126,7 +144,7 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
             while IFS= read -r ip; do
                 if [ -n "$ip" ]; then
                     echo "  Allowing: $ip"
-                    iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                    iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
                 fi
             done <<< "$claude_ips"
         else
@@ -174,7 +192,7 @@ if [ -n "$ALLOWED_DOMAINS" ]; then
                         while IFS= read -r ip; do
                             if [ -n "$ip" ]; then
                                 echo "    Allowing IP: $ip for subdomain $full_domain"
-                                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                                iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
                             fi
                         done <<< "$resolved_ips"
                     fi
@@ -189,7 +207,7 @@ if [ -n "$ALLOWED_DOMAINS" ]; then
                     while IFS= read -r ip; do
                         if [ -n "$ip" ]; then
                             echo "    Allowing IP: $ip for domain $domain"
-                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                            iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
                         fi
                     done <<< "$resolved_ips"
                 else
@@ -225,9 +243,9 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
                             if [ -n "$ip" ]; then
                                 echo "    Blocking IP: $ip for subdomain $full_domain"
                                 if [ "$LOG_BLOCKED" = "true" ]; then
-                                    iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
+                                    iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
                                 fi
-                                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
+                                iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
                             fi
                         done <<< "$resolved_ips"
                     fi
@@ -243,9 +261,9 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
                         if [ -n "$ip" ]; then
                             echo "    Blocking IP: $ip for domain $domain"
                             if [ "$LOG_BLOCKED" = "true" ]; then
-                                iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
+                                iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j LOG --log-prefix "SANDBOX_BLOCKED_DOMAIN: " --log-level 4
                             fi
-                            iptables -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
+                            iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j REJECT --reject-with icmp-host-unreachable
                         fi
                     done <<< "$resolved_ips"
                 else
@@ -260,17 +278,17 @@ if [ "$DEFAULT_POLICY" = "block" ]; then
     echo "Setting default policy to BLOCK external traffic"
     # Block external networks (not local/docker networks)
     if [ "$LOG_BLOCKED" = "true" ]; then
-        iptables -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j LOG --log-prefix "SANDBOX_BLOCKED: " --log-level 4
+        iptables_cmd -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j LOG --log-prefix "SANDBOX_BLOCKED: " --log-level 4
     fi
-    iptables -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j REJECT --reject-with icmp-host-unreachable
+    iptables_cmd -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j REJECT --reject-with icmp-host-unreachable
 else
     echo "Setting default policy to ALLOW external traffic"
-    iptables -t filter -A SANDBOX_OUTPUT -j ACCEPT
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -j ACCEPT
 fi
 
 # Attach to OUTPUT chain
-iptables -t filter -C OUTPUT -j SANDBOX_OUTPUT 2>/dev/null || \
-    iptables -t filter -A OUTPUT -j SANDBOX_OUTPUT
+iptables_cmd -t filter -C OUTPUT -j SANDBOX_OUTPUT 2>/dev/null || \
+    iptables_cmd -t filter -A OUTPUT -j SANDBOX_OUTPUT
 
 echo "Network filtering rules configured"
 EOF
@@ -523,11 +541,31 @@ if [ "$1" = "--skip" ]; then
     exit 0
 fi
 
-# Check if iptables is available and working
-if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
-    echo "ERROR: iptables not available or not working properly"
+# Check if iptables is available
+if ! command -v iptables >/dev/null 2>&1; then
+    echo "ERROR: iptables not available"
     echo "Sandbox network filtering cannot be initialized"
     exit 1
+fi
+
+# Check if we can use iptables (with sudo if needed)
+if [ "$EUID" -ne 0 ]; then
+    # Not root, try with sudo
+    if ! sudo iptables -L OUTPUT >/dev/null 2>&1; then
+        echo "ERROR: Cannot access iptables (even with sudo)"
+        echo "Sandbox network filtering cannot be initialized"
+        exit 1
+    fi
+    # Set flag to use sudo
+    export USE_SUDO=1
+else
+    # Running as root
+    if ! iptables -L OUTPUT >/dev/null 2>&1; then
+        echo "ERROR: iptables not working properly"
+        echo "Sandbox network filtering cannot be initialized"
+        exit 1
+    fi
+    export USE_SUDO=0
 fi
 
 
@@ -551,17 +589,26 @@ if [ -z "$WORKSPACE_FOLDER" ]; then
     fi
 fi
 
-# Setup iptables rules
+# Setup iptables rules (USE_SUDO is exported above)
 /usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS" "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS"
 
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     echo "Making configuration immutable..."
     # Save current rules
-    iptables-save > /etc/iptables/rules.v4
+    if [ "$USE_SUDO" = "1" ]; then
+        sudo iptables-save > /etc/iptables/rules.v4
+    else
+        iptables-save > /etc/iptables/rules.v4
+    fi
     # Make config files read-only
-    chmod 444 /etc/sandbox/config
-    chattr +i /etc/sandbox/config 2>/dev/null || true
+    if [ "$USE_SUDO" = "1" ]; then
+        sudo chmod 444 /etc/sandbox/config
+        sudo chattr +i /etc/sandbox/config 2>/dev/null || true
+    else
+        chmod 444 /etc/sandbox/config
+        chattr +i /etc/sandbox/config 2>/dev/null || true
+    fi
 fi
 
 echo "Sandbox network filtering initialized"
@@ -594,6 +641,11 @@ if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     chmod 444 /etc/sandbox/config
     chattr +i /etc/sandbox/config 2>/dev/null || true
 fi
+
+# Create sudoers rule for sandbox management
+echo "# Allow zero user to manage sandbox network filtering" > /etc/sudoers.d/sandbox-iptables
+echo "zero ALL=(root) NOPASSWD: /usr/sbin/iptables, /usr/sbin/iptables-save, /usr/sbin/ip6tables, /usr/sbin/ip6tables-save, /usr/bin/chmod, /usr/bin/chattr" >> /etc/sudoers.d/sandbox-iptables
+chmod 440 /etc/sudoers.d/sandbox-iptables
 
 echo "✓ Sandbox Network Filter installed successfully"
 echo "  Default policy: $DEFAULT_POLICY"
