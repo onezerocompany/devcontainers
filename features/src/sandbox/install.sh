@@ -73,12 +73,20 @@ if [ -z "$USE_SUDO" ]; then
     fi
 fi
 
-# Create iptables wrapper function
+# Create iptables wrapper functions
 iptables_cmd() {
     if [ "$USE_SUDO" = "1" ]; then
         sudo iptables "$@"
     else
         iptables "$@"
+    fi
+}
+
+ip6tables_cmd() {
+    if [ "$USE_SUDO" = "1" ]; then
+        sudo ip6tables "$@"
+    else
+        ip6tables "$@"
     fi
 }
 
@@ -99,7 +107,7 @@ iptables_cmd -t filter -N SANDBOX_OUTPUT
 # Allow loopback if enabled
 if [ "$ALLOW_LOCALHOST" = "true" ]; then
     iptables_cmd -t filter -A SANDBOX_OUTPUT -d 127.0.0.0/8 -j ACCEPT
-    iptables_cmd -t filter -A SANDBOX_OUTPUT -d ::1/128 -j ACCEPT
+    # Note: IPv6 localhost (::1) would need ip6tables with separate chains
 fi
 
 # Allow Docker networks if enabled (critical for container communication)
