@@ -21,6 +21,7 @@ IMMUTABLE_CONFIG="${IMMUTABLECONFIG:-true}"
 LOG_BLOCKED="${LOGBLOCKED:-true}"
 ALLOW_CLAUDE_WEBFETCH_DOMAINS="${ALLOWCLAUDEWEBFETCHDOMAINS:-true}"
 CLAUDE_SETTINGS_PATHS="${CLAUDESETTINGSPATHS:-.claude/settings.json,.claude/settings.local.json,~/.claude/settings.json}"
+ALLOW_COMMON_DEVELOPMENT="${ALLOWCOMMONDEVELOPMENT:-true}"
 
 echo "Installing Sandbox Network Filter..."
 
@@ -61,6 +62,7 @@ ALLOW_CLAUDE_WEBFETCH_DOMAINS="${5:-true}"
 CLAUDE_SETTINGS_PATHS="${6:-.claude/settings.json,.claude/settings.local.json,~/.claude/settings.json}"
 ALLOWED_DOMAINS="${7:-}"
 BLOCKED_DOMAINS="${8:-}"
+ALLOW_COMMON_DEVELOPMENT="${9:-true}"
 
 echo "Setting up network filtering rules..."
 
@@ -158,6 +160,79 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
         else
             echo "No Claude WebFetch domains found or could not resolve"
         fi
+fi
+
+# Allow common development domains if enabled
+if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
+    echo "Adding common development domains..."
+    
+    # Define common development domains
+    COMMON_DEV_DOMAINS=(
+        # Package Registries
+        "registry.npmjs.org"
+        "registry.yarnpkg.com"
+        "pypi.org"
+        "files.pythonhosted.org"
+        "pypi.python.org"
+        "rubygems.org"
+        "crates.io"
+        "index.crates.io"
+        "repo.maven.apache.org"
+        "repo1.maven.org"
+        "central.maven.org"
+        "proxy.golang.org"
+        "sum.golang.org"
+        "packagist.org"
+        "api.nuget.org"
+        "www.nuget.org"
+        "pub.dev"
+        "cdn.swift.org"
+        "swiftpackageregistry.com"
+        "deno.land"
+        "jsr.io"
+        
+        # Version Control
+        "github.com"
+        "api.github.com"
+        "raw.githubusercontent.com"
+        "github.githubassets.com"
+        "codeload.github.com"
+        "gitlab.com"
+        "bitbucket.org"
+        
+        # Container Registries
+        "hub.docker.com"
+        "registry-1.docker.io"
+        "auth.docker.io"
+        "production.cloudflare.docker.com"
+        "ghcr.io"
+        "pkg.github.com"
+        
+        # CDNs
+        "cdn.jsdelivr.net"
+        "unpkg.com"
+        "cdnjs.cloudflare.com"
+        
+        # Monitoring/Analytics (used by Claude)
+        "sentry.io"
+    )
+    
+    for domain in "${COMMON_DEV_DOMAINS[@]}"; do
+        echo -n "  Resolving $domain... "
+        # Resolve domain to IPs with timeout
+        resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+        
+        if [ -n "$resolved_ips" ]; then
+            echo "OK"
+            while IFS= read -r ip; do
+                if [ -n "$ip" ]; then
+                    iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                fi
+            done <<< "$resolved_ips"
+        else
+            echo "FAILED (could not resolve)"
+        fi
+    done
 fi
 
 # Common subdomains for developers
@@ -284,11 +359,11 @@ fi
 # Apply default policy for external traffic
 if [ "$DEFAULT_POLICY" = "block" ]; then
     echo "Setting default policy to BLOCK external traffic"
-    # Block external networks (not local/docker networks)
+    # Default action is to block (or log then block)
     if [ "$LOG_BLOCKED" = "true" ]; then
-        iptables_cmd -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j LOG --log-prefix "SANDBOX_BLOCKED: " --log-level 4
+        iptables_cmd -t filter -A SANDBOX_OUTPUT -j LOG --log-prefix "SANDBOX_BLOCKED: " --log-level 4
     fi
-    iptables_cmd -t filter -A SANDBOX_OUTPUT ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 ! -d 127.0.0.0/8 -j REJECT --reject-with icmp-host-unreachable
+    iptables_cmd -t filter -A SANDBOX_OUTPUT -j REJECT --reject-with icmp-host-unreachable
 else
     echo "Setting default policy to ALLOW external traffic"
     iptables_cmd -t filter -A SANDBOX_OUTPUT -j ACCEPT
@@ -503,6 +578,7 @@ IMMUTABLE_CONFIG="$IMMUTABLE_CONFIG"
 LOG_BLOCKED="$LOG_BLOCKED"
 ALLOW_CLAUDE_WEBFETCH_DOMAINS="$ALLOW_CLAUDE_WEBFETCH_DOMAINS"
 CLAUDE_SETTINGS_PATHS="$CLAUDE_SETTINGS_PATHS"
+ALLOW_COMMON_DEVELOPMENT="$ALLOW_COMMON_DEVELOPMENT"
 EOF
 
 # Add individual domains to config file for test validation
@@ -598,7 +674,7 @@ if [ -z "$WORKSPACE_FOLDER" ]; then
 fi
 
 # Setup iptables rules (USE_SUDO is exported above)
-/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS" "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS"
+/usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS" "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$ALLOW_COMMON_DEVELOPMENT"
 
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
@@ -661,5 +737,6 @@ echo "  Docker networks allowed: $ALLOW_DOCKER_NETWORKS"
 echo "  Localhost allowed: $ALLOW_LOCALHOST"
 echo "  Configuration immutable: $IMMUTABLE_CONFIG"
 echo "  Logging enabled: $LOG_BLOCKED"
+echo "  Common development domains: $ALLOW_COMMON_DEVELOPMENT"
 echo ""
 echo "Note: Network filtering rules will be applied when the container starts."

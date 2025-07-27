@@ -1,7 +1,7 @@
 {
 	"id": "sandbox",
 	"name": "Sandbox Network Filter",
-	"version": "2.5.1",
+	"version": "2.5.3",
 	"description": "Network traffic filtering for sandboxed environments using iptables. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication. Automatically allows domains from Claude Code WebFetch permissions.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
 	"options": {
@@ -50,6 +50,11 @@
 			"type": "string",
 			"default": ".claude/settings.json,.claude/settings.local.json,~/.claude/settings.json",
 			"description": "Comma-separated list of paths to Claude settings files to read WebFetch rules from (relative paths are resolved from workspace root)"
+		},
+		"allowCommonDevelopment": {
+			"type": "boolean",
+			"default": true,
+			"description": "Allow common development domains (package registries, GitHub, npm, pypi, etc.)"
 		}
 	},
 	"capAdd": ["NET_ADMIN", "NET_RAW"],
