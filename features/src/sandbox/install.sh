@@ -215,6 +215,26 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         
         # Monitoring/Analytics (used by Claude)
         "sentry.io"
+        
+        # Debian/Ubuntu Package Repositories
+        "deb.debian.org"
+        "security.debian.org"
+        "archive.ubuntu.com"
+        "security.ubuntu.com"
+        "packages.debian.org"
+        "packages.ubuntu.com"
+        "ppa.launchpad.net"
+        "keyserver.ubuntu.com"
+        
+        # GitHub Copilot and API
+        "copilot-proxy.githubusercontent.com"
+        "copilot.github.com"
+        "copilot-telemetry.github.com"
+        "githubcopilot.com"
+        "objects.githubusercontent.com"
+        "gist.githubusercontent.com"
+        "avatars.githubusercontent.com"
+        "user-images.githubusercontent.com"
     )
     
     for domain in "${COMMON_DEV_DOMAINS[@]}"; do
