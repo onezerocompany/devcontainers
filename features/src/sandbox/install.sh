@@ -5,7 +5,8 @@ set -e
 echo "Starting Sandbox Network Filter installation..."
 
 # Detect if we're in a Docker build context
-if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ]; then
+# Only check for explicit build environment variables
+if [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ -n "$BUILDX_BUILDER" ]; then
     echo "Detected Docker build environment - will skip DNS resolution"
     export IN_DOCKER_BUILD=true
 else
@@ -68,12 +69,12 @@ ALLOWED_DOMAINS="${7:-}"
 BLOCKED_DOMAINS="${8:-}"
 
 # Detect if we're in a Docker build context
-# Check multiple indicators since different build methods set different variables
-if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ -n "$BUILDX_BUILDER" ] || [ "$container" = "docker" ] || [ -f /run/.containerenv ]; then
+# Only check for explicit build environment variables
+if [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ -n "$BUILDX_BUILDER" ]; then
     IN_DOCKER_BUILD=true
 else
     # Additional check: if iptables doesn't work properly, we're likely in a build
-    if ! iptables -L OUTPUT >/dev/null 2>&1; then
+    if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
         IN_DOCKER_BUILD=true
     else
         IN_DOCKER_BUILD=false
@@ -554,9 +555,15 @@ cat > /usr/local/share/sandbox/sandbox-init.sh << 'EOF'
 # Initialize sandbox network filtering on container startup
 set -e
 
-# Skip initialization if we're in a build or if the container isn't fully started
-if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ "$1" = "--skip" ]; then
+# Skip initialization only if we're explicitly in build mode or skip is requested
+if [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ "$1" = "--skip" ]; then
     echo "Skipping sandbox network filter initialization (build or skip mode)"
+    exit 0
+fi
+
+# Additional runtime check - if iptables is not available or doesn't work, skip
+if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
+    echo "Skipping sandbox network filter initialization (iptables not available or not working)"
     exit 0
 fi
 

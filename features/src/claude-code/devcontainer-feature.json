@@ -32,7 +32,7 @@
 	},
 	"containerEnv": {
 		"HISTFILE": "/mnt/claude/bashhistory/.bash_history",
-		"CLAUDE_CONFIG_DIR": "/mnt/claude/config",
+		"CLAUDE_CONFIG_DIR": "/mnt/claude/config"
 	},
 	"mounts": [
 		{
