@@ -1,0 +1,46 @@
+{
+	"id": "chromium",
+	"name": "Chromium",
+	"version": "1.0.0",
+	"description": "Installs Chromium browser and dependencies for headless browser testing in development containers.",
+	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/chromium",
+	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+	"keywords": [
+		"chromium",
+		"chrome",
+		"browser",
+		"testing",
+		"headless",
+		"puppeteer",
+		"playwright",
+		"selenium",
+		"e2e"
+	],
+	"options": {
+		"install_puppeteer_deps": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install additional dependencies required for Puppeteer"
+		},
+		"install_playwright_deps": {
+			"type": "boolean",
+			"default": false,
+			"description": "Install additional dependencies required for Playwright"
+		},
+		"install_chromedriver": {
+			"type": "boolean",
+			"default": false,
+			"description": "Install ChromeDriver for Selenium testing"
+		},
+		"chrome_flags": {
+			"type": "string",
+			"default": "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage",
+			"description": "Default Chrome flags for container environments"
+		},
+		"set_environment_vars": {
+			"type": "boolean",
+			"default": true,
+			"description": "Set CHROME_BIN and CHROMIUM_FLAGS environment variables"
+		}
+	}
+}

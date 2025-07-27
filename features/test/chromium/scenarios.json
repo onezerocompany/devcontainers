@@ -1,0 +1,49 @@
+{
+	"install_default": {
+		"image": "debian:bullseye",
+		"features": {
+			"chromium": {}
+		}
+	},
+	"install_with_puppeteer": {
+		"image": "debian:bullseye",
+		"features": {
+			"chromium": {
+				"install_puppeteer_deps": true,
+				"install_chromedriver": false
+			}
+		}
+	},
+	"install_with_playwright": {
+		"image": "debian:bullseye",
+		"features": {
+			"chromium": {
+				"install_puppeteer_deps": false,
+				"install_playwright_deps": true
+			}
+		}
+	},
+	"install_with_chromedriver": {
+		"image": "debian:bullseye",
+		"features": {
+			"chromium": {
+				"install_chromedriver": true
+			}
+		}
+	},
+	"install_custom_flags": {
+		"image": "debian:bullseye",
+		"features": {
+			"chromium": {
+				"chrome_flags": "--headless --disable-gpu --no-sandbox",
+				"set_environment_vars": true
+			}
+		}
+	},
+	"install_on_ubuntu": {
+		"image": "ubuntu:22.04",
+		"features": {
+			"chromium": {}
+		}
+	}
+}
