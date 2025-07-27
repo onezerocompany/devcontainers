@@ -259,6 +259,51 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         # Bun specific
         "bun.sh"
         "*.bun.sh"
+        
+        # Schema and validation services
+        "schemastore.org"
+        "*.schemastore.org"
+        "json-schema.org"
+        "*.json-schema.org"
+        "schemastore.azurewebsites.net"
+        "schema.management.azure.com"
+        
+        # Development tools and services
+        "eslint.org"
+        "prettier.io"
+        "typescriptlang.org"
+        "*.typescriptlang.org"
+        "definitelytyped.org"
+        "astexplorer.net"
+        "bundlephobia.com"
+        "packagephobia.com"
+        "bundlejs.com"
+        "esm.sh"
+        "skypack.dev"
+        "jspm.dev"
+        "jspm.io"
+        "turbo.build"
+        "*.turbo.build"
+        
+        # Documentation and learning
+        "devdocs.io"
+        "mdn.mozilla.org"
+        "developer.mozilla.org"
+        "w3.org"
+        "*.w3.org"
+        "whatwg.org"
+        "*.whatwg.org"
+        "caniuse.com"
+        "webplatform.org"
+        
+        # VSCode and extensions
+        "marketplace.visualstudio.com"
+        "*.visualstudio.com"
+        "*.vscode-cdn.net"
+        "*.vscode.dev"
+        "update.code.visualstudio.com"
+        "vscode.blob.core.windows.net"
+        "dc.services.visualstudio.com"
     )
     
     for domain in "${COMMON_DEV_DOMAINS[@]}"; do

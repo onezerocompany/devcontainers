@@ -1,7 +1,7 @@
 {
 	"id": "sandbox",
 	"name": "Sandbox Network Filter",
-	"version": "2.6.2",
+	"version": "2.6.4",
 	"description": "Network traffic filtering for sandboxed environments using iptables. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication. Automatically allows domains from Claude Code WebFetch permissions.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
 	"options": {
