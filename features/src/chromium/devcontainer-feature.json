@@ -1,7 +1,7 @@
 {
 	"id": "chromium",
 	"name": "Chromium",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Installs Chromium browser and dependencies for headless browser testing in development containers.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/chromium",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
