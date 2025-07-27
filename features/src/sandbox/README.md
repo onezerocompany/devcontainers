@@ -37,6 +37,22 @@ A development container feature that provides network traffic filtering for sand
 | `allowClaudeWebFetchDomains` | boolean | `true` | Automatically allow domains from Claude Code WebFetch permissions |
 | `claudeSettingsPaths` | string | `".claude/settings.json,.claude/settings.local.json,~/.claude/settings.json"` | Comma-separated list of paths to Claude settings files (relative paths are resolved from workspace root) |
 
+## Initialization
+
+The sandbox network filter is automatically initialized when the container starts:
+
+1. **With OneZero base image**: The entrypoint automatically runs all scripts in `/usr/local/share/devcontainer-init.d/`, including the sandbox initialization
+2. **With other images**: The sandbox installs an init hook at `/usr/local/share/devcontainer-init.d/50-sandbox.sh`. To use it:
+   ```bash
+   # Add to your entrypoint/startup script:
+   if [ -d /usr/local/share/devcontainer-init.d ]; then
+       for init_script in /usr/local/share/devcontainer-init.d/*.sh; do
+           [ -r "$init_script" ] && . "$init_script"
+       done
+   fi
+   ```
+3. **Manual initialization**: You can also directly run `/usr/local/share/sandbox/sandbox-init.sh`
+
 ## How It Works
 
 The sandbox feature implements network filtering using iptables:

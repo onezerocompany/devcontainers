@@ -602,8 +602,21 @@ chmod +x /usr/local/share/sandbox/sandbox-init.sh
 # Skip saving iptables rules during build (will be saved at runtime)
 echo "Skipping iptables rules save during build"
 
-# Note: Network filtering rules will be applied when the container starts.
-# The sandbox-init.sh script should be called from the container's entrypoint or startup process.
+# Create init.d directory if it doesn't exist
+mkdir -p /usr/local/share/devcontainer-init.d
+
+# Create initialization hook for devcontainer entrypoint
+cat > /usr/local/share/devcontainer-init.d/50-sandbox.sh << 'EOF'
+#!/bin/bash
+# Initialize sandbox network filter
+if [ -x /usr/local/share/sandbox/sandbox-init.sh ]; then
+    /usr/local/share/sandbox/sandbox-init.sh
+fi
+EOF
+
+chmod +x /usr/local/share/devcontainer-init.d/50-sandbox.sh
+
+echo "Sandbox initialization hook installed at /usr/local/share/devcontainer-init.d/50-sandbox.sh"
 
 # Make configuration immutable if requested
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
