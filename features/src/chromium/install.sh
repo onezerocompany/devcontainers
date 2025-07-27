@@ -175,6 +175,11 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 echo "Chromium testing environment setup complete!"
-echo "Chromium binary: $(which chromium || which chromium-browser)"
+echo "Chromium binary: $(which chromium || which chromium-browser || echo "not found")"
 echo "Test wrapper: /usr/local/bin/chromium-test"
-[ "$INSTALL_CHROMEDRIVER" = "true" ] && echo "ChromeDriver: $(which chromedriver)"
+if [ "$INSTALL_CHROMEDRIVER" = "true" ]; then
+    echo "ChromeDriver: $(which chromedriver || echo "not found")"
+fi
+
+# Ensure we exit with success
+exit 0
