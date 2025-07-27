@@ -15,12 +15,6 @@ if [ -d /usr/local/share/devcontainer-init.d ]; then
     done
 fi
 
-# Initialize sandbox network filter if installed (legacy support)
-if [ -x /usr/local/share/sandbox/sandbox-init.sh ]; then
-    echo "Initializing sandbox network filter..."
-    /usr/local/share/sandbox/sandbox-init.sh || echo "Warning: Sandbox initialization failed"
-fi
-
 if [ $# -eq 0 ]; then
     if [ -t 0 ]; then
         # Interactive terminal - start user's default shell
