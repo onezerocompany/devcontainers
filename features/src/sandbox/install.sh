@@ -200,6 +200,16 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         "gitlab.com"
         "bitbucket.org"
         
+        # GitHub CDN and additional endpoints
+        "*.github.com"
+        "*.githubusercontent.com"
+        "*.githubassets.com"
+        "github-cloud.s3.amazonaws.com"
+        "*.actions.githubusercontent.com"
+        "github-production-user-asset-6210df.s3.amazonaws.com"
+        "github-production-repository-file-5c1aeb.s3.amazonaws.com"
+        "github-code-search-elasticsearch.s3.amazonaws.com"
+        
         # Container Registries
         "hub.docker.com"
         "registry-1.docker.io"
@@ -245,6 +255,10 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         # Mise/UBI specific
         "mise.run"
         "mise.jdx.dev"
+        
+        # Bun specific
+        "bun.sh"
+        "*.bun.sh"
     )
     
     for domain in "${COMMON_DEV_DOMAINS[@]}"; do
