@@ -94,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        feature: [claude-code, mise-en-place, modern-shell, onezero-motd, sandbox]
+        feature: [claude-code, mise-en-place, modern-shell, onezero-motd, sandbox, chromium]
         scenario: [default]
         include:
           # Additional scenarios for claude-code
@@ -160,6 +160,18 @@ jobs:
             scenario: claude-integration
           - feature: sandbox
             scenario: claude-disabled
+
+          # Additional scenarios for chromium
+          - feature: chromium
+            scenario: install_with_puppeteer
+          - feature: chromium
+            scenario: install_with_playwright
+          - feature: chromium
+            scenario: install_with_chromedriver
+          - feature: chromium
+            scenario: install_custom_flags
+          - feature: chromium
+            scenario: install_on_ubuntu
 
     steps:
       - name: Checkout
