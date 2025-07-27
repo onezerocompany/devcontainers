@@ -4,14 +4,8 @@ set -e
 
 echo "Starting Sandbox Network Filter installation..."
 
-# Detect if we're in a Docker build context
-# Only check for explicit build environment variables
-if [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ -n "$BUILDX_BUILDER" ]; then
-    echo "Detected Docker build environment - will skip DNS resolution"
-    export IN_DOCKER_BUILD=true
-else
-    export IN_DOCKER_BUILD=false
-fi
+# Sandbox initialization will only happen at runtime through the entrypoint
+echo "Sandbox will be initialized at container runtime"
 
 # Ensure non-interactive mode for apt
 export DEBIAN_FRONTEND=noninteractive
@@ -68,26 +62,13 @@ CLAUDE_SETTINGS_PATHS="${6:-.claude/settings.json,.claude/settings.local.json,~/
 ALLOWED_DOMAINS="${7:-}"
 BLOCKED_DOMAINS="${8:-}"
 
-# Detect if we're in a Docker build context
-# Only check for explicit build environment variables
-if [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ -n "$BUILDX_BUILDER" ]; then
-    IN_DOCKER_BUILD=true
-else
-    # Additional check: if iptables doesn't work properly, we're likely in a build
-    if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
-        IN_DOCKER_BUILD=true
-    else
-        IN_DOCKER_BUILD=false
-    fi
-fi
-
 echo "Setting up network filtering rules..."
 
-# Skip all iptables operations during Docker build
-if [ "$IN_DOCKER_BUILD" = "true" ]; then
-    echo "Detected Docker build environment - skipping iptables configuration"
-    echo "Network filtering will be configured when the container starts"
-    exit 0
+# Check if iptables is available and working
+if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
+    echo "ERROR: iptables not available or not working properly"
+    echo "This script should only be run at container runtime through the entrypoint"
+    exit 1
 fi
 
 # Clear existing sandbox rules
@@ -119,11 +100,7 @@ iptables -t filter -A SANDBOX_OUTPUT -p tcp --dport 53 -j ACCEPT
 
 # Allow Claude WebFetch domains if enabled
 if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
-    # Skip DNS resolution during Docker build
-    if [ "$IN_DOCKER_BUILD" = "true" ]; then
-        echo "Skipping Claude WebFetch domain resolution during Docker build"
-    else
-        echo "Extracting and allowing Claude WebFetch domains..."
+    echo "Extracting and allowing Claude WebFetch domains..."
         
         # Set workspace folder environment variables for the extraction script
         # Check multiple possible workspace environment variables
@@ -155,7 +132,6 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
         else
             echo "No Claude WebFetch domains found or could not resolve"
         fi
-    fi
 fi
 
 # Common subdomains for developers
@@ -175,11 +151,7 @@ COMMON_SUBDOMAINS=(
 
 # Handle custom allowed domains
 if [ -n "$ALLOWED_DOMAINS" ]; then
-    # Skip DNS resolution during Docker build
-    if [ "$IN_DOCKER_BUILD" = "true" ]; then
-        echo "Skipping allowed domains resolution during Docker build: $ALLOWED_DOMAINS"
-    else
-        echo "Processing allowed domains: $ALLOWED_DOMAINS"
+    echo "Processing allowed domains: $ALLOWED_DOMAINS"
         IFS=',' read -ra DOMAIN_LIST <<< "$ALLOWED_DOMAINS"
         for domain in "${DOMAIN_LIST[@]}"; do
             # Trim whitespace
@@ -225,16 +197,11 @@ if [ -n "$ALLOWED_DOMAINS" ]; then
                 fi
             fi
         done
-    fi
 fi
 
 # Handle custom blocked domains
 if [ -n "$BLOCKED_DOMAINS" ]; then
-    # Skip DNS resolution during Docker build
-    if [ "$IN_DOCKER_BUILD" = "true" ]; then
-        echo "Skipping blocked domains resolution during Docker build: $BLOCKED_DOMAINS"
-    else
-        echo "Processing blocked domains: $BLOCKED_DOMAINS"
+    echo "Processing blocked domains: $BLOCKED_DOMAINS"
         IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
         for domain in "${DOMAIN_LIST[@]}"; do
             # Trim whitespace
@@ -286,7 +253,6 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
                 fi
             fi
         done
-    fi
 fi
 
 # Apply default policy for external traffic
@@ -542,12 +508,8 @@ else
     echo "No blocked domains specified (BLOCKED_DOMAINS is empty)"
 fi
 
-# Skip iptables setup during Docker build - will be configured at runtime
-if [ "$IN_DOCKER_BUILD" = "true" ]; then
-    echo "Skipping iptables configuration during build (will be applied at container startup)"
-else
-    echo "Note: iptables configuration will be applied at container startup"
-fi
+# Note: iptables configuration will be applied at container startup through the entrypoint
+echo "Note: iptables configuration will be applied at container startup"
 
 # Create startup script that runs the filtering setup
 cat > /usr/local/share/sandbox/sandbox-init.sh << 'EOF'
@@ -555,16 +517,17 @@ cat > /usr/local/share/sandbox/sandbox-init.sh << 'EOF'
 # Initialize sandbox network filtering on container startup
 set -e
 
-# Skip initialization only if we're explicitly in build mode or skip is requested
-if [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" ] || [ "$1" = "--skip" ]; then
-    echo "Skipping sandbox network filter initialization (build or skip mode)"
+# Skip initialization only if explicitly requested
+if [ "$1" = "--skip" ]; then
+    echo "Skipping sandbox network filter initialization (skip mode)"
     exit 0
 fi
 
-# Additional runtime check - if iptables is not available or doesn't work, skip
+# Check if iptables is available and working
 if ! command -v iptables >/dev/null 2>&1 || ! iptables -L OUTPUT >/dev/null 2>&1; then
-    echo "Skipping sandbox network filter initialization (iptables not available or not working)"
-    exit 0
+    echo "ERROR: iptables not available or not working properly"
+    echo "Sandbox network filtering cannot be initialized"
+    exit 1
 fi
 
 
