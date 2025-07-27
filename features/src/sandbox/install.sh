@@ -235,6 +235,16 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         "gist.githubusercontent.com"
         "avatars.githubusercontent.com"
         "user-images.githubusercontent.com"
+        
+        # GitHub Releases and Downloads
+        "releases.githubusercontent.com"
+        "github-releases.githubusercontent.com"
+        "uploads.github.com"
+        "github-production-release-asset-2e65be.s3.amazonaws.com"
+        
+        # Mise/UBI specific
+        "mise.run"
+        "mise.jdx.dev"
     )
     
     for domain in "${COMMON_DEV_DOMAINS[@]}"; do
