@@ -35,10 +35,6 @@ check "sandbox-chain-attached" iptables -t filter -L OUTPUT | grep -q "SANDBOX_O
 # Test environment variable is set
 check "sandbox-env-var" [ "$SANDBOX_NETWORK_FILTER" = "enabled" ]
 
-# Test systemd service is enabled (if systemd is available)
-if command -v systemctl >/dev/null 2>&1; then
-    check "service-enabled" systemctl is-enabled sandbox-network-filter.service >/dev/null 2>&1 || true
-fi
 
 # Test that script directories have correct permissions
 check "scripts-executable" [ -x /usr/local/share/sandbox/sandbox-init.sh ]

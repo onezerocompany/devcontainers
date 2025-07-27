@@ -560,11 +560,6 @@ if [ -f /.dockerenv ] || [ -n "$DOCKER_BUILDKIT" ] || [ -n "$BUILDKIT_PROGRESS" 
     exit 0
 fi
 
-# Also skip if systemd isn't running properly (indicates we're in build or test setup)
-if ! systemctl is-system-running >/dev/null 2>&1; then
-    echo "Skipping sandbox network filter initialization (systemd not running)"
-    exit 0
-fi
 
 # Load configuration
 if [ -f /etc/sandbox/config ]; then
@@ -607,27 +602,8 @@ chmod +x /usr/local/share/sandbox/sandbox-init.sh
 # Skip saving iptables rules during build (will be saved at runtime)
 echo "Skipping iptables rules save during build"
 
-# Create service to restore rules on boot
-cat > /etc/systemd/system/sandbox-network-filter.service << 'EOF'
-[Unit]
-Description=Sandbox Network Filter
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/share/sandbox/sandbox-init.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Enable the service (only if systemd is available)
-if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
-    systemctl enable sandbox-network-filter.service 2>/dev/null || true
-else
-    echo "Systemd not available - service will need to be enabled at runtime"
-fi
+# Note: Network filtering rules will be applied when the container starts.
+# The sandbox-init.sh script should be called from the container's entrypoint or startup process.
 
 # Make configuration immutable if requested
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then

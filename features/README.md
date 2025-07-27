@@ -59,7 +59,7 @@ Comprehensive development utilities with modern CLI tools, shell configurations,
 **Additional Features:**
 - **Shell configurations**: Pre-configured bashrc and zshrc with useful aliases
 - **Completions**: Automatic shell completions for CLI tools
-- **Shim scripts**: Helpful command fallbacks (code, systemctl, devcontainer-info)
+- **Shim scripts**: Helpful command fallbacks (code, devcontainer-info)
 
 ### Sandbox Network Filter (sandbox)
 
