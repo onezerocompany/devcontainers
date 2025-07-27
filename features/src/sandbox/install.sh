@@ -223,6 +223,12 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         "unpkg.com"
         "cdnjs.cloudflare.com"
         
+        # Google Fonts and related services
+        "fonts.googleapis.com"
+        "fonts.gstatic.com"
+        "*.googleapis.com"
+        "*.gstatic.com"
+        
         # Monitoring/Analytics (used by Claude)
         "sentry.io"
         
