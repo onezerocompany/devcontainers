@@ -129,19 +129,23 @@ jobs:
           - feature: sandbox
             scenario: wildcard-test
           
-          # chromium feature tests
-          - feature: chromium
-            scenario: install_default
-          - feature: chromium
-            scenario: install_with_puppeteer
-          - feature: chromium
-            scenario: install_with_playwright
-          - feature: chromium
-            scenario: install_with_chromedriver
-          - feature: chromium
-            scenario: install_custom_flags
-          - feature: chromium
-            scenario: install_on_ubuntu
+          # playwright feature tests
+          - feature: playwright
+            scenario: default
+          - feature: playwright
+            scenario: node_only
+          - feature: playwright
+            scenario: all_browsers
+          - feature: playwright
+            scenario: python_support
+          - feature: playwright
+            scenario: specific_version
+          - feature: playwright
+            scenario: no_browsers
+          - feature: playwright
+            scenario: ubuntu
+          - feature: playwright
+            scenario: multi_language
     steps:
       - name: Checkout
         uses: actions/checkout@v4

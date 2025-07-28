@@ -94,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        feature: [claude-code, mise-en-place, modern-shell, onezero-motd, sandbox, chromium]
+        feature: [claude-code, mise-en-place, modern-shell, onezero-motd, sandbox, playwright]
         scenario: [default]
         include:
           # Additional scenarios for claude-code
@@ -161,17 +161,21 @@ jobs:
           - feature: sandbox
             scenario: claude-disabled
 
-          # Additional scenarios for chromium
-          - feature: chromium
-            scenario: install_with_puppeteer
-          - feature: chromium
-            scenario: install_with_playwright
-          - feature: chromium
-            scenario: install_with_chromedriver
-          - feature: chromium
-            scenario: install_custom_flags
-          - feature: chromium
-            scenario: install_on_ubuntu
+          # Additional scenarios for playwright
+          - feature: playwright
+            scenario: node_only
+          - feature: playwright
+            scenario: all_browsers
+          - feature: playwright
+            scenario: python_support
+          - feature: playwright
+            scenario: specific_version
+          - feature: playwright
+            scenario: no_browsers
+          - feature: playwright
+            scenario: ubuntu
+          - feature: playwright
+            scenario: multi_language
 
     steps:
       - name: Checkout

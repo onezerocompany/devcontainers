@@ -1,0 +1,61 @@
+{
+	"id": "playwright",
+	"name": "Playwright",
+	"version": "1.0.0",
+	"description": "Installs Playwright and all browser dependencies for end-to-end testing in development containers.",
+	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/playwright",
+	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
+	"keywords": [
+		"playwright",
+		"testing",
+		"e2e",
+		"browser",
+		"chromium",
+		"firefox",
+		"webkit",
+		"headless",
+		"automation"
+	],
+	"options": {
+		"version": {
+			"type": "string",
+			"default": "latest",
+			"description": "Playwright version to install (e.g., '1.40.0', 'latest')"
+		},
+		"browsers": {
+			"type": "string",
+			"default": "chromium firefox webkit",
+			"description": "Space-separated list of browsers to install (chromium, firefox, webkit)"
+		},
+		"install_deps": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install system dependencies for browsers"
+		},
+		"install_node": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install Node.js if not already present"
+		},
+		"node_version": {
+			"type": "string",
+			"default": "lts",
+			"description": "Node.js version to install if needed (e.g., '18', 'lts', '20.10.0')"
+		},
+		"install_python": {
+			"type": "boolean",
+			"default": false,
+			"description": "Also install Playwright for Python"
+		},
+		"install_java": {
+			"type": "boolean",
+			"default": false,
+			"description": "Also install Playwright for Java"
+		},
+		"install_dotnet": {
+			"type": "boolean",
+			"default": false,
+			"description": "Also install Playwright for .NET"
+		}
+	}
+}

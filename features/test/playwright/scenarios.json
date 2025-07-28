@@ -1,0 +1,73 @@
+{
+	"default": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {}
+		}
+	},
+	"node_only": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {
+				"browsers": "chromium",
+				"install_python": false,
+				"install_java": false,
+				"install_dotnet": false
+			}
+		}
+	},
+	"all_browsers": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {
+				"browsers": "chromium firefox webkit",
+				"install_deps": true
+			}
+		}
+	},
+	"python_support": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {
+				"install_python": true,
+				"browsers": "chromium firefox"
+			}
+		}
+	},
+	"specific_version": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {
+				"version": "1.40.0",
+				"browsers": "chromium"
+			}
+		}
+	},
+	"no_browsers": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {
+				"install_deps": false,
+				"browsers": ""
+			}
+		}
+	},
+	"ubuntu": {
+		"image": "ubuntu:22.04",
+		"features": {
+			"playwright": {
+				"browsers": "chromium webkit"
+			}
+		}
+	},
+	"multi_language": {
+		"image": "debian:bullseye",
+		"features": {
+			"playwright": {
+				"install_python": true,
+				"install_java": true,
+				"browsers": "chromium"
+			}
+		}
+	}
+}
