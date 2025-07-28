@@ -22,19 +22,43 @@ apt-get install -y \
     wget \
     unzip
 
-# Check if mise is installed
-if ! command -v mise &> /dev/null; then
-    echo "mise is not installed. Please install mise first."
-    exit 1
-fi
-
-echo "Installing Playwright globally with mise..."
-if [ "$VERSION" = "latest" ]; then
-    mise exec bun -- add -g playwright
+# Detect available package manager
+if command -v mise &> /dev/null && mise exec bun -- --version &> /dev/null; then
+    echo "Using mise with bun to install Playwright..."
+    if [ "$VERSION" = "latest" ]; then
+        mise exec bun -- add -g playwright
+    else
+        mise exec bun -- add -g playwright@$VERSION
+    fi
+    PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
+elif command -v bun &> /dev/null; then
+    echo "Using bun to install Playwright..."
+    if [ "$VERSION" = "latest" ]; then
+        bun add -g playwright
+    else
+        bun add -g playwright@$VERSION
+    fi
+    PLAYWRIGHT_CMD="bunx playwright"
+elif command -v npm &> /dev/null; then
+    echo "Using npm to install Playwright..."
+    if [ "$VERSION" = "latest" ]; then
+        npm install -g playwright
+    else
+        npm install -g playwright@$VERSION
+    fi
+    PLAYWRIGHT_CMD="npx playwright"
 else
-    mise exec bun -- add -g playwright@$VERSION
+    echo "No suitable package manager found (mise+bun, bun, or npm)."
+    echo "Installing Node.js and npm..."
+    apt-get install -y nodejs npm
+    
+    if [ "$VERSION" = "latest" ]; then
+        npm install -g playwright
+    else
+        npm install -g playwright@$VERSION
+    fi
+    PLAYWRIGHT_CMD="npx playwright"
 fi
-PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
 
 # Install browsers
 echo "Installing Playwright browsers: $BROWSERS"
