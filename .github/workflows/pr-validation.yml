@@ -163,19 +163,17 @@ jobs:
 
           # Additional scenarios for playwright
           - feature: playwright
-            scenario: node_only
+            scenario: chromium_only
           - feature: playwright
             scenario: all_browsers
           - feature: playwright
-            scenario: python_support
+            scenario: firefox_webkit
           - feature: playwright
             scenario: specific_version
           - feature: playwright
-            scenario: no_browsers
+            scenario: no_deps
           - feature: playwright
             scenario: ubuntu
-          - feature: playwright
-            scenario: multi_language
 
     steps:
       - name: Checkout

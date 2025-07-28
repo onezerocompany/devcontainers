@@ -7,6 +7,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Feature options
 VERSION="${VERSION:-latest}"
+BROWSERS="${BROWSERS:-chromium firefox webkit}"
+INSTALL_DEPS="${INSTALL_DEPS:-true}"
 
 echo "Installing Playwright..."
 
@@ -21,7 +23,15 @@ apt-get install -y \
     unzip
 
 # Check for bun first (preferred), then fallback to npm
-if command -v bun >/dev/null 2>&1; then
+if command -v mise >/dev/null 2>&1; then
+    echo "Installing Playwright globally with mise..."
+    if [ "$VERSION" = "latest" ]; then
+        mise exec bun -- add -g playwright
+    else
+        mise exec bun -- add -g playwright@$VERSION
+    fi
+    PLAYWRIGHT_CMD="mise exec playwright"
+elif command -v bun >/dev/null 2>&1; then
     echo "Installing Playwright globally with bun..."
     if [ "$VERSION" = "latest" ]; then
         bun add -g playwright
@@ -42,9 +52,15 @@ else
     exit 1
 fi
 
-# Install all browsers with dependencies + ffmpeg
-echo "Installing all Playwright browsers with dependencies and ffmpeg..."
-$PLAYWRIGHT_CMD install chromium firefox webkit --with-deps
+# Install browsers
+echo "Installing Playwright browsers: $BROWSERS"
+if [ "$INSTALL_DEPS" = "true" ]; then
+    echo "Installing browsers with system dependencies..."
+    $PLAYWRIGHT_CMD install $BROWSERS --with-deps
+else
+    echo "Installing browsers without system dependencies..."
+    $PLAYWRIGHT_CMD install $BROWSERS
+fi
 
 # Determine the user
 USERNAME="${_REMOTE_USER:-"automatic"}"
@@ -133,6 +149,11 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 echo "Playwright installation complete!"
-echo "All browsers (chromium, firefox, webkit) installed with dependencies and ffmpeg"
+echo "Browsers installed: $BROWSERS"
+if [ "$INSTALL_DEPS" = "true" ]; then
+    echo "System dependencies were installed"
+else
+    echo "System dependencies were skipped"
+fi
 
 exit 0
