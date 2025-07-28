@@ -1,7 +1,7 @@
 {
 	"id": "playwright",
 	"name": "Playwright",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Installs Playwright and all browser dependencies for end-to-end testing in development containers.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/playwright",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",

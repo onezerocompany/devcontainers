@@ -5,25 +5,10 @@ set -e
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Enable error handling
-set -o pipefail
-
 # Feature options
 VERSION="${VERSION:-latest}"
-BROWSERS="${BROWSERS:-chromium firefox webkit}"
-INSTALL_DEPS="${INSTALL_DEPS:-true}"
-INSTALL_NODE="${INSTALL_NODE:-true}"
-NODE_VERSION="${NODE_VERSION:-lts}"
-INSTALL_PYTHON="${INSTALL_PYTHON:-false}"
-INSTALL_JAVA="${INSTALL_JAVA:-false}"
-INSTALL_DOTNET="${INSTALL_DOTNET:-false}"
 
 echo "Installing Playwright..."
-echo "Options: version=$VERSION, browsers=$BROWSERS"
-echo "Language support: Node=$INSTALL_NODE, Python=$INSTALL_PYTHON, Java=$INSTALL_JAVA, .NET=$INSTALL_DOTNET"
-
-# Get system architecture
-ARCH=$(dpkg --print-architecture)
 
 # Update package list
 apt-get update
@@ -32,187 +17,115 @@ apt-get update
 apt-get install -y \
     ca-certificates \
     curl \
-    gnupg \
-    lsb-release \
     wget \
     unzip
 
-# Install Node.js if requested and not already present
-if [ "$INSTALL_NODE" = "true" ] && ! command -v node >/dev/null 2>&1; then
-    echo "Installing Node.js..."
-    
-    # Determine Node.js version to install
-    if [ "$NODE_VERSION" = "lts" ]; then
-        NODE_MAJOR="20"  # Current LTS
-    elif [[ "$NODE_VERSION" =~ ^[0-9]+$ ]]; then
-        NODE_MAJOR="$NODE_VERSION"
+# Check for bun first (preferred), then fallback to npm
+if command -v bun >/dev/null 2>&1; then
+    echo "Installing Playwright globally with bun..."
+    if [ "$VERSION" = "latest" ]; then
+        bun add -g playwright
     else
-        # Specific version requested, extract major version
-        NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
+        bun add -g playwright@$VERSION
     fi
-    
-    # Install Node.js from NodeSource
-    curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash -
-    apt-get install -y nodejs
-    
-    # Verify installation
-    echo "Node.js version: $(node --version)"
-    echo "npm version: $(npm --version)"
-fi
-
-# Install Playwright for Node.js
-if command -v npm >/dev/null 2>&1; then
-    echo "Installing Playwright for Node.js..."
-    
-    # Install Playwright globally
+    PLAYWRIGHT_CMD="bunx playwright"
+elif command -v npm >/dev/null 2>&1; then
+    echo "Installing Playwright globally with npm..."
     if [ "$VERSION" = "latest" ]; then
         npm install -g playwright
     else
         npm install -g playwright@$VERSION
     fi
-    
-    # Install browsers and dependencies if requested
-    if [ "$INSTALL_DEPS" = "true" ]; then
-        echo "Installing Playwright browsers and dependencies..."
-        
-        # Install only the requested browsers
-        for browser in $BROWSERS; do
-            echo "Installing $browser..."
-            npx playwright install $browser --with-deps
-        done
-    fi
+    PLAYWRIGHT_CMD="npx playwright"
+else
+    echo "Error: Neither bun nor npm found. Please install one of them first."
+    exit 1
 fi
 
-# Install Playwright for Python if requested
-if [ "$INSTALL_PYTHON" = "true" ]; then
-    echo "Installing Playwright for Python..."
-    
-    # Ensure Python and pip are installed
-    if ! command -v python3 >/dev/null 2>&1; then
-        apt-get install -y python3 python3-pip
-    fi
-    
-    # Install Playwright
-    if [ "$VERSION" = "latest" ]; then
-        pip3 install playwright
+# Install all browsers with dependencies + ffmpeg
+echo "Installing all Playwright browsers with dependencies and ffmpeg..."
+$PLAYWRIGHT_CMD install chromium firefox webkit --with-deps
+
+# Determine the user
+USERNAME="${_REMOTE_USER:-"automatic"}"
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    local uid_1000_user
+    uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
+    local possible_users
+    if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
     else
-        pip3 install playwright==$VERSION
+        possible_users=("zero" "vscode" "node" "codespace")
     fi
-    
-    # Install browsers
-    if [ "$INSTALL_DEPS" = "true" ]; then
-        python3 -m playwright install
-        
-        # Install only requested browsers
-        for browser in $BROWSERS; do
-            python3 -m playwright install $browser --with-deps
-        done
+    for current_user in "${possible_users[@]}"; do
+        if id -u "${current_user}" > /dev/null 2>&1; then
+            USERNAME="${current_user}"
+            break
+        fi
+    done
+    if [ -z "${USERNAME}" ]; then
+        USERNAME="root"
     fi
+elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
+    USERNAME="root"
 fi
 
-# Install Playwright for Java if requested
-if [ "$INSTALL_JAVA" = "true" ]; then
-    echo "Installing Playwright for Java..."
+USER_HOME=$(getent passwd "$USERNAME" | cut -d: -f6)
+
+echo "Setting up environment variables for user: $USERNAME"
+
+# Set up environment variables for both bash and zsh
+setup_shell_env() {
+    local user="$1"
+    local home_dir="$2"
     
-    # Ensure Java is installed
-    if ! command -v java >/dev/null 2>&1; then
-        apt-get install -y default-jdk maven
+    # Ensure .bashrc exists
+    if [ ! -f "$home_dir/.bashrc" ]; then
+        touch "$home_dir/.bashrc"
     fi
     
-    # Create a directory for Playwright Java
-    mkdir -p /opt/playwright-java
-    
-    # Note: Java users typically add Playwright as a Maven/Gradle dependency
-    # We'll just ensure the system dependencies are installed
-    echo "Playwright for Java: Add playwright dependency to your pom.xml or build.gradle"
-fi
-
-# Install Playwright for .NET if requested
-if [ "$INSTALL_DOTNET" = "true" ]; then
-    echo "Installing Playwright for .NET..."
-    
-    # Install .NET if not present
-    if ! command -v dotnet >/dev/null 2>&1; then
-        # Install .NET SDK
-        wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-        chmod +x dotnet-install.sh
-        ./dotnet-install.sh --channel 8.0
-        rm dotnet-install.sh
-        
-        # Add to PATH
-        export PATH="$PATH:$HOME/.dotnet"
-        echo 'export PATH="$PATH:$HOME/.dotnet"' >> /etc/profile.d/dotnet.sh
+    # Ensure .zshrc exists  
+    if [ ! -f "$home_dir/.zshrc" ]; then
+        touch "$home_dir/.zshrc"
     fi
     
-    # Install PowerShell (required for Playwright .NET installation)
-    if ! command -v pwsh >/dev/null 2>&1; then
-        # Install PowerShell
-        apt-get install -y powershell
+    # Add Playwright environment variables to .bashrc
+    if ! grep -q "PLAYWRIGHT_BROWSERS_PATH" "$home_dir/.bashrc"; then
+        echo "" >> "$home_dir/.bashrc"
+        echo "# Playwright environment variables" >> "$home_dir/.bashrc"
+        echo "export PLAYWRIGHT_BROWSERS_PATH=/ms-playwright" >> "$home_dir/.bashrc"
+        echo "export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0" >> "$home_dir/.bashrc"
     fi
     
-    # Note: .NET users typically add Playwright via NuGet
-    echo "Playwright for .NET: Add Microsoft.Playwright package via NuGet to your project"
-fi
+    # Add Playwright environment variables to .zshrc
+    if ! grep -q "PLAYWRIGHT_BROWSERS_PATH" "$home_dir/.zshrc"; then
+        echo "" >> "$home_dir/.zshrc"
+        echo "# Playwright environment variables" >> "$home_dir/.zshrc"
+        echo "export PLAYWRIGHT_BROWSERS_PATH=/ms-playwright" >> "$home_dir/.zshrc"
+        echo "export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0" >> "$home_dir/.zshrc"
+    fi
+    
+    # Set proper ownership if not root
+    if [ "$user" != "root" ] && id "$user" &>/dev/null; then
+        chown "$user:$user" "$home_dir/.bashrc" 2>/dev/null || true
+        chown "$user:$user" "$home_dir/.zshrc" 2>/dev/null || true
+    fi
+}
 
-# Set up environment variables
-echo "Setting up environment variables..."
+# Configure for the main user
+setup_shell_env "$USERNAME" "$USER_HOME"
 
-# Create profile script for Playwright
+# Configure for root as well
+setup_shell_env "root" "/root"
+
+# Also create the profile script for system-wide access
 cat > /etc/profile.d/playwright.sh << 'EOF'
-# Playwright environment variables
 export PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
-
-# Add Playwright to NODE_PATH if Node.js is installed
-if command -v node >/dev/null 2>&1; then
-    export NODE_PATH="$(npm root -g):$NODE_PATH"
-fi
 EOF
 
 chmod +x /etc/profile.d/playwright.sh
-
-# Create a helper script for running Playwright tests
-cat > /usr/local/bin/playwright-test << 'EOF'
-#!/bin/bash
-# Helper script for running Playwright tests
-
-# Source the Playwright environment
-source /etc/profile.d/playwright.sh
-
-# Check if running Node.js tests (default)
-if [ -f "package.json" ] && command -v npm >/dev/null 2>&1; then
-    echo "Running Playwright tests with Node.js..."
-    npx playwright test "$@"
-elif [ -f "requirements.txt" ] && command -v python3 >/dev/null 2>&1; then
-    echo "Running Playwright tests with Python..."
-    python3 -m pytest "$@"
-elif [ -f "pom.xml" ] && command -v mvn >/dev/null 2>&1; then
-    echo "Running Playwright tests with Maven..."
-    mvn test "$@"
-elif [ -f "build.gradle" ] && command -v gradle >/dev/null 2>&1; then
-    echo "Running Playwright tests with Gradle..."
-    gradle test "$@"
-else
-    echo "No recognized test runner found. Running with npx playwright..."
-    npx playwright "$@"
-fi
-EOF
-
-chmod +x /usr/local/bin/playwright-test
-
-# Verify installation
-echo "Verifying Playwright installation..."
-
-if command -v npx >/dev/null 2>&1; then
-    echo "Playwright version: $(npx playwright --version)"
-    echo "Installed browsers:"
-    npx playwright --version || true
-fi
-
-if [ "$INSTALL_PYTHON" = "true" ] && command -v python3 >/dev/null 2>&1; then
-    echo "Playwright Python version:"
-    python3 -c "import playwright; print(f'playwright {playwright.__version__}')" || echo "Python playwright module not fully configured"
-fi
 
 # Clean up
 apt-get autoremove -y
@@ -220,8 +133,6 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 echo "Playwright installation complete!"
-echo "Test runner: /usr/local/bin/playwright-test"
-echo "Browsers installed: $BROWSERS"
+echo "All browsers (chromium, firefox, webkit) installed with dependencies and ffmpeg"
 
-# Ensure we exit with success
 exit 0
