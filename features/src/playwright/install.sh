@@ -22,35 +22,19 @@ apt-get install -y \
     wget \
     unzip
 
-# Check for bun first (preferred), then fallback to npm
-if command -v mise >/dev/null 2>&1; then
-    echo "Installing Playwright globally with mise..."
-    if [ "$VERSION" = "latest" ]; then
-        mise exec bun -- add -g playwright
-    else
-        mise exec bun -- add -g playwright@$VERSION
-    fi
-    PLAYWRIGHT_CMD="mise exec playwright"
-elif command -v bun >/dev/null 2>&1; then
-    echo "Installing Playwright globally with bun..."
-    if [ "$VERSION" = "latest" ]; then
-        bun add -g playwright
-    else
-        bun add -g playwright@$VERSION
-    fi
-    PLAYWRIGHT_CMD="bunx playwright"
-elif command -v npm >/dev/null 2>&1; then
-    echo "Installing Playwright globally with npm..."
-    if [ "$VERSION" = "latest" ]; then
-        npm install -g playwright
-    else
-        npm install -g playwright@$VERSION
-    fi
-    PLAYWRIGHT_CMD="npx playwright"
-else
-    echo "Error: Neither bun nor npm found. Please install one of them first."
+# Check if mise is installed
+if ! command -v mise &> /dev/null; then
+    echo "mise is not installed. Please install mise first."
     exit 1
 fi
+
+echo "Installing Playwright globally with mise..."
+if [ "$VERSION" = "latest" ]; then
+    mise exec bun -- add -g playwright
+else
+    mise exec bun -- add -g playwright@$VERSION
+fi
+PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
 
 # Install browsers
 echo "Installing Playwright browsers: $BROWSERS"
