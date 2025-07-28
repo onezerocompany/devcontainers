@@ -120,10 +120,19 @@ if [ "${CONFIGURE_CACHE}" = "true" ]; then
     # Make it writable by all users (containers may run as different users)
     chmod 777 "${MISE_CACHE_DIR}"
     
+    # Create subdirectories that mise commonly uses
+    mkdir -p "${MISE_CACHE_DIR}/github"
+    mkdir -p "${MISE_CACHE_DIR}/downloads"
+    mkdir -p "${MISE_CACHE_DIR}/http"
+    chmod -R 777 "${MISE_CACHE_DIR}"
+    
     # Also create a build-time cache that will be copied to the volume on first run
     BUILD_CACHE_DIR="/opt/mise-cache-build"
     mkdir -p "${BUILD_CACHE_DIR}"
-    chmod 777 "${BUILD_CACHE_DIR}"
+    mkdir -p "${BUILD_CACHE_DIR}/github"
+    mkdir -p "${BUILD_CACHE_DIR}/downloads"
+    mkdir -p "${BUILD_CACHE_DIR}/http"
+    chmod -R 777 "${BUILD_CACHE_DIR}"
     
     # Set MISE_CACHE_DIR for the rest of the install process ONLY if configuring cache
     export MISE_CACHE_DIR="${BUILD_CACHE_DIR}"
@@ -174,14 +183,18 @@ setup_shell_integration() {
         echo 'eval "$(mise activate zsh)"' >> "${target_home}/.zshrc"
     fi
     
-    # Create mise directories
+    # Create mise directories with proper structure
     mkdir -p "${target_home}/.config/mise"
     mkdir -p "${target_home}/.local/share/mise"
+    mkdir -p "${target_home}/.local/share/mise/installs"
+    mkdir -p "${target_home}/.local/share/mise/cache"
+    mkdir -p "${target_home}/.local/share/mise/downloads"
     
     # Set ownership if not root
     if [ "${target_user}" != "root" ]; then
         chown -R "${target_user}:${target_user}" "${target_home}/.local"
         chown -R "${target_user}:${target_user}" "${target_home}/.config/mise"
+        chown -R "${target_user}:${target_user}" "${target_home}/.local/share/mise"
     fi
 }
 

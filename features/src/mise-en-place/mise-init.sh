@@ -15,9 +15,43 @@ mkdir -p "${HOME}/.local/share/mise"
 mkdir -p "${HOME}/.config/mise"
 mkdir -p "${HOME}/.local/bin"
 
+# Fix permissions for user directories if they exist but have wrong permissions
+if [ -d "${HOME}/.local/share/mise" ] && [ ! -w "${HOME}/.local/share/mise" ]; then
+    echo "Fixing permissions for ${HOME}/.local/share/mise..."
+    sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/share/mise" 2>/dev/null || true
+fi
+
+if [ -d "${HOME}/.config/mise" ] && [ ! -w "${HOME}/.config/mise" ]; then
+    echo "Fixing permissions for ${HOME}/.config/mise..."
+    sudo chown -R "$(id -u):$(id -g)" "${HOME}/.config/mise" 2>/dev/null || true
+fi
+
+# Ensure all mise subdirectories have correct permissions
+mkdir -p "${HOME}/.local/share/mise/installs"
+mkdir -p "${HOME}/.local/share/mise/cache"
+mkdir -p "${HOME}/.local/share/mise/downloads"
+
 # Handle cache directory and copy build-time cache if needed
 if [ -n "${MISE_CACHE_DIR}" ]; then
-    mkdir -p "${MISE_CACHE_DIR}" 2>/dev/null || true
+    # Create cache directory if it doesn't exist
+    if [ ! -d "${MISE_CACHE_DIR}" ]; then
+        echo "Creating mise cache directory..."
+        sudo mkdir -p "${MISE_CACHE_DIR}" 2>/dev/null || mkdir -p "${MISE_CACHE_DIR}"
+    fi
+    
+    # Fix permissions on cache directory - make it world-writable
+    # This is necessary because containers may run as different users
+    if [ -d "${MISE_CACHE_DIR}" ] && [ ! -w "${MISE_CACHE_DIR}" ]; then
+        echo "Fixing permissions for mise cache directory..."
+        sudo chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
+    fi
+    
+    # Ensure cache subdirectories exist and are writable
+    for subdir in github downloads http; do
+        if [ ! -d "${MISE_CACHE_DIR}/${subdir}" ]; then
+            mkdir -p "${MISE_CACHE_DIR}/${subdir}" 2>/dev/null || true
+        fi
+    done
     
     # Copy build-time cache to volume if it exists and volume is empty
     BUILD_CACHE_DIR="/opt/mise-cache-build"
@@ -25,11 +59,14 @@ if [ -n "${MISE_CACHE_DIR}" ]; then
         echo "Copying build-time mise cache to volume..."
         cp -r "${BUILD_CACHE_DIR}"/* "${MISE_CACHE_DIR}/" 2>/dev/null || true
         # Ensure permissions are correct after copy
-        chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
+        sudo chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
         # Clean up build cache to save space
         echo "Cleaning up build-time cache..."
         rm -rf "${BUILD_CACHE_DIR}"
     fi
+    
+    # Final permission check and fix
+    sudo chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
 fi
 
 # Fix any legacy invalid system config if we have permission

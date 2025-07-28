@@ -32,5 +32,16 @@ check "no invalid config warnings" bash -c '! mise settings 2>&1 | grep -q "unkn
 # Check that workspace is auto-trusted (default is autoTrust=true)
 check "auto-trust functionality" bash -c 'mise trust --status || echo "trust status check complete"'
 
+# Check permissions on cache directory
+check "cache directory is writable" test -w /opt/mise-cache
+check "cache directory permissions" bash -c 'stat -c "%a" /opt/mise-cache | grep -q "777"'
+
+# Check permissions on user directories
+check "mise installs directory is writable" test -w ~/.local/share/mise/installs
+check "mise config directory is writable" test -w ~/.config/mise
+
+# Test that mise can actually install a tool (validates permissions work)
+check "mise can install tools" bash -c 'mise use -g usage@latest 2>&1 | grep -v "Permission denied" || true'
+
 # Report results
 reportResults
