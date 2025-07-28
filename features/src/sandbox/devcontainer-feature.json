@@ -1,8 +1,8 @@
 {
 	"id": "sandbox",
 	"name": "Sandbox Network Filter",
-	"version": "2.6.5",
-	"description": "Network traffic filtering for sandboxed environments using iptables. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication. Automatically allows domains from Claude Code WebFetch permissions.",
+	"version": "2.7.0",
+	"description": "Network traffic filtering for sandboxed environments using iptables. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication. Features periodic DNS refresh to handle dynamic IPs from CDNs and load balancers. Automatically allows domains from Claude Code WebFetch permissions.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
 	"options": {
 		"defaultPolicy": {
@@ -55,6 +55,16 @@
 			"type": "boolean",
 			"default": true,
 			"description": "Allow common development domains (package registries, GitHub, npm, pypi, etc.)"
+		},
+		"enableDnsRefresh": {
+			"type": "boolean", 
+			"default": true,
+			"description": "Enable periodic DNS resolution refresh to handle IP changes from CDNs and load balancers"
+		},
+		"dnsRefreshInterval": {
+			"type": "string",
+			"default": "300",
+			"description": "DNS refresh interval in seconds (default: 300 = 5 minutes)"
 		}
 	},
 	"capAdd": ["NET_ADMIN", "NET_RAW"],

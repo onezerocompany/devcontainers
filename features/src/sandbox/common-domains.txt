@@ -1,0 +1,147 @@
+# Common Development Domains
+# This file contains domains commonly used during development that should be allowed
+# in sandbox environments. Each line represents a domain that will be resolved to IPs
+# and added to the allowlist.
+
+# Package Registries
+registry.npmjs.org
+registry.yarnpkg.com
+pypi.org
+files.pythonhosted.org
+pypi.python.org
+rubygems.org
+crates.io
+index.crates.io
+repo.maven.apache.org
+repo1.maven.org
+central.maven.org
+proxy.golang.org
+sum.golang.org
+packagist.org
+api.nuget.org
+www.nuget.org
+pub.dev
+cdn.swift.org
+swiftpackageregistry.com
+deno.land
+jsr.io
+
+# Version Control
+github.com
+api.github.com
+raw.githubusercontent.com
+github.githubassets.com
+codeload.github.com
+gitlab.com
+bitbucket.org
+
+# GitHub CDN and additional endpoints
+*.github.com
+*.githubusercontent.com
+*.githubassets.com
+github-cloud.s3.amazonaws.com
+*.actions.githubusercontent.com
+github-production-user-asset-6210df.s3.amazonaws.com
+github-production-repository-file-5c1aeb.s3.amazonaws.com
+github-code-search-elasticsearch.s3.amazonaws.com
+
+# Container Registries
+hub.docker.com
+registry-1.docker.io
+auth.docker.io
+production.cloudflare.docker.com
+ghcr.io
+pkg.github.com
+
+# CDNs
+cdn.jsdelivr.net
+unpkg.com
+cdnjs.cloudflare.com
+
+# Google Fonts and related services
+fonts.googleapis.com
+fonts.gstatic.com
+*.googleapis.com
+*.gstatic.com
+
+# Monitoring/Analytics (used by Claude)
+sentry.io
+
+# Debian/Ubuntu Package Repositories
+deb.debian.org
+security.debian.org
+archive.ubuntu.com
+security.ubuntu.com
+packages.debian.org
+packages.ubuntu.com
+ppa.launchpad.net
+keyserver.ubuntu.com
+
+# GitHub Copilot and API
+copilot-proxy.githubusercontent.com
+copilot.github.com
+copilot-telemetry.github.com
+githubcopilot.com
+objects.githubusercontent.com
+gist.githubusercontent.com
+avatars.githubusercontent.com
+user-images.githubusercontent.com
+
+# GitHub Releases and Downloads
+releases.githubusercontent.com
+github-releases.githubusercontent.com
+uploads.github.com
+github-production-release-asset-2e65be.s3.amazonaws.com
+
+# Mise/UBI specific
+mise.run
+mise.jdx.dev
+
+# Bun specific
+bun.sh
+*.bun.sh
+
+# Schema and validation services
+schemastore.org
+*.schemastore.org
+json-schema.org
+*.json-schema.org
+schemastore.azurewebsites.net
+schema.management.azure.com
+
+# Development tools and services
+eslint.org
+prettier.io
+typescriptlang.org
+*.typescriptlang.org
+definitelytyped.org
+astexplorer.net
+bundlephobia.com
+packagephobia.com
+bundlejs.com
+esm.sh
+skypack.dev
+jspm.dev
+jspm.io
+turbo.build
+*.turbo.build
+
+# Documentation and learning
+devdocs.io
+mdn.mozilla.org
+developer.mozilla.org
+w3.org
+*.w3.org
+whatwg.org
+*.whatwg.org
+caniuse.com
+webplatform.org
+
+# VSCode and extensions
+marketplace.visualstudio.com
+*.visualstudio.com
+*.vscode-cdn.net
+*.vscode.dev
+update.code.visualstudio.com
+vscode.blob.core.windows.net
+dc.services.visualstudio.com

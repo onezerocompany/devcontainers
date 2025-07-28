@@ -22,6 +22,8 @@ LOG_BLOCKED="${LOGBLOCKED:-true}"
 ALLOW_CLAUDE_WEBFETCH_DOMAINS="${ALLOWCLAUDEWEBFETCHDOMAINS:-true}"
 CLAUDE_SETTINGS_PATHS="${CLAUDESETTINGSPATHS:-.claude/settings.json,.claude/settings.local.json,~/.claude/settings.json}"
 ALLOW_COMMON_DEVELOPMENT="${ALLOWCOMMONDEVELOPMENT:-true}"
+ENABLE_DNS_REFRESH="${ENABLEDNSREFRESH:-true}"
+DNS_REFRESH_INTERVAL="${DNSREFRESHINTERVAL:-300}"
 
 echo "Installing Sandbox Network Filter..."
 
@@ -41,12 +43,38 @@ echo iptables-persistent iptables-persistent/autosave_v6 boolean false | debconf
 echo "Running apt-get update..."
 apt-get update -qq
 echo "Installing packages..."
-apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils
-echo "Package installation complete"
+
+# Install cron if DNS refresh is enabled (for fallback)
+if [ "$ENABLE_DNS_REFRESH" = "true" ]; then
+    apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils cron
+    echo "Package installation complete (with cron for DNS refresh)"
+else
+    apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils
+    echo "Package installation complete"
+fi
 
 # Create sandbox directories
 mkdir -p /usr/local/share/sandbox
 mkdir -p /etc/sandbox
+
+# Copy common domains file
+cp "$(dirname "$0")/common-domains.txt" /usr/local/share/sandbox/ || {
+    echo "Warning: Could not copy common-domains.txt, creating basic version"
+    cat > /usr/local/share/sandbox/common-domains.txt << 'DOMAINS_EOF'
+# Basic common development domains
+github.com
+api.github.com
+registry.npmjs.org
+pypi.org
+hub.docker.com
+DOMAINS_EOF
+}
+
+# Copy DNS refresh script
+cp "$(dirname "$0")/dns-refresh.sh" /usr/local/share/sandbox/ || {
+    echo "Warning: Could not copy dns-refresh.sh"
+}
+chmod +x /usr/local/share/sandbox/dns-refresh.sh
 
 # Create iptables rule management script 
 cat > /usr/local/share/sandbox/setup-rules.sh << 'EOF'
@@ -166,168 +194,30 @@ fi
 if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
     echo "Adding common development domains..."
     
-    # Define common development domains
-    COMMON_DEV_DOMAINS=(
-        # Package Registries
-        "registry.npmjs.org"
-        "registry.yarnpkg.com"
-        "pypi.org"
-        "files.pythonhosted.org"
-        "pypi.python.org"
-        "rubygems.org"
-        "crates.io"
-        "index.crates.io"
-        "repo.maven.apache.org"
-        "repo1.maven.org"
-        "central.maven.org"
-        "proxy.golang.org"
-        "sum.golang.org"
-        "packagist.org"
-        "api.nuget.org"
-        "www.nuget.org"
-        "pub.dev"
-        "cdn.swift.org"
-        "swiftpackageregistry.com"
-        "deno.land"
-        "jsr.io"
-        
-        # Version Control
-        "github.com"
-        "api.github.com"
-        "raw.githubusercontent.com"
-        "github.githubassets.com"
-        "codeload.github.com"
-        "gitlab.com"
-        "bitbucket.org"
-        
-        # GitHub CDN and additional endpoints
-        "*.github.com"
-        "*.githubusercontent.com"
-        "*.githubassets.com"
-        "github-cloud.s3.amazonaws.com"
-        "*.actions.githubusercontent.com"
-        "github-production-user-asset-6210df.s3.amazonaws.com"
-        "github-production-repository-file-5c1aeb.s3.amazonaws.com"
-        "github-code-search-elasticsearch.s3.amazonaws.com"
-        
-        # Container Registries
-        "hub.docker.com"
-        "registry-1.docker.io"
-        "auth.docker.io"
-        "production.cloudflare.docker.com"
-        "ghcr.io"
-        "pkg.github.com"
-        
-        # CDNs
-        "cdn.jsdelivr.net"
-        "unpkg.com"
-        "cdnjs.cloudflare.com"
-        
-        # Google Fonts and related services
-        "fonts.googleapis.com"
-        "fonts.gstatic.com"
-        "*.googleapis.com"
-        "*.gstatic.com"
-        
-        # Monitoring/Analytics (used by Claude)
-        "sentry.io"
-        
-        # Debian/Ubuntu Package Repositories
-        "deb.debian.org"
-        "security.debian.org"
-        "archive.ubuntu.com"
-        "security.ubuntu.com"
-        "packages.debian.org"
-        "packages.ubuntu.com"
-        "ppa.launchpad.net"
-        "keyserver.ubuntu.com"
-        
-        # GitHub Copilot and API
-        "copilot-proxy.githubusercontent.com"
-        "copilot.github.com"
-        "copilot-telemetry.github.com"
-        "githubcopilot.com"
-        "objects.githubusercontent.com"
-        "gist.githubusercontent.com"
-        "avatars.githubusercontent.com"
-        "user-images.githubusercontent.com"
-        
-        # GitHub Releases and Downloads
-        "releases.githubusercontent.com"
-        "github-releases.githubusercontent.com"
-        "uploads.github.com"
-        "github-production-release-asset-2e65be.s3.amazonaws.com"
-        
-        # Mise/UBI specific
-        "mise.run"
-        "mise.jdx.dev"
-        
-        # Bun specific
-        "bun.sh"
-        "*.bun.sh"
-        
-        # Schema and validation services
-        "schemastore.org"
-        "*.schemastore.org"
-        "json-schema.org"
-        "*.json-schema.org"
-        "schemastore.azurewebsites.net"
-        "schema.management.azure.com"
-        
-        # Development tools and services
-        "eslint.org"
-        "prettier.io"
-        "typescriptlang.org"
-        "*.typescriptlang.org"
-        "definitelytyped.org"
-        "astexplorer.net"
-        "bundlephobia.com"
-        "packagephobia.com"
-        "bundlejs.com"
-        "esm.sh"
-        "skypack.dev"
-        "jspm.dev"
-        "jspm.io"
-        "turbo.build"
-        "*.turbo.build"
-        
-        # Documentation and learning
-        "devdocs.io"
-        "mdn.mozilla.org"
-        "developer.mozilla.org"
-        "w3.org"
-        "*.w3.org"
-        "whatwg.org"
-        "*.whatwg.org"
-        "caniuse.com"
-        "webplatform.org"
-        
-        # VSCode and extensions
-        "marketplace.visualstudio.com"
-        "*.visualstudio.com"
-        "*.vscode-cdn.net"
-        "*.vscode.dev"
-        "update.code.visualstudio.com"
-        "vscode.blob.core.windows.net"
-        "dc.services.visualstudio.com"
-    )
-    
-    for domain in "${COMMON_DEV_DOMAINS[@]}"; do
-        echo -n "  Resolving $domain... "
-        # Resolve domain to IPs with timeout
-        resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
-        
-        if [ -n "$resolved_ips" ]; then
-            echo "OK"
-            while IFS= read -r ip; do
-                if [ -n "$ip" ]; then
-                    iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
-                fi
-            done <<< "$resolved_ips"
-        else
-            echo "FAILED (could not resolve)"
-        fi
-    done
+    # Read domains from common-domains.txt file
+    if [ -f "/usr/local/share/sandbox/common-domains.txt" ]; then
+        while IFS= read -r domain; do
+            # Skip comments and empty lines
+            [[ "$domain" =~ ^#.*$ ]] || [[ -z "$domain" ]] && continue
+            
+            echo -n "  Resolving $domain... "
+            # Resolve domain to IPs with timeout
+            resolved_ips=$(timeout 5 dig +short +time=2 +tries=1 "$domain" A 2>/dev/null | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$' || true)
+            
+            if [ -n "$resolved_ips" ]; then
+                echo "OK"
+                while IFS= read -r ip; do
+                    if [ -n "$ip" ]; then
+                        iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$ip" -j ACCEPT
+                    fi
+                done <<< "$resolved_ips"
+            else
+                echo "FAILED (could not resolve)"
+            fi
+        done < "/usr/local/share/sandbox/common-domains.txt"
+    else
+        echo "  Warning: common-domains.txt not found, skipping common development domains"
+    fi
 fi
 
 # Common subdomains for developers
@@ -674,6 +564,8 @@ LOG_BLOCKED="$LOG_BLOCKED"
 ALLOW_CLAUDE_WEBFETCH_DOMAINS="$ALLOW_CLAUDE_WEBFETCH_DOMAINS"
 CLAUDE_SETTINGS_PATHS="$CLAUDE_SETTINGS_PATHS"
 ALLOW_COMMON_DEVELOPMENT="$ALLOW_COMMON_DEVELOPMENT"
+ENABLE_DNS_REFRESH="$ENABLE_DNS_REFRESH"
+DNS_REFRESH_INTERVAL="$DNS_REFRESH_INTERVAL"
 EOF
 
 # Add individual domains to config file for test validation
@@ -771,6 +663,25 @@ fi
 # Setup iptables rules (USE_SUDO is exported above)
 /usr/local/share/sandbox/setup-rules.sh "$ALLOW_DOCKER_NETWORKS" "$ALLOW_LOCALHOST" "$DEFAULT_POLICY" "$LOG_BLOCKED" "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" "$CLAUDE_SETTINGS_PATHS" "$ALLOWED_DOMAINS" "$BLOCKED_DOMAINS" "$ALLOW_COMMON_DEVELOPMENT"
 
+# Start DNS refresh daemon if enabled (cron fallback already configured)
+if [ "$ENABLE_DNS_REFRESH" = "true" ] && [ -x /usr/local/share/sandbox/dns-refresh.sh ]; then
+    echo "Starting DNS refresh daemon..."
+    
+    # Ensure cron service is running (needed for fallback)
+    if command -v service >/dev/null 2>&1; then
+        service cron start 2>/dev/null || true
+    elif command -v systemctl >/dev/null 2>&1; then
+        systemctl start cron 2>/dev/null || true
+    fi
+    
+    # Start daemon (cron-based fallback is already configured during install)
+    if DNS_REFRESH_INTERVAL="$DNS_REFRESH_INTERVAL" /usr/local/share/sandbox/dns-refresh.sh --start 2>/dev/null; then
+        echo "DNS refresh daemon started successfully"
+    else
+        echo "DNS refresh daemon failed to start - using cron-based fallback"
+    fi
+fi
+
 # Make immutable if configured
 if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     echo "Making configuration immutable..."
@@ -780,7 +691,7 @@ if [ "$IMMUTABLE_CONFIG" = "true" ]; then
     else
         iptables-save > /etc/iptables/rules.v4
     fi
-    # Make config files read-only
+    # Make config files read-only (but not the DNS cache)
     if [ "$USE_SUDO" = "1" ]; then
         sudo chmod 444 /etc/sandbox/config
         sudo chattr +i /etc/sandbox/config 2>/dev/null || true
@@ -806,6 +717,8 @@ cat > /usr/local/share/devcontainer-init.d/50-sandbox.sh << 'EOF'
 #!/bin/bash
 # Initialize sandbox network filter
 if [ -x /usr/local/share/sandbox/sandbox-init.sh ]; then
+    # Ensure the sandbox init script inherits proper environment
+    export USER="${USER:-zero}"
     /usr/local/share/sandbox/sandbox-init.sh
 fi
 EOF
@@ -825,6 +738,22 @@ fi
 echo "# Allow zero user to manage sandbox network filtering" > /etc/sudoers.d/sandbox-iptables
 echo "zero ALL=(root) NOPASSWD: /usr/sbin/iptables, /usr/sbin/iptables-save, /usr/sbin/ip6tables, /usr/sbin/ip6tables-save, /usr/bin/chmod, /usr/bin/chattr" >> /etc/sudoers.d/sandbox-iptables
 chmod 440 /etc/sudoers.d/sandbox-iptables
+
+# Setup cron-based DNS refresh as fallback (if enabled)
+if [ "$ENABLE_DNS_REFRESH" = "true" ]; then
+    echo "Setting up cron-based DNS refresh fallback..."
+    
+    # Calculate cron interval (default 5 minutes)
+    interval_minutes=$((DNS_REFRESH_INTERVAL / 60))
+    [ "$interval_minutes" -lt 1 ] && interval_minutes=5
+    
+    # Create cron job for DNS refresh
+    cron_entry="*/$interval_minutes * * * * /usr/local/share/sandbox/dns-refresh.sh --refresh >/dev/null 2>&1"
+    
+    # Add to root's crontab as fallback
+    (crontab -l 2>/dev/null || true; echo "$cron_entry") | crontab -
+    echo "Cron-based DNS refresh scheduled every $interval_minutes minutes (fallback method)"
+fi
 
 echo "✓ Sandbox Network Filter installed successfully"
 echo "  Default policy: $DEFAULT_POLICY"
