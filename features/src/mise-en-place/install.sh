@@ -38,12 +38,47 @@ else
     USER_HOME="/home/${USERNAME}"
 fi
 
-# Install mise
+# Install mise with retry logic
 echo "Installing mise version: ${VERSION}..."
-if [ "${VERSION}" = "latest" ]; then
-    curl -fsSL https://mise.run | sh
-else
-    curl -fsSL https://mise.run | MISE_VERSION="${VERSION}" sh
+MAX_RETRIES=5
+RETRY_DELAY=5
+
+# Function to download mise with retries
+download_mise() {
+    local attempt=1
+    while [ $attempt -le $MAX_RETRIES ]; do
+        echo "Attempting to download mise (attempt $attempt/$MAX_RETRIES)..."
+        
+        # Try to download mise
+        if [ "${VERSION}" = "latest" ]; then
+            if curl -fsSL https://mise.run | sh; then
+                echo "Successfully downloaded and installed mise"
+                return 0
+            fi
+        else
+            if curl -fsSL https://mise.run | MISE_VERSION="${VERSION}" sh; then
+                echo "Successfully downloaded and installed mise version ${VERSION}"
+                return 0
+            fi
+        fi
+        
+        # If we get here, the download failed
+        if [ $attempt -lt $MAX_RETRIES ]; then
+            echo "Download failed, retrying in ${RETRY_DELAY} seconds..."
+            sleep $RETRY_DELAY
+        fi
+        
+        attempt=$((attempt + 1))
+    done
+    
+    echo "ERROR: Failed to download mise after $MAX_RETRIES attempts"
+    return 1
+}
+
+# Download mise with retry logic
+if ! download_mise; then
+    echo "Failed to install mise"
+    exit 1
 fi
 
 # Move mise to system location
@@ -95,6 +130,8 @@ if [ "${CONFIGURE_CACHE}" = "true" ]; then
 else
     # Make sure MISE_CACHE_DIR is not set
     unset MISE_CACHE_DIR
+    # Remove the cache directory if it was created by the volume mount
+    rm -rf /opt/mise-cache 2>/dev/null || true
 fi
 
 # Set up shell integration for both user and root

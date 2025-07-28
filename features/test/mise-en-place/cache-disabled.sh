@@ -13,8 +13,9 @@ check "mise version" mise --version
 # When configureCache is false, MISE_CACHE_DIR should not be set
 check "MISE_CACHE_DIR not set" bash -c '[ -z "$MISE_CACHE_DIR" ]'
 
-# The cache directory /opt/mise-cache should not exist
-check "cache directory not created" bash -c '! test -d /opt/mise-cache'
+# The cache directory /opt/mise-cache may exist due to volume mount but should be empty
+# (Docker creates mount points automatically)
+check "cache directory empty or not created" bash -c '! test -d /opt/mise-cache || [ -z "$(ls -A /opt/mise-cache 2>/dev/null)" ]'
 
 # Check shell integration still works
 check "bash integration" grep -q "mise activate bash" ~/.bashrc

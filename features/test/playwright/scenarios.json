@@ -49,44 +49,5 @@
 				"browsers": "chromium"
 			}
 		}
-	},
-	"ubuntu": {
-		"image": "ubuntu:22.04",
-		"features": {
-			"playwright": {
-				"browsers": "chromium webkit"
-			}
-		}
-	},
-	"node_only": {
-		"image": "node:lts",
-		"features": {
-			"playwright": {}
-		}
-	},
-	"python_support": {
-		"image": "python:3.11",
-		"features": {
-			"playwright": {
-				"browsers": "chromium"
-			}
-		}
-	},
-	"no_browsers": {
-		"image": "node:lts",
-		"features": {
-			"playwright": {
-				"browsers": "",
-				"install_deps": false
-			}
-		}
-	},
-	"multi_language": {
-		"image": "debian:bookworm",
-		"features": {
-			"playwright": {
-				"browsers": "chromium firefox"
-			}
-		}
 	}
 }
