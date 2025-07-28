@@ -34,5 +34,21 @@
                 "installNodeLTS": true
             }
         }
+    },
+    "deprecated-bun-option": {
+        "image": "debian:bookworm",
+        "features": {
+            "ghcr.io/onezerocompany/features/mise-en-place": {
+                "installBun": true
+            }
+        }
+    },
+    "specific-version": {
+        "image": "debian:bookworm",
+        "features": {
+            "ghcr.io/onezerocompany/features/mise-en-place": {
+                "version": "2024.1.0"
+            }
+        }
     }
 }

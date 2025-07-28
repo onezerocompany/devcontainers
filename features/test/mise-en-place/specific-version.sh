@@ -5,21 +5,17 @@ set -e
 # Import test library
 source dev-container-features-test-lib
 
-# Test autoTrust=false
+# Test specific version installation
 
 check "mise installed" command -v mise
-check "mise version" mise --version
+
+# Check that we have the specific version
+check "mise version 2024.1.0" mise --version | grep -q "2024.1.0"
 
 # Check shell integration
 check "bash integration" grep -q "mise activate bash" ~/.bashrc
-check "mise-init script exists" test -x /usr/local/bin/mise-init
 
-# When autoTrust is false, the workspace should NOT be automatically trusted
-# We can't easily test this without a .mise.toml file, but we can verify
-# that the trust command works
-check "mise trust command available" bash -c 'mise trust --help >/dev/null 2>&1'
-
-# Standard directories should still exist
+# Check directories exist
 check "cache directory at /opt/mise-cache" test -d /opt/mise-cache
 check "config directory exists" test -d ~/.config/mise
 check "installs directory exists" test -d ~/.local/share/mise

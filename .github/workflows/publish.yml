@@ -76,6 +76,8 @@ jobs:
             scenario: deprecated-bun-option
           - feature: mise-en-place
             scenario: specific-version
+          - feature: mise-en-place
+            scenario: build-cache-copy
           
           # modern-shell feature tests
           - feature: modern-shell

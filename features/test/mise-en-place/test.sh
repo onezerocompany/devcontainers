@@ -15,9 +15,10 @@ check "bash auto-init" grep -q "mise-init" ~/.bashrc
 check "zsh integration exists" bash -c 'if command -v zsh >/dev/null 2>&1 && [ -f ~/.zshrc ]; then grep -q "mise activate zsh" ~/.zshrc; else echo "zsh not available or configured - OK"; fi'
 
 # Check directories exist
-check "cache directory exists" test -d ~/.cache/mise
+check "cache directory at /opt/mise-cache" test -d /opt/mise-cache
 check "config directory exists" test -d ~/.config/mise
 check "installs directory exists" test -d ~/.local/share/mise
+check "MISE_CACHE_DIR is set" bash -c 'echo $MISE_CACHE_DIR | grep -q "/opt/mise-cache"'
 
 # Check mise-init script is installed
 check "mise-init script exists" test -x /usr/local/bin/mise-init
