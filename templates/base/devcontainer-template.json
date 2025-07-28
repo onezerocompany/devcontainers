@@ -1,6 +1,6 @@
 {
   "id": "base",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "OneZero Base Dev Container",
   "platforms": ["linux/amd64", "linux/arm64"],
   "keywords": ["onezero", "base"]

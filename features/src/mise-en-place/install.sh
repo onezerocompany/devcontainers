@@ -75,22 +75,23 @@ chmod +x /usr/local/bin/mise
 cp "$(dirname "$0")/mise-init.sh" /usr/local/bin/mise-init
 chmod +x /usr/local/bin/mise-init
 
-# Configure mise directories for volume mounting
+# Configure mise cache directory for volume mounting
 if [ "${CONFIGURE_CACHE}" = "true" ]; then
-    # Create all mise directories that will be volume mounted
-    MISE_CACHE_DIR="${USER_HOME}/.cache/mise"
-    MISE_INSTALLS_DIR="${USER_HOME}/.local/share/mise"
-    MISE_CONFIG_DIR="${USER_HOME}/.config/mise"
+    # Create cache directory that will be volume mounted
+    MISE_CACHE_DIR="/opt/mise-cache"
     
     mkdir -p "${MISE_CACHE_DIR}"
-    mkdir -p "${MISE_INSTALLS_DIR}"
-    mkdir -p "${MISE_CONFIG_DIR}"
     
-    if [ "${USERNAME}" != "root" ]; then
-        chown -R "${USERNAME}:${USERNAME}" "${MISE_CACHE_DIR}"
-        chown -R "${USERNAME}:${USERNAME}" "${MISE_INSTALLS_DIR}"
-        chown -R "${USERNAME}:${USERNAME}" "${MISE_CONFIG_DIR}"
-    fi
+    # Make it writable by all users (containers may run as different users)
+    chmod 777 "${MISE_CACHE_DIR}"
+    
+    # Also create a build-time cache that will be copied to the volume on first run
+    BUILD_CACHE_DIR="/opt/mise-cache-build"
+    mkdir -p "${BUILD_CACHE_DIR}"
+    chmod 777 "${BUILD_CACHE_DIR}"
+    
+    # Set MISE_CACHE_DIR for the rest of the install process
+    export MISE_CACHE_DIR="${BUILD_CACHE_DIR}"
 fi
 
 # Set up shell integration for both user and root
@@ -107,6 +108,9 @@ setup_shell_integration() {
         echo '# mise-en-place' >> "${target_home}/.bashrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.bashrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.bashrc"
+        if [ "${CONFIGURE_CACHE}" = "true" ]; then
+            echo 'export MISE_CACHE_DIR="/opt/mise-cache"' >> "${target_home}/.bashrc"
+        fi
         echo '# Auto-initialize mise on first use' >> "${target_home}/.bashrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.bashrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.bashrc"
@@ -120,6 +124,9 @@ setup_shell_integration() {
         echo '# mise-en-place' >> "${target_home}/.zshrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.zshrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.zshrc"
+        if [ "${CONFIGURE_CACHE}" = "true" ]; then
+            echo 'export MISE_CACHE_DIR="/opt/mise-cache"' >> "${target_home}/.zshrc"
+        fi
         echo '# Auto-initialize mise on first use' >> "${target_home}/.zshrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.zshrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.zshrc"
@@ -135,10 +142,6 @@ setup_shell_integration() {
     if [ "${target_user}" != "root" ]; then
         chown -R "${target_user}:${target_user}" "${target_home}/.local"
         chown -R "${target_user}:${target_user}" "${target_home}/.config/mise"
-        if [ "${CONFIGURE_CACHE}" = "true" ]; then
-            chown -R "${target_user}:${target_user}" "${target_home}/.cache/mise" 2>/dev/null || true
-            chown -R "${target_user}:${target_user}" "${target_home}/.local/share/mise" 2>/dev/null || true
-        fi
     fi
 }
 

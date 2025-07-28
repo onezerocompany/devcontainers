@@ -4,7 +4,7 @@
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "features": {
-    "ghcr.io/onezerocompany/features/mise-en-place:1": {},
+    "ghcr.io/onezerocompany/features/mise-en-place:2": {},
     "ghcr.io/onezerocompany/features/modern-shell:1": {},
     "ghcr.io/onezerocompany/features/onezero-motd:2": {}
   }

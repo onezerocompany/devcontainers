@@ -3,7 +3,7 @@
 	"image": "ghcr.io/onezerocompany/base",
 	"remoteUser": "zero",
 	"features": {
-		"ghcr.io/onezerocompany/features/mise-en-place:1": {},
+		"ghcr.io/onezerocompany/features/mise-en-place:2": {},
 		"ghcr.io/onezerocompany/features/modern-shell:1": {},
 		"ghcr.io/onezerocompany/features/claude-code:1": {},
 		"ghcr.io/onezerocompany/features/sandbox:2": {}

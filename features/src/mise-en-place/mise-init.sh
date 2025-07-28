@@ -11,9 +11,26 @@ fi
 echo "Initializing mise directories..."
 
 # Ensure mise directories exist with correct permissions
-mkdir -p "${HOME}/.cache/mise"
 mkdir -p "${HOME}/.local/share/mise"
 mkdir -p "${HOME}/.config/mise"
+mkdir -p "${HOME}/.local/bin"
+
+# Handle cache directory and copy build-time cache if needed
+if [ -n "${MISE_CACHE_DIR}" ]; then
+    mkdir -p "${MISE_CACHE_DIR}" 2>/dev/null || true
+    
+    # Copy build-time cache to volume if it exists and volume is empty
+    BUILD_CACHE_DIR="/opt/mise-cache-build"
+    if [ -d "${BUILD_CACHE_DIR}" ] && [ -z "$(ls -A "${MISE_CACHE_DIR}" 2>/dev/null)" ]; then
+        echo "Copying build-time mise cache to volume..."
+        cp -r "${BUILD_CACHE_DIR}"/* "${MISE_CACHE_DIR}/" 2>/dev/null || true
+        # Ensure permissions are correct after copy
+        chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
+        # Clean up build cache to save space
+        echo "Cleaning up build-time cache..."
+        rm -rf "${BUILD_CACHE_DIR}"
+    fi
+fi
 
 # Fix any legacy invalid system config if we have permission
 if [ -w "/etc/mise/config.toml" ] && grep -q "node_compile\|bun_backend\|npm\.bun" /etc/mise/config.toml 2>/dev/null; then

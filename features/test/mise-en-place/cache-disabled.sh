@@ -10,9 +10,11 @@ source dev-container-features-test-lib
 check "mise installed" command -v mise
 check "mise version" mise --version
 
-# When configureCache is false, the cache directory should not be pre-configured
-# but mise will still create it on first use
-check "mise works without pre-configured cache" mise --version
+# When configureCache is false, MISE_CACHE_DIR should not be set
+check "MISE_CACHE_DIR not set" bash -c '[ -z "$MISE_CACHE_DIR" ]'
+
+# The cache directory /opt/mise-cache should not exist
+check "cache directory not created" bash -c '! test -d /opt/mise-cache'
 
 # Check shell integration still works
 check "bash integration" grep -q "mise activate bash" ~/.bashrc
@@ -22,9 +24,8 @@ check "mise-init script exists" test -x /usr/local/bin/mise-init
 check "config directory exists" test -d ~/.config/mise
 check "installs directory exists" test -d ~/.local/share/mise
 
-# The cache directory might not exist until mise is actually used
-# So we just check that mise can create it when needed
-check "mise can create cache on demand" bash -c 'mise settings >/dev/null 2>&1 && test -d ~/.cache/mise || echo "Cache will be created on first use"'
+# Mise will use default cache location when MISE_CACHE_DIR is not set
+check "mise works with default cache" mise --version
 
 # Report results
 reportResults
