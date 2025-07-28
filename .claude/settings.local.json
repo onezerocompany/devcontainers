@@ -110,7 +110,9 @@
       "WebFetch(domain:docs.anthropic.com)",
       "mcp__github__list_commits",
       "Bash(/tmp/debug_aliases.sh:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "mcp__github__rerun_failed_jobs",
+      "mcp__github__rerun_workflow_run"
     ],
     "deny": []
   }

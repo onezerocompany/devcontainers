@@ -46,10 +46,10 @@ echo "Installing packages..."
 
 # Install cron if DNS refresh is enabled (for fallback)
 if [ "$ENABLE_DNS_REFRESH" = "true" ]; then
-    apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils cron
+    apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils cron curl
     echo "Package installation complete (with cron for DNS refresh)"
 else
-    apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils
+    apt-get install -y -qq --no-install-recommends sudo iptables iptables-persistent netfilter-persistent jq dnsutils curl
     echo "Package installation complete"
 fi
 
@@ -217,6 +217,40 @@ if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ]; then
         done < "/usr/local/share/sandbox/common-domains.txt"
     else
         echo "  Warning: common-domains.txt not found, skipping common development domains"
+    fi
+    
+    # Add GitHub IP ranges from their official API
+    echo "Adding GitHub IP ranges..."
+    github_meta=$(timeout 10 curl -s https://api.github.com/meta 2>/dev/null || true)
+    
+    if [ -n "$github_meta" ]; then
+        # Extract all IP ranges from GitHub's meta endpoint
+        # This includes: hooks, web, api, git, packages, pages, importer, actions, dependabot
+        github_ip_ranges=$(echo "$github_meta" | jq -r '
+            (.hooks // [])[], 
+            (.web // [])[], 
+            (.api // [])[], 
+            (.git // [])[], 
+            (.packages // [])[], 
+            (.pages // [])[], 
+            (.importer // [])[], 
+            (.actions // [])[], 
+            (.dependabot // [])[]
+        ' 2>/dev/null | sort -u | grep -E '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' || true)
+        
+        if [ -n "$github_ip_ranges" ]; then
+            echo "  Found GitHub IP ranges:"
+            while IFS= read -r cidr; do
+                if [ -n "$cidr" ]; then
+                    echo "    Allowing: $cidr"
+                    iptables_cmd -t filter -A SANDBOX_OUTPUT -d "$cidr" -j ACCEPT
+                fi
+            done <<< "$github_ip_ranges"
+        else
+            echo "  Warning: Could not extract GitHub IP ranges"
+        fi
+    else
+        echo "  Warning: Could not fetch GitHub IP metadata"
     fi
 fi
 
