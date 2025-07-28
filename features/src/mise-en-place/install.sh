@@ -90,8 +90,11 @@ if [ "${CONFIGURE_CACHE}" = "true" ]; then
     mkdir -p "${BUILD_CACHE_DIR}"
     chmod 777 "${BUILD_CACHE_DIR}"
     
-    # Set MISE_CACHE_DIR for the rest of the install process
+    # Set MISE_CACHE_DIR for the rest of the install process ONLY if configuring cache
     export MISE_CACHE_DIR="${BUILD_CACHE_DIR}"
+else
+    # Make sure MISE_CACHE_DIR is not set
+    unset MISE_CACHE_DIR
 fi
 
 # Set up shell integration for both user and root
@@ -160,12 +163,22 @@ echo "Configuring mise settings..."
 # We'll only use user-level config to avoid permission issues
 rm -f /etc/mise/config.toml
 
-# Also create default user config
-cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
+# Check mise version to determine which settings to use
+MISE_VERSION_OUTPUT=$(mise --version 2>/dev/null || echo "")
+if echo "${MISE_VERSION_OUTPUT}" | grep -q "2024\.1\." || echo "${MISE_VERSION_OUTPUT}" | grep -q "2023\."; then
+    # Older mise version - use minimal config
+    cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
+[settings]
+experimental = true
+EOF
+else
+    # Newer mise version - use full config
+    cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
 [settings]
 not_found_auto_install = true
 experimental = true
 EOF
+fi
 
 if [ "${USERNAME}" != "root" ]; then
     chown "${USERNAME}:${USERNAME}" "${USER_HOME}/.config/mise/config.toml"
