@@ -60,6 +60,12 @@ else
     PLAYWRIGHT_CMD="npx playwright"
 fi
 
+# Create the browsers directory
+mkdir -p /ms-playwright
+
+# Set the browsers path environment variable for the installation
+export PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
 # Install browsers
 echo "Installing Playwright browsers: $BROWSERS"
 if [ "$INSTALL_DEPS" = "true" ]; then
