@@ -150,12 +150,18 @@ setup_shell_integration() {
     mkdir -p "${target_home}/.local/share/mise/installs"
     mkdir -p "${target_home}/.local/share/mise/cache"
     mkdir -p "${target_home}/.local/share/mise/downloads"
+    mkdir -p "${target_home}/.cache/mise"
+    mkdir -p "${target_home}/.cache/mise/lockfiles"
+    mkdir -p "${target_home}/.cache/mise/node"
+    mkdir -p "${target_home}/.local/state/mise"
     
     # Set ownership if not root
     if [ "${target_user}" != "root" ]; then
         chown -R "${target_user}:${target_user}" "${target_home}/.local"
         chown -R "${target_user}:${target_user}" "${target_home}/.config/mise"
         chown -R "${target_user}:${target_user}" "${target_home}/.local/share/mise"
+        chown -R "${target_user}:${target_user}" "${target_home}/.cache/mise"
+        chown -R "${target_user}:${target_user}" "${target_home}/.local/state/mise"
     fi
 }
 

@@ -14,6 +14,8 @@ echo "Initializing mise directories..."
 mkdir -p "${HOME}/.local/share/mise"
 mkdir -p "${HOME}/.config/mise"
 mkdir -p "${HOME}/.local/bin"
+mkdir -p "${HOME}/.cache/mise"
+mkdir -p "${HOME}/.local/state/mise"
 
 # Ensure directories are owned by the current user
 if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; then
@@ -22,6 +24,8 @@ if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; th
     if command -v sudo >/dev/null 2>&1; then
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/share/mise" 2>/dev/null || true
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.config/mise" 2>/dev/null || true
+        sudo chown -R "$(id -u):$(id -g)" "${HOME}/.cache/mise" 2>/dev/null || true
+        sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/state/mise" 2>/dev/null || true
     fi
 fi
 
@@ -29,6 +33,8 @@ fi
 mkdir -p "${HOME}/.local/share/mise/installs"
 mkdir -p "${HOME}/.local/share/mise/cache"
 mkdir -p "${HOME}/.local/share/mise/downloads"
+mkdir -p "${HOME}/.cache/mise/lockfiles"
+mkdir -p "${HOME}/.cache/mise/node"
 
 
 # Fix any legacy invalid system config if we have permission
