@@ -1,5 +1,6 @@
 alephjs.org
 api.dart.dev
+api.playwright.dev
 api.flutter.dev
 api.github.com
 api.insomnia.rest
@@ -16,6 +17,7 @@ better-auth.com
 bun.com
 bun.sh
 cdn.jsdelivr.net
+cdn.playwright.dev
 cdn.statically.io
 central.maven.org
 chalk.rocks
@@ -98,6 +100,8 @@ oven.sh
 passportjs.org
 petstore.swagger.io
 pino.io
+playwright.dev
+playwright.download.prss.microsoft.com
 plugins.jetbrains.com
 pm2.keymetrics.io
 postman-echo.com
@@ -134,6 +138,8 @@ swaggerhub.com
 swift.org
 toml.io
 tools.ietf.org
+trace.playwright.dev
+try.playwright.dev
 unpkg.com
 vercel.com
 w3.org
@@ -148,6 +154,7 @@ www.json-schema.org
 www.jsonlint.com
 www.nextjs.org
 www.npmjs.com
+www.playwright.dev
 www.postman.com
 www.pub.dev
 www.schema.org
