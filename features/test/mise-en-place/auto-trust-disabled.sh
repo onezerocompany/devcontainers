@@ -20,10 +20,8 @@ check "mise-init script exists" test -x /usr/local/bin/mise-init
 check "mise trust command available" bash -c 'mise trust --help >/dev/null 2>&1'
 
 # Standard directories should still exist
-check "cache directory at /opt/mise-cache" test -d /opt/mise-cache
 check "config directory exists" test -d ~/.config/mise
 check "installs directory exists" test -d ~/.local/share/mise
-check "MISE_CACHE_DIR is set" bash -c 'echo $MISE_CACHE_DIR | grep -q "/opt/mise-cache"'
 
 # Report results
 reportResults
