@@ -122,6 +122,7 @@ setup_shell_integration() {
     if [ -f "${target_home}/.bashrc" ]; then
         echo '' >> "${target_home}/.bashrc"
         echo '# mise-en-place' >> "${target_home}/.bashrc"
+        echo 'export BUN_INSTALL="${HOME}/.bun"' >> "${target_home}/.bashrc"
         echo 'export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH}"' >> "${target_home}/.bashrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.bashrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.bashrc"
@@ -135,6 +136,7 @@ setup_shell_integration() {
     if [ -f "${target_home}/.zshrc" ]; then
         echo '' >> "${target_home}/.zshrc"
         echo '# mise-en-place' >> "${target_home}/.zshrc"
+        echo 'export BUN_INSTALL="${HOME}/.bun"' >> "${target_home}/.zshrc"
         echo 'export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH}"' >> "${target_home}/.zshrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.zshrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.zshrc"
@@ -156,6 +158,10 @@ setup_shell_integration() {
     mkdir -p "${target_home}/.cache/mise/node"
     mkdir -p "${target_home}/.local/state/mise"
     
+    # Set proper permissions for bun directories
+    chmod 755 "${target_home}/.bun"
+    chmod 755 "${target_home}/.bun/bin"
+    
     # Set ownership if not root
     if [ "${target_user}" != "root" ]; then
         chown -R "${target_user}:${target_user}" "${target_home}/.local"
@@ -163,6 +169,7 @@ setup_shell_integration() {
         chown -R "${target_user}:${target_user}" "${target_home}/.local/share/mise"
         chown -R "${target_user}:${target_user}" "${target_home}/.cache/mise"
         chown -R "${target_user}:${target_user}" "${target_home}/.local/state/mise"
+        chown -R "${target_user}:${target_user}" "${target_home}/.bun"
     fi
 }
 

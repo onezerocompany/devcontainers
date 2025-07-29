@@ -27,6 +27,7 @@ if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; th
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.config/mise" 2>/dev/null || true
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.cache/mise" 2>/dev/null || true
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/state/mise" 2>/dev/null || true
+        sudo chown -R "$(id -u):$(id -g)" "${HOME}/.bun" 2>/dev/null || true
     fi
 fi
 
@@ -36,6 +37,10 @@ mkdir -p "${HOME}/.local/share/mise/cache"
 mkdir -p "${HOME}/.local/share/mise/downloads"
 mkdir -p "${HOME}/.cache/mise/lockfiles"
 mkdir -p "${HOME}/.cache/mise/node"
+
+# Ensure bun directories have correct permissions
+chmod 755 "${HOME}/.bun" 2>/dev/null || true
+chmod 755 "${HOME}/.bun/bin" 2>/dev/null || true
 
 
 # Fix any legacy invalid system config if we have permission
