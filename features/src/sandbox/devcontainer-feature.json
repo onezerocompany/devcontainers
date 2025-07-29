@@ -1,7 +1,7 @@
 {
 	"id": "sandbox",
 	"name": "Sandbox Network Filter",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "DNS-based domain filtering for sandboxed environments using dnsmasq. Blocks or allows domains through DNS resolution with true wildcard domain support (*.example.com) and automatic Claude Code WebFetch domain integration.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
 	"options": {
