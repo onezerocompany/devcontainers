@@ -1,8 +1,8 @@
 {
 	"id": "sandbox",
 	"name": "Sandbox Network Filter",
-	"version": "2.8.1",
-	"description": "Network traffic filtering for sandboxed environments using iptables. Controls and restricts outbound network traffic according to user-defined rules while allowing Docker service communication. Features periodic DNS refresh to handle dynamic IPs from CDNs and load balancers. Automatically allows domains from Claude Code WebFetch permissions.",
+	"version": "3.0.0",
+	"description": "DNS-based domain filtering for sandboxed environments using dnsmasq. Blocks or allows domains through DNS resolution with true wildcard domain support (*.example.com) and automatic Claude Code WebFetch domain integration.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/sandbox",
 	"options": {
 		"defaultPolicy": {
@@ -21,25 +21,15 @@
 			"default": "",
 			"description": "Comma-separated list of domains to explicitly block (supports wildcards like *.example.com)"
 		},
-		"allowDockerNetworks": {
-			"type": "boolean",
-			"default": true,
-			"description": "Allow traffic to Docker internal networks (required for Docker Compose services)"
-		},
-		"allowLocalhost": {
-			"type": "boolean",
-			"default": true,
-			"description": "Allow traffic to localhost and 127.0.0.1"
-		},
 		"immutableConfig": {
 			"type": "boolean",
 			"default": true,
 			"description": "Make configuration immutable after setup (prevents runtime changes)"
 		},
-		"logBlocked": {
+		"logQueries": {
 			"type": "boolean",
 			"default": true,
-			"description": "Log blocked connections for debugging"
+			"description": "Log DNS queries for debugging"
 		},
 		"allowClaudeWebFetchDomains": {
 			"type": "boolean",
@@ -55,19 +45,8 @@
 			"type": "boolean",
 			"default": true,
 			"description": "Allow common development domains (package registries, GitHub, npm, pypi, etc.)"
-		},
-		"enableDnsRefresh": {
-			"type": "boolean", 
-			"default": true,
-			"description": "Enable periodic DNS resolution refresh to handle IP changes from CDNs and load balancers"
-		},
-		"dnsRefreshInterval": {
-			"type": "string",
-			"default": "300",
-			"description": "DNS refresh interval in seconds (default: 300 = 5 minutes)"
 		}
 	},
-	"capAdd": ["NET_ADMIN", "NET_RAW"],
 	"containerEnv": {
 		"SANDBOX_NETWORK_FILTER": "enabled"
 	}
