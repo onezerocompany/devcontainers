@@ -22,31 +22,29 @@ apt-get install -y \
     wget \
     unzip
 
-# Detect available package manager and fail if none found
-PLAYWRIGHT_CMD=""
-
-if command -v bun &> /dev/null; then
-    echo "Using bun to install Playwright..."
-    if [ "$VERSION" = "latest" ]; then
-        bun add -g playwright
-    else
-        bun add -g playwright@$VERSION
-    fi
-    PLAYWRIGHT_CMD="bunx playwright"
-elif command -v npm &> /dev/null; then
-    echo "Using npm to install Playwright..."
-    if [ "$VERSION" = "latest" ]; then
-        npm install -g playwright
-    else
-        npm install -g playwright@$VERSION
-    fi
-    PLAYWRIGHT_CMD="npx playwright"
-else
-    echo "ERROR: No suitable package manager found!"
-    echo "Please install either bun or npm before using the Playwright feature."
-    echo "You can use the 'mise-en-place' feature to install these tools."
+# Use mise to install Playwright via npm backend
+if ! command -v mise &> /dev/null; then
+    echo "ERROR: mise not found!"
+    echo "Please install the 'mise-en-place' feature before using the Playwright feature."
     exit 1
 fi
+
+echo "Using mise npm backend to install Playwright..."
+
+# Ensure npm is available through mise
+if ! mise exec -- npm --version &> /dev/null; then
+    echo "Installing Node.js via mise to get npm..."
+    mise use -g node@lts
+fi
+
+# Install Playwright globally via mise npm backend
+if [ "$VERSION" = "latest" ]; then
+    mise exec -- npm install -g playwright
+else
+    mise exec -- npm install -g playwright@$VERSION
+fi
+
+PLAYWRIGHT_CMD="mise exec -- npx playwright"
 
 # Create the browsers directory
 mkdir -p /ms-playwright

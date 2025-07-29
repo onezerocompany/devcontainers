@@ -11,19 +11,11 @@ source dev-container-features-test-lib
 # Feature-specific tests
 # The 'check' command comes from the dev-container-features-test-lib
 
-# Check if bun or npm is available for playwright
-if command -v bun >/dev/null 2>&1; then
-    check "bun installed" bash -c "command -v bun"
-    check "playwright installed" bash -c "bunx playwright --version"
-    check "playwright can show help" bash -c "bunx playwright --help | grep -q 'Usage'"
-elif command -v npm >/dev/null 2>&1; then
-    check "npm installed" bash -c "command -v npm"
-    check "playwright installed" bash -c "npx playwright --version"
-    check "playwright can show help" bash -c "npx playwright --help | grep -q 'Usage'"
-else
-    echo "ERROR: Neither bun nor npm found"
-    exit 1
-fi
+# Check if mise is available and can run playwright
+check "mise installed" bash -c "command -v mise"
+check "mise can run npm" bash -c "mise exec -- npm --version"
+check "playwright installed via mise" bash -c "mise exec -- npx playwright --version"
+check "playwright can show help via mise" bash -c "mise exec -- npx playwright --help | grep -q 'Usage'"
 
 # Check environment variables
 check "playwright browsers path env var" bash -c "test -n \"\${PLAYWRIGHT_BROWSERS_PATH}\""
