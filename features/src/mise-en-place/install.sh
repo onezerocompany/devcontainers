@@ -4,6 +4,7 @@ set -e
 VERSION="${VERSION:-"latest"}"
 AUTO_TRUST="${AUTOTRUST:-"true"}"
 INSTALL_NODE_LTS="${INSTALLNODELTS:-"true"}"
+INSTALL_BUN="${INSTALLBUN:-"true"}"
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
@@ -266,6 +267,41 @@ if [ "${INSTALL_NODE_LTS}" = "true" ]; then
     fi
     
     echo "Node.js LTS installed globally via mise"
+fi
+
+# Install Bun globally if requested
+if [ "${INSTALL_BUN}" = "true" ]; then
+    echo "Installing Bun globally..."
+    
+    # Trust the config files first if auto-trust is enabled
+    if [ "${AUTO_TRUST}" = "true" ]; then
+        echo "Auto-trusting mise config files for bun installation..."
+        # Trust the main user's config
+        if [ "${USERNAME}" != "root" ]; then
+            su - "${USERNAME}" -c "mise trust ${USER_HOME}/.config/mise/config.toml" 2>/dev/null || true
+        else
+            cd "${USER_HOME}" && mise trust "${USER_HOME}/.config/mise/config.toml" 2>/dev/null || true
+        fi
+        
+        # Trust root's config if we're not already root
+        if [ "${USERNAME}" != "root" ]; then
+            cd "/root" && mise trust "/root/.config/mise/config.toml" 2>/dev/null || true
+        fi
+    fi
+    
+    # Install as the main user
+    if [ "${USERNAME}" != "root" ]; then
+        su - "${USERNAME}" -c "mise use -g bun@latest"
+    else
+        cd "${USER_HOME}" && mise use -g bun@latest
+    fi
+    
+    # Also install for root if we're not already root
+    if [ "${USERNAME}" != "root" ]; then
+        cd "/root" && mise use -g bun@latest
+    fi
+    
+    echo "Bun installed globally via mise"
 fi
 
 # Note: mise directories will be initialized on first container start via mise-init

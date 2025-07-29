@@ -22,7 +22,6 @@ ALIAS_CAT="${ALIAS_CAT:-true}"
 ALIAS_FIND="${ALIAS_FIND:-true}"
 ALIAS_GREP="${ALIAS_GREP:-true}"
 INSTALL_NEOVIM="${INSTALL_NEOVIM:-true}"
-INSTALL_BUN="${INSTALL_BUN:-true}"
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -107,10 +106,6 @@ fi
 # Install Neovim if requested
 if [ "$INSTALL_NEOVIM" = "true" ]; then
   MISE_PACKAGES+=" neovim "
-fi
-# Install Bun if requested
-if [ "$INSTALL_BUN" = "true" ]; then
-  MISE_PACKAGES+=" bun "
 fi
     
 

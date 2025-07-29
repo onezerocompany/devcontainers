@@ -1,6 +1,6 @@
 {
   "id": "mise-en-place",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "name": "mise-en-place",
   "description": "Installs mise (formerly rtx) - a fast polyglot runtime manager",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/mise-en-place",
@@ -20,6 +20,11 @@
       "type": "boolean",
       "default": true,
       "description": "Install Node.js LTS globally via mise"
+    },
+    "installBun": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Bun globally via mise"
     }
   },
   "customizations": {
