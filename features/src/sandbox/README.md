@@ -1,15 +1,15 @@
 # Sandbox Network Filter
 
-A development container feature that provides network traffic filtering for sandboxed environments using iptables. This feature is designed to control and restrict outbound network traffic according to user-defined rules while allowing Docker service communication. It can automatically allow domains from Claude Code WebFetch permissions.
+A development container feature that provides network traffic filtering for sandboxed environments using DNS-based blocking via dnsmasq. This feature is designed to control and restrict outbound network traffic according to user-defined rules with true wildcard domain support. It can automatically allow domains from Claude Code WebFetch permissions.
 
 ## Features
 
-- **iptables-based filtering**: Simple and reliable packet filtering for network control
-- **Docker compatibility**: Preserves communication with Docker Compose services
+- **DNS-based filtering**: Efficient domain filtering using dnsmasq with native wildcard support
+- **True wildcard support**: Native support for wildcard domains (*.example.com)
 - **Claude Code integration**: Automatically allows domains from Claude Code WebFetch permissions
 - **Immutable configuration**: Prevents runtime modification of filtering rules
 - **Flexible policies**: Configurable default allow/block behavior
-- **Logging support**: Optional logging of blocked connection attempts
+- **Query logging**: Optional logging of DNS queries for debugging
 
 ## Usage
 
@@ -18,7 +18,8 @@ A development container feature that provides network traffic filtering for sand
   "features": {
     "ghcr.io/onezerocompany/features/sandbox": {
       "defaultPolicy": "block",
-      "allowDockerNetworks": true,
+      "allowedDomains": "github.com,*.github.com",
+      "blockedDomains": "*.facebook.com,*.twitter.com",
       "immutableConfig": true
     }
   }
@@ -29,13 +30,14 @@ A development container feature that provides network traffic filtering for sand
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `defaultPolicy` | string | `"block"` | Default policy for external traffic (`"allow"` or `"block"`) |
-| `allowDockerNetworks` | boolean | `true` | Allow traffic to Docker internal networks |
-| `allowLocalhost` | boolean | `true` | Allow traffic to localhost and 127.0.0.1 |
+| `defaultPolicy` | string | `"block"` | Default policy for DNS resolution (`"allow"` or `"block"`) |
+| `allowedDomains` | string | `""` | Comma-separated list of domains to explicitly allow (supports wildcards like *.example.com) |
+| `blockedDomains` | string | `""` | Comma-separated list of domains to explicitly block (supports wildcards like *.example.com) |
 | `immutableConfig` | boolean | `true` | Make configuration immutable after setup |
-| `logBlocked` | boolean | `true` | Log blocked connections for debugging |
+| `logQueries` | boolean | `true` | Log DNS queries for debugging |
 | `allowClaudeWebFetchDomains` | boolean | `true` | Automatically allow domains from Claude Code WebFetch permissions |
 | `claudeSettingsPaths` | string | `".claude/settings.json,.claude/settings.local.json,~/.claude/settings.json"` | Comma-separated list of paths to Claude settings files (relative paths are resolved from workspace root) |
+| `allowCommonDevelopment` | boolean | `true` | Allow common development domains (GitHub, npm, PyPI, etc.) |
 
 ## Initialization
 
@@ -53,21 +55,22 @@ The sandbox network filter automatically installs an initialization hook at `/us
 
 ## How It Works
 
-The sandbox feature implements network filtering using iptables:
+The sandbox feature implements network filtering using DNS-based blocking via dnsmasq:
 
-1. **iptables Rules**: Creates packet filtering rules for comprehensive traffic control
-2. **Docker Network Preservation**: Allows communication with Docker services by permitting traffic to private network ranges
-3. **Claude Code Integration**: Reads Claude settings files to extract WebFetch domain permissions and resolves them to IP addresses
-4. **DNS Resolution**: Allows DNS queries (port 53) to enable name resolution
-5. **Established Connections**: Permits established and related connections for proper network functionality
+1. **DNS Server**: Runs a local dnsmasq DNS server that intercepts all DNS queries
+2. **Domain Filtering**: Blocks or allows domains at the DNS resolution level
+3. **Wildcard Support**: Native support for wildcard domains (*.example.com) without complex IP resolution
+4. **Claude Code Integration**: Reads Claude settings files to extract WebFetch domain permissions
+5. **Default Policies**: Configurable default allow/block behavior with explicit overrides
 6. **Immutable Enforcement**: Optional protection against runtime configuration changes
 
-## Network Ranges
+## DNS Filtering Logic
 
-When `allowDockerNetworks` is enabled, the following ranges are permitted:
-- `172.16.0.0/12` - Docker default bridge networks
-- `10.0.0.0/8` - Docker custom networks
-- `192.168.0.0/16` - Local networks
+The DNS filtering works as follows:
+- **Block Policy**: All domains resolve to 127.0.0.1 (blocked) except explicitly allowed domains
+- **Allow Policy**: All domains resolve normally except explicitly blocked domains
+- **Wildcard Domains**: *.example.com blocks/allows all subdomains of example.com
+- **Override Priority**: Blocked domains always take precedence over allowed domains
 
 ## Claude Code Integration
 
@@ -75,10 +78,10 @@ When `allowClaudeWebFetchDomains` is enabled, the feature will:
 
 1. Read Claude settings files from the specified paths (relative paths are resolved from `/workspace`)
 2. Extract WebFetch domain rules like `"WebFetch(domain:github.com)"` or `"WebFetch(domain:*.github.com)"`
-3. Resolve domains to IP addresses at container startup
-4. Add iptables rules to allow traffic to those IPs
+3. Add DNS rules to allow those domains to resolve normally
+4. Support wildcard domains natively without IP resolution
 
-This ensures that domains Claude Code is allowed to fetch are also accessible through the network sandbox.
+This ensures that domains Claude Code is allowed to fetch are also accessible through the DNS sandbox.
 
 ### Path Resolution
 - Relative paths (e.g., `.claude/settings.json`) are resolved from the workspace root
@@ -115,23 +118,22 @@ The feature automatically detects the workspace folder by checking these environ
   "features": {
     "ghcr.io/onezerocompany/features/sandbox": {
       "defaultPolicy": "block",
-      "allowDockerNetworks": true,
-      "allowLocalhost": false,
       "allowClaudeWebFetchDomains": true,
+      "allowCommonDevelopment": true,
       "immutableConfig": true
     }
   }
 }
 ```
 
-### Development Environment with External Access
+### Development Environment with Selective Blocking
 ```json
 {
   "features": {
     "ghcr.io/onezerocompany/features/sandbox": {
       "defaultPolicy": "allow",
-      "allowDockerNetworks": true,
-      "logBlocked": false
+      "blockedDomains": "*.facebook.com,*.twitter.com,*.tiktok.com",
+      "logQueries": false
     }
   }
 }
@@ -150,36 +152,37 @@ The feature automatically detects the workspace folder by checking these environ
 }
 ```
 
-## Testing Network Filtering
+## Testing DNS Filtering
 
 After container startup, you can test the filtering:
 
 ```bash
-# Check iptables rules
-iptables -L SANDBOX_OUTPUT -n -v
+# Check dnsmasq configuration
+cat /etc/dnsmasq.d/sandbox.conf
 
-# View configuration
+# View sandbox configuration
 cat /etc/sandbox/config
 
-# Check logs (if logging enabled and default policy is block)
-dmesg | grep SANDBOX_BLOCKED
+# Check dnsmasq process
+ps aux | grep dnsmasq
 
-# Test external connectivity
-curl -I https://example.com  # Will be blocked if defaultPolicy="block"
+# Test DNS resolution (should be blocked if defaultPolicy="block")
+nslookup example.com
 
-# Test Docker network connectivity
-# Should work if allowDockerNetworks=true
-ping another-container
+# Test allowed domain resolution
+nslookup github.com  # Should work if in allowed domains
+
+# Check DNS query logs (if logQueries=true)
+grep dnsmasq /var/log/syslog
 ```
 
 ## Limitations
 
-- iptables rules require privileged container mode
-- This provides IP-level filtering only (no domain-based filtering)
-- Claude WebFetch domain resolution happens at container startup - dynamic IP changes require container restart
-- Wildcard domains (*.example.com) are resolved as the base domain (example.com)
-- Some applications may attempt to bypass system network configuration
+- DNS filtering can be bypassed by applications that use hardcoded IP addresses
+- Applications that use their own DNS resolution (bypassing system DNS) may not be filtered
+- Some applications may cache DNS results, requiring container restart for changes to take effect
+- DNS filtering provides application-level blocking but not network-level security
 
 ## Security Notes
 
-This feature is designed for development container sandboxing and should not be considered a complete security solution. It provides a reasonable barrier for containing network traffic but may not prevent determined attempts to bypass restrictions.
+This feature is designed for development container sandboxing and should not be considered a complete security solution. It provides a reasonable barrier for containing network traffic but may not prevent determined attempts to bypass DNS-based restrictions. For stronger security, consider combining with network-level controls.

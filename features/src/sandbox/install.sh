@@ -102,7 +102,15 @@ add_blocked_domain() {
     local domain="$1"
     echo "# Block: $domain" >> /etc/dnsmasq.d/sandbox.conf
     # Block by pointing to localhost (127.0.0.1)
-    echo "address=/$domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+    # dnsmasq supports wildcards natively - *.domain.com becomes /domain.com/
+    if [[ "$domain" == *.* ]]; then
+        # Wildcard domain - remove the *. prefix for dnsmasq
+        clean_domain=${domain#\*.}
+        echo "address=/$clean_domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+    else
+        # Regular domain
+        echo "address=/$domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+    fi
 }
 
 # Collect all domains that should be allowed
@@ -116,9 +124,8 @@ if [ -n "$ALLOWED_DOMAINS" ]; then
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
         if [ -n "$domain" ]; then
-            # Remove wildcard prefix for processing but keep track of original format
-            clean_domain=${domain#\*.}
-            allowed_domains_set["$clean_domain"]=1
+            # Keep wildcard domains as-is for dnsmasq (it supports *.domain.com natively)
+            allowed_domains_set["$domain"]=1
             echo "  Added allowed domain: $domain"
         fi
     done
@@ -164,9 +171,8 @@ if [ "$ALLOW_CLAUDE_WEBFETCH_DOMAINS" = "true" ]; then
                     # Extract domain from WebFetch(domain:example.com) format
                     domain=$(echo "$rule" | sed -n 's/WebFetch(domain:\([^)]*\))/\1/p')
                     if [ -n "$domain" ]; then
-                        # Remove wildcard prefix if present
-                        clean_domain=${domain#\*.}
-                        allowed_domains_set["$clean_domain"]=1
+                        # Keep wildcard domains as-is for dnsmasq
+                        allowed_domains_set["$domain"]=1
                         echo "    Found Claude domain: $domain"
                     fi
                 fi
@@ -196,9 +202,8 @@ if [ -n "$BLOCKED_DOMAINS" ]; then
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
         if [ -n "$domain" ]; then
-            # Remove wildcard prefix for processing but keep track of original format
-            clean_domain=${domain#\*.}
-            blocked_domains_set["$clean_domain"]=1
+            # Keep wildcard domains as-is for dnsmasq (it supports *.domain.com natively)
+            blocked_domains_set["$domain"]=1
             echo "  Added blocked domain: $domain"
         fi
     done
@@ -219,11 +224,54 @@ if [ "$DEFAULT_POLICY" = "block" ]; then
     echo "# Default policy: BLOCK - only explicitly allowed domains resolve normally" >> /etc/dnsmasq.d/sandbox.conf
     echo "# All other domains are blocked at DNS level" >> /etc/dnsmasq.d/sandbox.conf
     
-    # In pure DNS mode, we rely on applications respecting DNS resolution
-    # Blocked domains return 127.0.0.1, allowed domains resolve normally
+    # Block all domains by default (dnsmasq wildcard catch-all)
+    echo "address=/#/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+    
+    # Add specific allowed domains (override the catch-all)
+    echo "" >> /etc/dnsmasq.d/sandbox.conf
+    echo "# Explicitly allowed domains (override default block)" >> /etc/dnsmasq.d/sandbox.conf
+    for domain in "${!allowed_domains_set[@]}"; do
+        if [ -n "$domain" ]; then
+            echo "# Allow: $domain" >> /etc/dnsmasq.d/sandbox.conf
+            # Handle wildcard domains for allowed list
+            if [[ "$domain" == *.* ]]; then
+                # Wildcard domain - remove the *. prefix for dnsmasq
+                clean_domain=${domain#\*.}
+                echo "server=/$clean_domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
+                echo "server=/$clean_domain/1.1.1.1" >> /etc/dnsmasq.d/sandbox.conf
+            else
+                # Regular domain
+                echo "server=/$domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
+                echo "server=/$domain/1.1.1.1" >> /etc/dnsmasq.d/sandbox.conf
+            fi
+        fi
+    done
+    
+    # Add common development domains if enabled
+    if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ] && [ -f "/usr/local/share/sandbox/common-domains.txt" ]; then
+        echo "" >> /etc/dnsmasq.d/sandbox.conf
+        echo "# Common development domains (override default block)" >> /etc/dnsmasq.d/sandbox.conf
+        while IFS= read -r domain; do
+            # Skip comments and empty lines
+            [[ "$domain" =~ ^#.*$ ]] || [[ -z "$domain" ]] && continue
+            echo "# Allow common: $domain" >> /etc/dnsmasq.d/sandbox.conf
+            # Handle wildcard domains for common development domains
+            if [[ "$domain" == *.* ]]; then
+                # Wildcard domain - remove the *. prefix for dnsmasq
+                clean_domain=${domain#\*.}
+                echo "server=/$clean_domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
+                echo "server=/$clean_domain/1.1.1.1" >> /etc/dnsmasq.d/sandbox.conf
+            else
+                # Regular domain
+                echo "server=/$domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
+                echo "server=/$domain/1.1.1.1" >> /etc/dnsmasq.d/sandbox.conf
+            fi
+        done < "/usr/local/share/sandbox/common-domains.txt"
+    fi
 else
     echo "" >> /etc/dnsmasq.d/sandbox.conf
     echo "# Default policy: ALLOW - using normal DNS resolution except for blocked domains" >> /etc/dnsmasq.d/sandbox.conf
+    echo "# Only explicitly blocked domains are redirected to localhost" >> /etc/dnsmasq.d/sandbox.conf
 fi
 
 echo "dnsmasq configuration generated at /etc/dnsmasq.d/sandbox.conf"
@@ -319,17 +367,13 @@ fi
 
 if [ -n "$BLOCKED_DOMAINS" ]; then
     echo "# Blocked domains:" >> /etc/sandbox/config
-    echo "Processing blocked domains: $BLOCKED_DOMAINS"
     IFS=',' read -ra DOMAIN_LIST <<< "$BLOCKED_DOMAINS"
     for domain in "${DOMAIN_LIST[@]}"; do
         domain=$(echo "$domain" | xargs)
         if [ -n "$domain" ]; then
-            echo "Adding blocked domain: $domain"
             echo "$domain" >> /etc/sandbox/config
         fi
     done
-else
-    echo "No blocked domains specified (BLOCKED_DOMAINS is empty)"
 fi
 
 # Create startup script that runs the filtering setup
@@ -426,7 +470,12 @@ fi
 
 # Create sudoers rule for sandbox management (dnsmasq only)
 echo "# Allow zero user to manage sandbox DNS filtering and dnsmasq" > /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /usr/bin/chmod, /usr/bin/chattr, /usr/sbin/dnsmasq, /usr/bin/pkill, /usr/bin/tee, /bin/cp" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/sbin/dnsmasq --conf-file=/etc/dnsmasq.conf" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/pkill dnsmasq" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /bin/cp /etc/resolv.conf /etc/resolv.conf.sandbox-backup" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/tee /etc/resolv.conf" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/chmod 444 /etc/sandbox/config" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/chattr +i /etc/sandbox/config" >> /etc/sudoers.d/sandbox-dnsmasq
 chmod 440 /etc/sudoers.d/sandbox-dnsmasq
 
 echo "✓ Sandbox DNS Filter installed successfully (pure dnsmasq-based)"
