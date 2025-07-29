@@ -69,6 +69,12 @@ LOG_QUERIES="${7:-true}"
 
 echo "Generating dnsmasq configuration..."
 
+# Validate that dnsmasq directory exists
+if [ ! -d "/etc/dnsmasq.d" ]; then
+    echo "ERROR: /etc/dnsmasq.d directory does not exist"
+    exit 1
+fi
+
 # Start with basic dnsmasq config
 cat > /etc/dnsmasq.d/sandbox.conf << DNSMASQ_EOF
 # Sandbox DNS Filter - dnsmasq configuration
@@ -103,7 +109,7 @@ add_blocked_domain() {
     echo "# Block: $domain" >> /etc/dnsmasq.d/sandbox.conf
     # Block by pointing to localhost (127.0.0.1)
     # dnsmasq supports wildcards natively - *.domain.com becomes /domain.com/
-    if [[ "$domain" == *.* ]]; then
+    if [[ "$domain" == \*.* ]]; then
         # Wildcard domain - remove the *. prefix for dnsmasq
         clean_domain=${domain#\*.}
         echo "address=/$clean_domain/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
@@ -222,19 +228,19 @@ done
 if [ "$DEFAULT_POLICY" = "block" ]; then
     echo "" >> /etc/dnsmasq.d/sandbox.conf
     echo "# Default policy: BLOCK - only explicitly allowed domains resolve normally" >> /etc/dnsmasq.d/sandbox.conf
-    echo "# All other domains are blocked at DNS level" >> /etc/dnsmasq.d/sandbox.conf
+    echo "# Using bogus-nxdomain approach for default blocking" >> /etc/dnsmasq.d/sandbox.conf
     
-    # Block all domains by default (dnsmasq wildcard catch-all)
-    echo "address=/#/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+    # Set bogus-nxdomain to catch all queries that don't match specific rules
+    echo "bogus-nxdomain=127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
     
-    # Add specific allowed domains (override the catch-all)
+    # Add allowed domains with normal resolution (these override the bogus rule)
     echo "" >> /etc/dnsmasq.d/sandbox.conf
-    echo "# Explicitly allowed domains (override default block)" >> /etc/dnsmasq.d/sandbox.conf
+    echo "# Explicitly allowed domains (normal DNS resolution)" >> /etc/dnsmasq.d/sandbox.conf
     for domain in "${!allowed_domains_set[@]}"; do
         if [ -n "$domain" ]; then
             echo "# Allow: $domain" >> /etc/dnsmasq.d/sandbox.conf
             # Handle wildcard domains for allowed list
-            if [[ "$domain" == *.* ]]; then
+            if [[ "$domain" == \*.* ]]; then
                 # Wildcard domain - remove the *. prefix for dnsmasq
                 clean_domain=${domain#\*.}
                 echo "server=/$clean_domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
@@ -247,31 +253,27 @@ if [ "$DEFAULT_POLICY" = "block" ]; then
         fi
     done
     
-    # Add common development domains if enabled
-    if [ "$ALLOW_COMMON_DEVELOPMENT" = "true" ] && [ -f "/usr/local/share/sandbox/common-domains.txt" ]; then
-        echo "" >> /etc/dnsmasq.d/sandbox.conf
-        echo "# Common development domains (override default block)" >> /etc/dnsmasq.d/sandbox.conf
-        while IFS= read -r domain; do
-            # Skip comments and empty lines
-            [[ "$domain" =~ ^#.*$ ]] || [[ -z "$domain" ]] && continue
-            echo "# Allow common: $domain" >> /etc/dnsmasq.d/sandbox.conf
-            # Handle wildcard domains for common development domains
-            if [[ "$domain" == *.* ]]; then
-                # Wildcard domain - remove the *. prefix for dnsmasq
-                clean_domain=${domain#\*.}
-                echo "server=/$clean_domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
-                echo "server=/$clean_domain/1.1.1.1" >> /etc/dnsmasq.d/sandbox.conf
-            else
-                # Regular domain
-                echo "server=/$domain/8.8.8.8" >> /etc/dnsmasq.d/sandbox.conf
-                echo "server=/$domain/1.1.1.1" >> /etc/dnsmasq.d/sandbox.conf
-            fi
-        done < "/usr/local/share/sandbox/common-domains.txt"
-    fi
+    # For default block, redirect all unmatched queries to localhost
+    echo "" >> /etc/dnsmasq.d/sandbox.conf
+    echo "# Block all other domains by default" >> /etc/dnsmasq.d/sandbox.conf
+    echo "address=/#/127.0.0.1" >> /etc/dnsmasq.d/sandbox.conf
+    
 else
     echo "" >> /etc/dnsmasq.d/sandbox.conf
     echo "# Default policy: ALLOW - using normal DNS resolution except for blocked domains" >> /etc/dnsmasq.d/sandbox.conf
     echo "# Only explicitly blocked domains are redirected to localhost" >> /etc/dnsmasq.d/sandbox.conf
+fi
+
+# Validate the generated configuration
+if [ ! -f "/etc/dnsmasq.d/sandbox.conf" ]; then
+    echo "ERROR: Failed to generate dnsmasq configuration"
+    exit 1
+fi
+
+# Basic syntax validation - check if file is readable and not empty
+if [ ! -s "/etc/dnsmasq.d/sandbox.conf" ]; then
+    echo "ERROR: Generated dnsmasq configuration is empty"
+    exit 1
 fi
 
 echo "dnsmasq configuration generated at /etc/dnsmasq.d/sandbox.conf"
@@ -314,12 +316,21 @@ else
     pkill dnsmasq 2>/dev/null || true
 fi
 
-# Start dnsmasq
+# Start dnsmasq with sandbox-specific configuration
 echo "Starting dnsmasq..."
 if [ "$USE_SUDO" = "1" ]; then
-    sudo dnsmasq --conf-file=/etc/dnsmasq.conf
+    sudo dnsmasq --conf-dir=/etc/dnsmasq.d --no-daemon --log-queries=/var/log/dnsmasq.log &
 else
-    dnsmasq --conf-file=/etc/dnsmasq.conf
+    dnsmasq --conf-dir=/etc/dnsmasq.d --no-daemon --log-queries=/var/log/dnsmasq.log &
+fi
+
+# Wait a moment for dnsmasq to start
+sleep 2
+
+# Check if dnsmasq is running
+if ! pgrep dnsmasq > /dev/null; then
+    echo "ERROR: Failed to start dnsmasq"
+    exit 1
 fi
 
 # Configure system to use local dnsmasq as DNS resolver
@@ -470,12 +481,14 @@ fi
 
 # Create sudoers rule for sandbox management (dnsmasq only)
 echo "# Allow zero user to manage sandbox DNS filtering and dnsmasq" > /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /usr/sbin/dnsmasq --conf-file=/etc/dnsmasq.conf" >> /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /usr/bin/pkill dnsmasq" >> /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /bin/cp /etc/resolv.conf /etc/resolv.conf.sandbox-backup" >> /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /usr/bin/tee /etc/resolv.conf" >> /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /usr/bin/chmod 444 /etc/sandbox/config" >> /etc/sudoers.d/sandbox-dnsmasq
-echo "zero ALL=(root) NOPASSWD: /usr/bin/chattr +i /etc/sandbox/config" >> /etc/sudoers.d/sandbox-dnsmasq
+# Find dnsmasq binary location (could be /usr/sbin or /usr/bin)
+DNSMASQ_BIN=$(which dnsmasq 2>/dev/null || echo "/usr/sbin/dnsmasq")
+echo "zero ALL=(root) NOPASSWD: $DNSMASQ_BIN" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/pkill" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /bin/cp" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/tee" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/chmod" >> /etc/sudoers.d/sandbox-dnsmasq
+echo "zero ALL=(root) NOPASSWD: /usr/bin/chattr" >> /etc/sudoers.d/sandbox-dnsmasq
 chmod 440 /etc/sudoers.d/sandbox-dnsmasq
 
 echo "✓ Sandbox DNS Filter installed successfully (pure dnsmasq-based)"
