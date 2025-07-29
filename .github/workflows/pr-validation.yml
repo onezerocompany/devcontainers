@@ -115,8 +115,6 @@ jobs:
           - feature: mise-en-place
             scenario: specific-version
           - feature: mise-en-place
-            scenario: cache-disabled
-          - feature: mise-en-place
             scenario: auto-trust-disabled
           - feature: mise-en-place
             scenario: deprecated-bun-option

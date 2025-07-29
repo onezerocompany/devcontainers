@@ -2,7 +2,6 @@
 set -e
 
 VERSION="${VERSION:-"latest"}"
-CONFIGURE_CACHE="${CONFIGURECACHE:-"true"}"
 AUTO_TRUST="${AUTOTRUST:-"true"}"
 INSTALL_NODE_LTS="${INSTALLNODELTS:-"true"}"
 
@@ -110,38 +109,6 @@ chmod +x /usr/local/bin/mise
 cp "$(dirname "$0")/mise-init.sh" /usr/local/bin/mise-init
 chmod +x /usr/local/bin/mise-init
 
-# Configure mise cache directory for volume mounting
-if [ "${CONFIGURE_CACHE}" = "true" ]; then
-    # Create cache directory that will be volume mounted
-    MISE_CACHE_DIR="/opt/mise-cache"
-    
-    mkdir -p "${MISE_CACHE_DIR}"
-    
-    # Make it writable by all users (containers may run as different users)
-    chmod 777 "${MISE_CACHE_DIR}"
-    
-    # Create subdirectories that mise commonly uses
-    mkdir -p "${MISE_CACHE_DIR}/github"
-    mkdir -p "${MISE_CACHE_DIR}/downloads"
-    mkdir -p "${MISE_CACHE_DIR}/http"
-    chmod -R 777 "${MISE_CACHE_DIR}"
-    
-    # Also create a build-time cache that will be copied to the volume on first run
-    BUILD_CACHE_DIR="/opt/mise-cache-build"
-    mkdir -p "${BUILD_CACHE_DIR}"
-    mkdir -p "${BUILD_CACHE_DIR}/github"
-    mkdir -p "${BUILD_CACHE_DIR}/downloads"
-    mkdir -p "${BUILD_CACHE_DIR}/http"
-    chmod -R 777 "${BUILD_CACHE_DIR}"
-    
-    # Set MISE_CACHE_DIR for the rest of the install process ONLY if configuring cache
-    export MISE_CACHE_DIR="${BUILD_CACHE_DIR}"
-else
-    # Make sure MISE_CACHE_DIR is not set
-    unset MISE_CACHE_DIR
-    # Remove the cache directory if it was created by the volume mount
-    rm -rf /opt/mise-cache 2>/dev/null || true
-fi
 
 # Set up shell integration for both user and root
 setup_shell_integration() {
@@ -157,9 +124,6 @@ setup_shell_integration() {
         echo '# mise-en-place' >> "${target_home}/.bashrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.bashrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.bashrc"
-        if [ "${CONFIGURE_CACHE}" = "true" ]; then
-            echo 'export MISE_CACHE_DIR="/opt/mise-cache"' >> "${target_home}/.bashrc"
-        fi
         echo '# Auto-initialize mise on first use' >> "${target_home}/.bashrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.bashrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.bashrc"
@@ -173,9 +137,6 @@ setup_shell_integration() {
         echo '# mise-en-place' >> "${target_home}/.zshrc"
         echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.zshrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.zshrc"
-        if [ "${CONFIGURE_CACHE}" = "true" ]; then
-            echo 'export MISE_CACHE_DIR="/opt/mise-cache"' >> "${target_home}/.zshrc"
-        fi
         echo '# Auto-initialize mise on first use' >> "${target_home}/.zshrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.zshrc"
         echo '    /usr/local/bin/mise-init' >> "${target_home}/.zshrc"

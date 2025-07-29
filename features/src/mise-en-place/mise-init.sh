@@ -15,15 +15,14 @@ mkdir -p "${HOME}/.local/share/mise"
 mkdir -p "${HOME}/.config/mise"
 mkdir -p "${HOME}/.local/bin"
 
-# Fix permissions for user directories if they exist but have wrong permissions
-if [ -d "${HOME}/.local/share/mise" ] && [ ! -w "${HOME}/.local/share/mise" ]; then
-    echo "Fixing permissions for ${HOME}/.local/share/mise..."
-    sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/share/mise" 2>/dev/null || true
-fi
-
-if [ -d "${HOME}/.config/mise" ] && [ ! -w "${HOME}/.config/mise" ]; then
-    echo "Fixing permissions for ${HOME}/.config/mise..."
-    sudo chown -R "$(id -u):$(id -g)" "${HOME}/.config/mise" 2>/dev/null || true
+# Ensure directories are owned by the current user
+if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; then
+    echo "Fixing ownership for mise directories..."
+    # Try to fix ownership if we can
+    if command -v sudo >/dev/null 2>&1; then
+        sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/share/mise" 2>/dev/null || true
+        sudo chown -R "$(id -u):$(id -g)" "${HOME}/.config/mise" 2>/dev/null || true
+    fi
 fi
 
 # Ensure all mise subdirectories have correct permissions
@@ -31,43 +30,6 @@ mkdir -p "${HOME}/.local/share/mise/installs"
 mkdir -p "${HOME}/.local/share/mise/cache"
 mkdir -p "${HOME}/.local/share/mise/downloads"
 
-# Handle cache directory and copy build-time cache if needed
-if [ -n "${MISE_CACHE_DIR}" ]; then
-    # Create cache directory if it doesn't exist
-    if [ ! -d "${MISE_CACHE_DIR}" ]; then
-        echo "Creating mise cache directory..."
-        sudo mkdir -p "${MISE_CACHE_DIR}" 2>/dev/null || mkdir -p "${MISE_CACHE_DIR}"
-    fi
-    
-    # Fix permissions on cache directory - make it world-writable
-    # This is necessary because containers may run as different users
-    if [ -d "${MISE_CACHE_DIR}" ] && [ ! -w "${MISE_CACHE_DIR}" ]; then
-        echo "Fixing permissions for mise cache directory..."
-        sudo chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
-    fi
-    
-    # Ensure cache subdirectories exist and are writable
-    for subdir in github downloads http; do
-        if [ ! -d "${MISE_CACHE_DIR}/${subdir}" ]; then
-            mkdir -p "${MISE_CACHE_DIR}/${subdir}" 2>/dev/null || true
-        fi
-    done
-    
-    # Copy build-time cache to volume if it exists and volume is empty
-    BUILD_CACHE_DIR="/opt/mise-cache-build"
-    if [ -d "${BUILD_CACHE_DIR}" ] && [ -z "$(ls -A "${MISE_CACHE_DIR}" 2>/dev/null)" ]; then
-        echo "Copying build-time mise cache to volume..."
-        cp -r "${BUILD_CACHE_DIR}"/* "${MISE_CACHE_DIR}/" 2>/dev/null || true
-        # Ensure permissions are correct after copy
-        sudo chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
-        # Clean up build cache to save space
-        echo "Cleaning up build-time cache..."
-        rm -rf "${BUILD_CACHE_DIR}"
-    fi
-    
-    # Final permission check and fix
-    sudo chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || chmod -R 777 "${MISE_CACHE_DIR}" 2>/dev/null || true
-fi
 
 # Fix any legacy invalid system config if we have permission
 if [ -w "/etc/mise/config.toml" ] && grep -q "node_compile\|bun_backend\|npm\.bun" /etc/mise/config.toml 2>/dev/null; then
@@ -79,41 +41,26 @@ experimental = true
 EOF
 fi
 
-# Ensure user config is clean and add runtime
-echo "Setting up mise config with runtime..."
-# Preserve any existing tools but fix settings and add runtime
-if [ -f "${HOME}/.config/mise/config.toml" ] && grep -q "\[tools\]" "${HOME}/.config/mise/config.toml" 2>/dev/null; then
-    # Extract tools section and filter out any existing node/bun entries
-    sed -n '/\[tools\]/,$p' "${HOME}/.config/mise/config.toml" | grep -v "^node\s*=" | grep -v "^bun\s*=" > /tmp/tools_section
-else
-    echo "[tools]" > /tmp/tools_section
-fi
-
-# Create new config with valid settings + runtime + any existing tools
-# Check mise version to determine which settings to use
-MISE_VERSION_OUTPUT=$(mise --version 2>/dev/null || echo "")
-if echo "${MISE_VERSION_OUTPUT}" | grep -q "2024\.1\." || echo "${MISE_VERSION_OUTPUT}" | grep -q "2023\."; then
-    # Older mise version - use minimal config
-    cat > "${HOME}/.config/mise/config.toml" << 'EOF'
+# Set up mise config if it doesn't exist
+if [ ! -f "${HOME}/.config/mise/config.toml" ]; then
+    echo "Setting up mise config..."
+    # Check mise version to determine which settings to use
+    MISE_VERSION_OUTPUT=$(mise --version 2>/dev/null || echo "")
+    if echo "${MISE_VERSION_OUTPUT}" | grep -q "2024\.1\." || echo "${MISE_VERSION_OUTPUT}" | grep -q "2023\."; then
+        # Older mise version - use minimal config
+        cat > "${HOME}/.config/mise/config.toml" << 'EOF'
 [settings]
 experimental = true
-
 EOF
-else
-    # Newer mise version - use full config
-    cat > "${HOME}/.config/mise/config.toml" << 'EOF'
+    else
+        # Newer mise version - use full config
+        cat > "${HOME}/.config/mise/config.toml" << 'EOF'
 [settings]
 not_found_auto_install = true
 experimental = true
-
 EOF
+    fi
 fi
-
-# Add Node.js LTS to tools section
-echo "node = \"lts\"" >> /tmp/tools_section
-
-cat /tmp/tools_section >> "${HOME}/.config/mise/config.toml"
-rm -f /tmp/tools_section
 
 # Auto-trust directories if enabled
 if [ "${MISE_AUTO_TRUST}" = "true" ]; then

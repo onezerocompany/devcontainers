@@ -11,27 +11,11 @@
             "ghcr.io/onezerocompany/features/mise-en-place": {}
         }
     },
-    "cache-disabled": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/onezerocompany/features/mise-en-place": {
-                "configureCache": false
-            }
-        }
-    },
     "auto-trust-disabled": {
         "image": "debian:bookworm",
         "features": {
             "ghcr.io/onezerocompany/features/mise-en-place": {
                 "autoTrust": false
-            }
-        }
-    },
-    "build-cache-copy": {
-        "image": "debian:bookworm",
-        "features": {
-            "ghcr.io/onezerocompany/features/mise-en-place": {
-                "installNodeLTS": true
             }
         }
     },

@@ -1,8 +1,8 @@
 {
   "id": "mise-en-place",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "name": "mise-en-place",
-  "description": "Installs mise (formerly rtx) - a fast polyglot runtime manager with persistent cache volume",
+  "description": "Installs mise (formerly rtx) - a fast polyglot runtime manager",
   "documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/mise-en-place",
   "licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
   "options": {
@@ -10,11 +10,6 @@
       "type": "string",
       "default": "latest",
       "description": "Version of mise to install (e.g., 'latest', '2024.1.0')"
-    },
-    "configureCache": {
-      "type": "boolean", 
-      "default": true,
-      "description": "Configure mise cache directory for volume mounting"
     },
     "autoTrust": {
       "type": "boolean",
@@ -33,12 +28,5 @@
         "jdx.mise-vscode"
       ]
     }
-  },
-  "mounts": [
-    {
-      "source": "devcontainer-mise-cache-${devcontainerId}",
-      "target": "/opt/mise-cache",
-      "type": "volume"
-    }
-  ]
+  }
 }
