@@ -16,6 +16,7 @@ mkdir -p "${HOME}/.config/mise"
 mkdir -p "${HOME}/.local/bin"
 mkdir -p "${HOME}/.cache/mise"
 mkdir -p "${HOME}/.local/state/mise"
+mkdir -p "${HOME}/.bun/bin"
 
 # Ensure directories are owned by the current user
 if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; then
@@ -57,6 +58,9 @@ if [ ! -f "${HOME}/.config/mise/config.toml" ]; then
         cat > "${HOME}/.config/mise/config.toml" << 'EOF'
 [settings]
 experimental = true
+
+[env]
+BUN_INSTALL = "~/.bun"
 EOF
     else
         # Newer mise version - use full config
@@ -64,6 +68,9 @@ EOF
 [settings]
 not_found_auto_install = true
 experimental = true
+
+[env]
+BUN_INSTALL = "~/.bun"
 EOF
     fi
 fi

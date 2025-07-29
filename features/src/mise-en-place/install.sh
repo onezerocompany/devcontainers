@@ -122,7 +122,7 @@ setup_shell_integration() {
     if [ -f "${target_home}/.bashrc" ]; then
         echo '' >> "${target_home}/.bashrc"
         echo '# mise-en-place' >> "${target_home}/.bashrc"
-        echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.bashrc"
+        echo 'export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH}"' >> "${target_home}/.bashrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.bashrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.bashrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.bashrc"
@@ -135,7 +135,7 @@ setup_shell_integration() {
     if [ -f "${target_home}/.zshrc" ]; then
         echo '' >> "${target_home}/.zshrc"
         echo '# mise-en-place' >> "${target_home}/.zshrc"
-        echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${target_home}/.zshrc"
+        echo 'export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH}"' >> "${target_home}/.zshrc"
         echo "export MISE_AUTO_TRUST=\"${AUTO_TRUST}\"" >> "${target_home}/.zshrc"
         echo '# Auto-initialize mise on first use' >> "${target_home}/.zshrc"
         echo 'if [ ! -f "${HOME}/.local/share/mise/.initialized" ] && [ -x /usr/local/bin/mise-init ]; then' >> "${target_home}/.zshrc"
@@ -152,6 +152,7 @@ setup_shell_integration() {
     mkdir -p "${target_home}/.local/share/mise/downloads"
     mkdir -p "${target_home}/.cache/mise"
     mkdir -p "${target_home}/.cache/mise/lockfiles"
+    mkdir -p "${target_home}/.bun/bin"
     mkdir -p "${target_home}/.cache/mise/node"
     mkdir -p "${target_home}/.local/state/mise"
     
