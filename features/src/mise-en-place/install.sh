@@ -174,32 +174,56 @@ if [ "${USERNAME}" != "root" ]; then
     setup_shell_integration "root" "/root"
 fi
 
-# Configure mise settings - only create user config to avoid permission issues
+# Configure mise settings for both user and root
 echo "Configuring mise settings..."
 
 # Remove any existing problematic system config to avoid conflicts
 # We'll only use user-level config to avoid permission issues
 rm -f /etc/mise/config.toml
 
-# Check mise version to determine which settings to use
-MISE_VERSION_OUTPUT=$(mise --version 2>/dev/null || echo "")
-if echo "${MISE_VERSION_OUTPUT}" | grep -q "2024\.1\." || echo "${MISE_VERSION_OUTPUT}" | grep -q "2023\."; then
-    # Older mise version - use minimal config
-    cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
+# Function to create mise config for a user
+create_mise_config() {
+    local target_user="$1"
+    local target_home="$2"
+    
+    # Ensure config directory exists
+    mkdir -p "${target_home}/.config/mise"
+    
+    # Check mise version to determine which settings to use
+    MISE_VERSION_OUTPUT=$(mise --version 2>/dev/null || echo "")
+    if echo "${MISE_VERSION_OUTPUT}" | grep -q "2024\.1\." || echo "${MISE_VERSION_OUTPUT}" | grep -q "2023\."; then
+        # Older mise version - use minimal config
+        cat > "${target_home}/.config/mise/config.toml" << 'EOF'
 [settings]
 experimental = true
+
+[env]
+BUN_INSTALL = "~/.bun"
 EOF
-else
-    # Newer mise version - use full config
-    cat > "${USER_HOME}/.config/mise/config.toml" << 'EOF'
+    else
+        # Newer mise version - use full config
+        cat > "${target_home}/.config/mise/config.toml" << 'EOF'
 [settings]
 not_found_auto_install = true
 experimental = true
-EOF
-fi
 
+[env]
+BUN_INSTALL = "~/.bun"
+EOF
+    fi
+    
+    # Set ownership if not root
+    if [ "${target_user}" != "root" ]; then
+        chown "${target_user}:${target_user}" "${target_home}/.config/mise/config.toml"
+    fi
+}
+
+# Create config for main user
+create_mise_config "${USERNAME}" "${USER_HOME}"
+
+# Also create config for root if we're not already root
 if [ "${USERNAME}" != "root" ]; then
-    chown "${USERNAME}:${USERNAME}" "${USER_HOME}/.config/mise/config.toml"
+    create_mise_config "root" "/root"
 fi
 
 # Install Node.js LTS globally if requested
