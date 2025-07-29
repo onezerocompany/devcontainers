@@ -1,28 +1,31 @@
 #!/bin/bash
-# Test Docker networks enabled scenario
+# Test DNS query logging enabled scenario (pure dnsmasq-based)
 set -e
 
 source dev-container-features-test-lib
 
-echo "Testing Docker networks configuration..."
+echo "Testing DNS query logging configuration (pure dnsmasq-based)..."
 
-# Test that Docker networks are allowed in config
-check "docker-networks-enabled" grep -q 'ALLOW_DOCKER_NETWORKS="true"' /etc/sandbox/config
+# Test that query logging is enabled in config
+check "query-logging-enabled" grep -q 'LOG_QUERIES="true"' /etc/sandbox/config
 
-# Test that localhost is allowed
-check "localhost-enabled" grep -q 'ALLOW_LOCALHOST="true"' /etc/sandbox/config
+# Test that dnsmasq configuration generation script exists
+check "dnsmasq-config-script-exists" test -x /usr/local/share/sandbox/generate-dnsmasq-config.sh
 
-# Test that iptables rules include Docker network ranges
-# Note: iptables commands require root privileges, skip if not available
-if iptables -t filter -L SANDBOX_OUTPUT >/dev/null 2>&1; then
-    check "docker-bridge-allowed" iptables -t filter -L SANDBOX_OUTPUT | grep -q "172.16.0.0/12"
-    check "docker-network-10" iptables -t filter -L SANDBOX_OUTPUT | grep -q "10.0.0.0/8"  
-    check "docker-network-192" iptables -t filter -L SANDBOX_OUTPUT | grep -q "192.168.0.0/16"
-    check "localhost-allowed" iptables -t filter -L SANDBOX_OUTPUT | grep -q "127.0.0.0/8"
-else
-    echo "⚠️  Skipping iptables rules tests - requires root privileges"
-    check "iptables-test-skipped" true
-fi
+# Test that dnsmasq setup script exists
+check "dnsmasq-setup-script-exists" test -x /usr/local/share/sandbox/setup-dnsmasq.sh
 
-echo "Docker networks test passed"
+# Test that dnsmasq directory exists
+check "dnsmasq-config-dir" test -d /etc/dnsmasq.d
+
+# Test that dnsmasq binary is available
+check "dnsmasq-binary-available" command -v dnsmasq
+
+# Test that sandbox initialization script exists
+check "sandbox-init-script-exists" test -x /usr/local/share/sandbox/sandbox-init.sh
+
+# Test environment variable is set
+check "sandbox-env-var" [ "$SANDBOX_NETWORK_FILTER" = "enabled" ]
+
+echo "DNS query logging test passed (pure dnsmasq-based)"
 reportResults

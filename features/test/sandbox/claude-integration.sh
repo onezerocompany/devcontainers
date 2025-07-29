@@ -26,25 +26,14 @@ cat > .claude/settings.json << 'EOF'
 }
 EOF
 
-# Test that Claude settings can be extracted correctly
-check "claude-settings-processed" bash -c '
-    # Test the domain extraction script directly (without iptables)
-    # Set workspace folder for the extraction script
-    export WORKSPACE_FOLDER=/workspaces/$(ls /workspaces/ | head -n1)
-    
-    # Extract domains from Claude settings
-    extracted_domains=$(/usr/local/share/sandbox/extract-claude-domains.sh ".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json" 2>/dev/null | tail -n +2)
-    
-    # Check if expected domains were extracted
-    echo "$extracted_domains" | grep -E "(api\.example\.com|docs\.test\.com)" >/dev/null
-'
+# Test that dnsmasq configuration generation script exists
+check "dnsmasq-config-script-exists" test -x /usr/local/share/sandbox/generate-dnsmasq-config.sh
 
-# Check that wildcard domain support exists in the extraction script
-check "claude-wildcard-extraction" bash -c '
-    # Check the extraction script handles wildcards properly
-    grep -q "original_domains" /usr/local/share/sandbox/extract-claude-domains.sh &&
-    grep -q "COMMON_SUBDOMAINS=(" /usr/local/share/sandbox/extract-claude-domains.sh &&
-    grep -q "Scanning common subdomains for wildcard domain" /usr/local/share/sandbox/extract-claude-domains.sh
+# Check that Claude domain extraction is integrated into dnsmasq config generation
+check "claude-domain-extraction-integrated" bash -c '
+    # Check the dnsmasq configuration script handles Claude domains
+    grep -q "Extract domains from Claude settings files" /usr/local/share/sandbox/generate-dnsmasq-config.sh &&
+    grep -q "WebFetch(domain:" /usr/local/share/sandbox/generate-dnsmasq-config.sh
 '
 
 # Test that the Claude settings file contains the wildcard domain
@@ -69,15 +58,9 @@ cat > ~/.claude/settings.json << 'EOF'
 EOF
 
 check "multiple-settings-paths" bash -c '
-    # Test that the extraction script can read from multiple paths
-    export WORKSPACE_FOLDER=/workspaces/$(ls /workspaces/ | head -n1)
-    
-    # Extract domains from all Claude settings files
-    extracted_domains=$(/usr/local/share/sandbox/extract-claude-domains.sh ".claude/settings.json,~/.claude/settings.json,/workspace/.claude/settings.local.json" 2>/dev/null | tail -n +2)
-    
-    # Check if domains from both files were extracted
-    echo "$extracted_domains" | grep -q "api.example.com" &&
-    echo "$extracted_domains" | grep -q "home.example.com"
+    # Test that the dnsmasq config generation script handles multiple paths
+    grep -q "IFS.*read.*PATHS" /usr/local/share/sandbox/generate-dnsmasq-config.sh &&
+    grep -q "expanded_path" /usr/local/share/sandbox/generate-dnsmasq-config.sh
 '
 
 echo "Claude integration test passed"

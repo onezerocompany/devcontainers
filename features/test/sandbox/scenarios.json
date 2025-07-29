@@ -24,12 +24,11 @@
 			}
 		}
 	},
-	"docker-enabled": {
+	"dns-logging-enabled": {
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
 			"sandbox": {
-				"allowDockerNetworks": true,
-				"allowLocalhost": true
+				"logQueries": true
 			}
 		}
 	},
@@ -40,8 +39,6 @@
 				"allowedDomains": "api.github.com",
 				"blockedDomains": "",
 				"defaultPolicy": "block",
-				"allowDockerNetworks": false,
-				"allowLocalhost": false,
 				"immutableConfig": true
 			}
 		}
@@ -59,7 +56,7 @@
 		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 		"features": {
 			"sandbox": {
-				"logBlocked": false
+				"logQueries": false
 			}
 		}
 	},
