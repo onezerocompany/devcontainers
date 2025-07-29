@@ -25,10 +25,45 @@ apt-get install -y \
 # Detect available package manager
 if command -v mise &> /dev/null && mise exec bun -- --version &> /dev/null; then
     echo "Using mise with bun to install Playwright..."
-    if [ "$VERSION" = "latest" ]; then
-        mise exec bun -- add -g playwright
+    
+    # Determine the user first to avoid permission issues
+    USERNAME="${_REMOTE_USER:-"automatic"}"
+    if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+        USERNAME=""
+        local uid_1000_user
+        uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
+        local possible_users
+        if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
+        else
+            possible_users=("zero" "vscode" "node" "codespace")
+        fi
+        for current_user in "${possible_users[@]}"; do
+            if id -u "${current_user}" > /dev/null 2>&1; then
+                USERNAME="${current_user}"
+                break
+            fi
+        done
+        if [ -z "${USERNAME}" ]; then
+            USERNAME="root"
+        fi
+    elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
+        USERNAME="root"
+    fi
+    
+    # Run mise commands as the target user to avoid permission issues
+    if [ "$USERNAME" != "root" ] && id "$USERNAME" &>/dev/null; then
+        if [ "$VERSION" = "latest" ]; then
+            su - "$USERNAME" -c "mise exec bun -- add -g playwright"
+        else
+            su - "$USERNAME" -c "mise exec bun -- add -g playwright@$VERSION"
+        fi
     else
-        mise exec bun -- add -g playwright@$VERSION
+        if [ "$VERSION" = "latest" ]; then
+            mise exec bun -- add -g playwright
+        else
+            mise exec bun -- add -g playwright@$VERSION
+        fi
     fi
     PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
 elif command -v bun &> /dev/null; then
@@ -76,29 +111,31 @@ else
     $PLAYWRIGHT_CMD install $BROWSERS
 fi
 
-# Determine the user
-USERNAME="${_REMOTE_USER:-"automatic"}"
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    local uid_1000_user
-    uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
-    local possible_users
-    if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-        possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
-    else
-        possible_users=("zero" "vscode" "node" "codespace")
-    fi
-    for current_user in "${possible_users[@]}"; do
-        if id -u "${current_user}" > /dev/null 2>&1; then
-            USERNAME="${current_user}"
-            break
+# Username was already determined earlier for mise+bun case
+if [ -z "${USERNAME:-}" ]; then
+    USERNAME="${_REMOTE_USER:-"automatic"}"
+    if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+        USERNAME=""
+        local uid_1000_user
+        uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
+        local possible_users
+        if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
+        else
+            possible_users=("zero" "vscode" "node" "codespace")
         fi
-    done
-    if [ -z "${USERNAME}" ]; then
+        for current_user in "${possible_users[@]}"; do
+            if id -u "${current_user}" > /dev/null 2>&1; then
+                USERNAME="${current_user}"
+                break
+            fi
+        done
+        if [ -z "${USERNAME}" ]; then
+            USERNAME="root"
+        fi
+    elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
         USERNAME="root"
     fi
-elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
-    USERNAME="root"
 fi
 
 USER_HOME=$(getent passwd "$USERNAME" | cut -d: -f6)
