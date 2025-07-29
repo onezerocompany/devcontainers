@@ -1,7 +1,7 @@
 {
 	"id": "modern-shell",
 	"name": "Modern Shell",
-	"version": "1.4.4",
+	"version": "1.5.0",
 	"description": "A modern shell environment with Zsh, Starship prompt, and essential utilities for a productive development experience.",
 	"documentationURL": "https://github.com/onezerocompany/devcontainers/tree/main/features/src/modern-shell",
 	"licenseURL": "https://github.com/onezerocompany/devcontainers/blob/main/LICENSE",
@@ -83,6 +83,11 @@
 			"type": "boolean",
 			"default": true,
 			"description": "Install Neovim and create vi/vim aliases"
+		},
+		"install_bun": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install Bun JavaScript runtime and package manager"
 		}
 	},
 	"installsAfter": [

@@ -22,77 +22,10 @@ apt-get install -y \
     wget \
     unzip
 
-# Detect available package manager
-if command -v mise &> /dev/null; then
-    echo "Using mise with bun to install Playwright..."
-    
-    # Determine the user first to avoid permission issues
-    USERNAME="${_REMOTE_USER:-"automatic"}"
-    if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-        USERNAME=""
-        local uid_1000_user
-        uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
-        local possible_users
-        if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
-        else
-            possible_users=("zero" "vscode" "node" "codespace")
-        fi
-        for current_user in "${possible_users[@]}"; do
-            if id -u "${current_user}" > /dev/null 2>&1; then
-                USERNAME="${current_user}"
-                break
-            fi
-        done
-        if [ -z "${USERNAME}" ]; then
-            USERNAME="root"
-        fi
-    elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
-        USERNAME="root"
-    fi
-    
-    # First, ensure bun is installed as the target user to avoid auto-install as root
-    if [ "$USERNAME" != "root" ] && id "$USERNAME" &>/dev/null; then
-        echo "Installing bun as user $USERNAME to avoid permission issues..."
-        su - "$USERNAME" -c "mise use bun@latest" || {
-            echo "Failed to install bun as $USERNAME, falling back to other package managers"
-            use_mise_bun=false
-        }
-        
-        if [ "${use_mise_bun:-true}" = "true" ]; then
-            if [ "$VERSION" = "latest" ]; then
-                su - "$USERNAME" -c "mise exec bun -- add -g playwright"
-            else
-                su - "$USERNAME" -c "mise exec bun -- add -g playwright@$VERSION"
-            fi
-        fi
-    else
-        # For root user, check if bun is available, if not install it
-        if ! mise exec bun -- --version &> /dev/null; then
-            echo "Installing bun via mise..."
-            mise use bun@latest || {
-                echo "Failed to install bun via mise, falling back to other package managers"
-                use_mise_bun=false
-            }
-        fi
-        
-        if [ "${use_mise_bun:-true}" = "true" ]; then
-            if [ "$VERSION" = "latest" ]; then
-                mise exec bun -- add -g playwright
-            else
-                mise exec bun -- add -g playwright@$VERSION
-            fi
-        fi
-    fi
-    
-    # Set the command if mise+bun was successful
-    if [ "${use_mise_bun:-true}" = "true" ]; then
-        PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
-    fi
-fi
+# Detect available package manager and fail if none found
+PLAYWRIGHT_CMD=""
 
-# Fallback to other package managers if mise+bun failed or isn't available
-if [ "${use_mise_bun:-true}" = "false" ] || ([ -z "${PLAYWRIGHT_CMD:-}" ] && command -v bun &> /dev/null); then
+if command -v bun &> /dev/null; then
     echo "Using bun to install Playwright..."
     if [ "$VERSION" = "latest" ]; then
         bun add -g playwright
@@ -100,7 +33,7 @@ if [ "${use_mise_bun:-true}" = "false" ] || ([ -z "${PLAYWRIGHT_CMD:-}" ] && com
         bun add -g playwright@$VERSION
     fi
     PLAYWRIGHT_CMD="bunx playwright"
-elif [ -z "${PLAYWRIGHT_CMD:-}" ] && command -v npm &> /dev/null; then
+elif command -v npm &> /dev/null; then
     echo "Using npm to install Playwright..."
     if [ "$VERSION" = "latest" ]; then
         npm install -g playwright
@@ -108,17 +41,11 @@ elif [ -z "${PLAYWRIGHT_CMD:-}" ] && command -v npm &> /dev/null; then
         npm install -g playwright@$VERSION
     fi
     PLAYWRIGHT_CMD="npx playwright"
-elif [ -z "${PLAYWRIGHT_CMD:-}" ]; then
-    echo "No suitable package manager found (mise+bun, bun, or npm)."
-    echo "Installing Node.js and npm..."
-    apt-get install -y nodejs npm
-    
-    if [ "$VERSION" = "latest" ]; then
-        npm install -g playwright
-    else
-        npm install -g playwright@$VERSION
-    fi
-    PLAYWRIGHT_CMD="npx playwright"
+else
+    echo "ERROR: No suitable package manager found!"
+    echo "Please install either bun or npm before using the Playwright feature."
+    echo "You can use the 'mise-en-place' feature to install these tools."
+    exit 1
 fi
 
 # Create the browsers directory
@@ -137,31 +64,29 @@ else
     $PLAYWRIGHT_CMD install $BROWSERS
 fi
 
-# Username was already determined earlier for mise+bun case
-if [ -z "${USERNAME:-}" ]; then
-    USERNAME="${_REMOTE_USER:-"automatic"}"
-    if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-        USERNAME=""
-        local uid_1000_user
-        uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
-        local possible_users
-        if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
-        else
-            possible_users=("zero" "vscode" "node" "codespace")
+# Determine the user
+USERNAME="${_REMOTE_USER:-"automatic"}"
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    local uid_1000_user
+    uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1; exit}' /etc/passwd | head -n1)
+    local possible_users
+    if [ -n "$uid_1000_user" ] && [[ "$uid_1000_user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        possible_users=("zero" "vscode" "node" "codespace" "$uid_1000_user")
+    else
+        possible_users=("zero" "vscode" "node" "codespace")
+    fi
+    for current_user in "${possible_users[@]}"; do
+        if id -u "${current_user}" > /dev/null 2>&1; then
+            USERNAME="${current_user}"
+            break
         fi
-        for current_user in "${possible_users[@]}"; do
-            if id -u "${current_user}" > /dev/null 2>&1; then
-                USERNAME="${current_user}"
-                break
-            fi
-        done
-        if [ -z "${USERNAME}" ]; then
-            USERNAME="root"
-        fi
-    elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
+    done
+    if [ -z "${USERNAME}" ]; then
         USERNAME="root"
     fi
+elif [ "${USERNAME}" = "none" ] || [ "${USERNAME}" = "root" ]; then
+    USERNAME="root"
 fi
 
 USER_HOME=$(getent passwd "$USERNAME" | cut -d: -f6)
