@@ -23,7 +23,7 @@ apt-get install -y \
     unzip
 
 # Detect available package manager
-if command -v mise &> /dev/null && mise exec bun -- --version &> /dev/null; then
+if command -v mise &> /dev/null; then
     echo "Using mise with bun to install Playwright..."
     
     # Determine the user first to avoid permission issues
@@ -51,22 +51,48 @@ if command -v mise &> /dev/null && mise exec bun -- --version &> /dev/null; then
         USERNAME="root"
     fi
     
-    # Run mise commands as the target user to avoid permission issues
+    # First, ensure bun is installed as the target user to avoid auto-install as root
     if [ "$USERNAME" != "root" ] && id "$USERNAME" &>/dev/null; then
-        if [ "$VERSION" = "latest" ]; then
-            su - "$USERNAME" -c "mise exec bun -- add -g playwright"
-        else
-            su - "$USERNAME" -c "mise exec bun -- add -g playwright@$VERSION"
+        echo "Installing bun as user $USERNAME to avoid permission issues..."
+        su - "$USERNAME" -c "mise use bun@latest" || {
+            echo "Failed to install bun as $USERNAME, falling back to other package managers"
+            use_mise_bun=false
+        }
+        
+        if [ "${use_mise_bun:-true}" = "true" ]; then
+            if [ "$VERSION" = "latest" ]; then
+                su - "$USERNAME" -c "mise exec bun -- add -g playwright"
+            else
+                su - "$USERNAME" -c "mise exec bun -- add -g playwright@$VERSION"
+            fi
         fi
     else
-        if [ "$VERSION" = "latest" ]; then
-            mise exec bun -- add -g playwright
-        else
-            mise exec bun -- add -g playwright@$VERSION
+        # For root user, check if bun is available, if not install it
+        if ! mise exec bun -- --version &> /dev/null; then
+            echo "Installing bun via mise..."
+            mise use bun@latest || {
+                echo "Failed to install bun via mise, falling back to other package managers"
+                use_mise_bun=false
+            }
+        fi
+        
+        if [ "${use_mise_bun:-true}" = "true" ]; then
+            if [ "$VERSION" = "latest" ]; then
+                mise exec bun -- add -g playwright
+            else
+                mise exec bun -- add -g playwright@$VERSION
+            fi
         fi
     fi
-    PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
-elif command -v bun &> /dev/null; then
+    
+    # Set the command if mise+bun was successful
+    if [ "${use_mise_bun:-true}" = "true" ]; then
+        PLAYWRIGHT_CMD="mise exec bun -- bunx playwright"
+    fi
+fi
+
+# Fallback to other package managers if mise+bun failed or isn't available
+if [ "${use_mise_bun:-true}" = "false" ] || ([ -z "${PLAYWRIGHT_CMD:-}" ] && command -v bun &> /dev/null); then
     echo "Using bun to install Playwright..."
     if [ "$VERSION" = "latest" ]; then
         bun add -g playwright
@@ -74,7 +100,7 @@ elif command -v bun &> /dev/null; then
         bun add -g playwright@$VERSION
     fi
     PLAYWRIGHT_CMD="bunx playwright"
-elif command -v npm &> /dev/null; then
+elif [ -z "${PLAYWRIGHT_CMD:-}" ] && command -v npm &> /dev/null; then
     echo "Using npm to install Playwright..."
     if [ "$VERSION" = "latest" ]; then
         npm install -g playwright
@@ -82,7 +108,7 @@ elif command -v npm &> /dev/null; then
         npm install -g playwright@$VERSION
     fi
     PLAYWRIGHT_CMD="npx playwright"
-else
+elif [ -z "${PLAYWRIGHT_CMD:-}" ]; then
     echo "No suitable package manager found (mise+bun, bun, or npm)."
     echo "Installing Node.js and npm..."
     apt-get install -y nodejs npm
