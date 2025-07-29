@@ -230,6 +230,22 @@ fi
 if [ "${INSTALL_NODE_LTS}" = "true" ]; then
     echo "Installing Node.js LTS globally..."
     
+    # Trust the config files first if auto-trust is enabled
+    if [ "${AUTO_TRUST}" = "true" ]; then
+        echo "Auto-trusting mise config files..."
+        # Trust the main user's config
+        if [ "${USERNAME}" != "root" ]; then
+            su - "${USERNAME}" -c "mise trust ${USER_HOME}/.config/mise/config.toml" 2>/dev/null || true
+        else
+            cd "${USER_HOME}" && mise trust "${USER_HOME}/.config/mise/config.toml" 2>/dev/null || true
+        fi
+        
+        # Trust root's config if we're not already root
+        if [ "${USERNAME}" != "root" ]; then
+            cd "/root" && mise trust "/root/.config/mise/config.toml" 2>/dev/null || true
+        fi
+    fi
+    
     # Install as the main user
     if [ "${USERNAME}" != "root" ]; then
         su - "${USERNAME}" -c "mise use -g node@lts"
