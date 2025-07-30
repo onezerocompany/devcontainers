@@ -60,22 +60,22 @@ if [ ! -f "${HOME}/.config/mise/config.toml" ]; then
     MISE_VERSION_OUTPUT=$(mise --version 2>/dev/null || echo "")
     if echo "${MISE_VERSION_OUTPUT}" | grep -q "2024\.1\." || echo "${MISE_VERSION_OUTPUT}" | grep -q "2023\."; then
         # Older mise version - use minimal config
-        cat > "${HOME}/.config/mise/config.toml" << 'EOF'
+        cat > "${HOME}/.config/mise/config.toml" << EOF
 [settings]
 experimental = true
 
 [env]
-BUN_INSTALL = "~/.bun"
+BUN_INSTALL = "${HOME}/.bun"
 EOF
     else
         # Newer mise version - use full config
-        cat > "${HOME}/.config/mise/config.toml" << 'EOF'
+        cat > "${HOME}/.config/mise/config.toml" << EOF
 [settings]
 not_found_auto_install = true
 experimental = true
 
 [env]
-BUN_INSTALL = "~/.bun"
+BUN_INSTALL = "${HOME}/.bun"
 EOF
     fi
 fi
