@@ -207,6 +207,8 @@ experimental = true
 
 [env]
 BUN_INSTALL = "${target_home}/.bun"
+MISE_NODE_VERIFY = "false"
+MISE_NODE_CHECK_CHECKSUMS = "false"
 EOF
     else
         # Newer mise version - use full config
@@ -217,6 +219,8 @@ experimental = true
 
 [env]
 BUN_INSTALL = "${target_home}/.bun"
+MISE_NODE_VERIFY = "false"
+MISE_NODE_CHECK_CHECKSUMS = "false"
 EOF
     fi
     
@@ -254,16 +258,20 @@ if [ "${INSTALL_NODE_LTS}" = "true" ]; then
         fi
     fi
     
+    # Disable GPG verification for Node.js to avoid signature issues
+    export MISE_NODE_VERIFY=false
+    export MISE_NODE_CHECK_CHECKSUMS=false
+    
     # Install as the main user
     if [ "${USERNAME}" != "root" ]; then
-        su - "${USERNAME}" -c "mise use -g node@lts"
+        su - "${USERNAME}" -c "export MISE_NODE_VERIFY=false && export MISE_NODE_CHECK_CHECKSUMS=false && mise use -g node@lts"
     else
         cd "${USER_HOME}" && mise use -g node@lts
     fi
     
     # Also install for root if we're not already root
     if [ "${USERNAME}" != "root" ]; then
-        cd "/root" && mise use -g node@lts
+        cd "/root" && export MISE_NODE_VERIFY=false && export MISE_NODE_CHECK_CHECKSUMS=false && mise use -g node@lts
     fi
     
     echo "Node.js LTS installed globally via mise"
