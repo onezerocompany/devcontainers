@@ -192,17 +192,26 @@ jobs:
             
             # Create a proper .devcontainer directory structure
             mkdir -p .devcontainer
-            
-            # Copy local feature to a location that devcontainer CLI can access
-            mkdir -p .devcontainer/features/${{ matrix.feature }}
-            cp -r ../../src/${{ matrix.feature }}/* .devcontainer/features/${{ matrix.feature }}/
-            
-            # Extract the specific scenario configuration and use local feature
+
+            # Copy ALL local features to a location that devcontainer CLI can access
+            mkdir -p .devcontainer/features
+            for feature_dir in ../../src/*/; do
+              if [ -d "$feature_dir" ]; then
+                feature_name=$(basename "$feature_dir")
+                mkdir -p ".devcontainer/features/$feature_name"
+                cp -r "$feature_dir"* ".devcontainer/features/$feature_name/"
+              fi
+            done
+
+            # Extract the specific scenario configuration and replace ALL ghcr.io features with local paths
             jq ".\"${{ matrix.scenario }}\"" scenarios.json | \
-            jq --arg feature "${{ matrix.feature }}" \
-              '.features = (.features | to_entries | map(
-                if .key | contains("ghcr.io/onezerocompany/features/" + $feature) then
-                  {key: ("./features/" + $feature), value: .value}
+            jq '.features = (.features | to_entries | map(
+                if .key | startswith("ghcr.io/onezerocompany/features/") then
+                  (.key | split("/")[-1] | split(":")[0]) as $feature_name |
+                  {key: ("./features/" + $feature_name), value: .value}
+                elif .key | test("^[a-z]") then
+                  # Legacy feature reference without ./ prefix
+                  {key: ("./" + .key), value: .value}
                 else
                   .
                 end
