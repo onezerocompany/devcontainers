@@ -2,14 +2,14 @@
 	"default": {
 		"image": "ubuntu:22.04",
 		"features": {
-			"mise-en-place": {},
+			"./mise-en-place": {},
 			"playwright": {}
 		}
 	},
 	"chromium_only": {
 		"image": "ubuntu:22.04",
 		"features": {
-			"mise-en-place": {},
+			"./mise-en-place": {},
 			"playwright": {
 				"browsers": "chromium",
 				"install_deps": true
@@ -19,7 +19,7 @@
 	"all_browsers": {
 		"image": "ubuntu:22.04",
 		"features": {
-			"mise-en-place": {},
+			"./mise-en-place": {},
 			"playwright": {
 				"browsers": "chromium firefox webkit",
 				"install_deps": true
@@ -29,7 +29,7 @@
 	"firefox_webkit": {
 		"image": "ubuntu:22.04",
 		"features": {
-			"mise-en-place": {},
+			"./mise-en-place": {},
 			"playwright": {
 				"browsers": "firefox webkit",
 				"install_deps": true
@@ -39,7 +39,7 @@
 	"specific_version": {
 		"image": "ubuntu:22.04",
 		"features": {
-			"mise-en-place": {},
+			"./mise-en-place": {},
 			"playwright": {
 				"version": "1.40.0",
 				"browsers": "chromium"
@@ -49,11 +49,18 @@
 	"no_deps": {
 		"image": "ubuntu:22.04",
 		"features": {
-			"mise-en-place": {},
+			"./mise-en-place": {},
 			"playwright": {
 				"install_deps": false,
 				"browsers": "chromium"
 			}
+		}
+	},
+	"ubuntu": {
+		"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+		"features": {
+			"./mise-en-place": {},
+			"playwright": {}
 		}
 	}
 }
