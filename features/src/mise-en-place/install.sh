@@ -110,6 +110,52 @@ chmod +x /usr/local/bin/mise
 cp "$(dirname "$0")/mise-init.sh" /usr/local/bin/mise-init
 chmod +x /usr/local/bin/mise-init
 
+# Create entrypoint hook for container startup
+# This ensures directories exist before any code runs, not just when shells start
+mkdir -p /usr/local/share/devcontainer-init.d
+cat > /usr/local/share/devcontainer-init.d/10-mise-dirs.sh << 'EOFHOOK'
+#!/bin/bash
+# Initialize mise and bun directories for all users at container startup
+# This runs before any code executes, ensuring directories exist
+
+# Find the non-root user (UID 1000 or common devcontainer users)
+POSSIBLE_USERS=("zero" "vscode" "node" "codespace")
+NON_ROOT_USER=""
+
+# Try to find UID 1000 user first
+UID_1000_USER=$(awk -F: '$3==1000{print $1; exit}' /etc/passwd 2>/dev/null)
+if [ -n "${UID_1000_USER}" ]; then
+    NON_ROOT_USER="${UID_1000_USER}"
+else
+    # Fall back to checking common usernames
+    for user in "${POSSIBLE_USERS[@]}"; do
+        if id -u "${user}" >/dev/null 2>&1; then
+            NON_ROOT_USER="${user}"
+            break
+        fi
+    done
+fi
+
+# Initialize for non-root user if found
+if [ -n "${NON_ROOT_USER}" ] && [ "${NON_ROOT_USER}" != "root" ]; then
+    USER_HOME="/home/${NON_ROOT_USER}"
+    if [ -d "${USER_HOME}" ]; then
+        # Run mise-init as the user to ensure proper ownership
+        if command -v su >/dev/null 2>&1; then
+            su - "${NON_ROOT_USER}" -c '/usr/local/bin/mise-init' 2>/dev/null || true
+        fi
+    fi
+fi
+
+# Initialize for root
+if [ -d "/root" ]; then
+    HOME=/root /usr/local/bin/mise-init 2>/dev/null || true
+fi
+EOFHOOK
+
+chmod +x /usr/local/share/devcontainer-init.d/10-mise-dirs.sh
+echo "Created entrypoint hook at /usr/local/share/devcontainer-init.d/10-mise-dirs.sh"
+
 
 # Set up shell integration for both user and root
 setup_shell_integration() {

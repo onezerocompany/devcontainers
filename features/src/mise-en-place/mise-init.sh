@@ -11,15 +11,37 @@ fi
 echo "Initializing mise directories..."
 
 # Ensure mise directories exist with correct permissions
-mkdir -p "${HOME}/.local/share/mise"
-mkdir -p "${HOME}/.config/mise"
-mkdir -p "${HOME}/.local/bin"
-mkdir -p "${HOME}/.cache/mise"
-mkdir -p "${HOME}/.local/state/mise"
-mkdir -p "${HOME}/.bun/bin"
+# Create parent directories first to avoid permission issues
+mkdir -p "${HOME}/.local" 2>/dev/null || true
+mkdir -p "${HOME}/.config" 2>/dev/null || true
+mkdir -p "${HOME}/.cache" 2>/dev/null || true
+
+# Create mise-specific directories
+mkdir -p "${HOME}/.local/share/mise" 2>/dev/null || true
+mkdir -p "${HOME}/.config/mise" 2>/dev/null || true
+mkdir -p "${HOME}/.local/bin" 2>/dev/null || true
+mkdir -p "${HOME}/.cache/mise" 2>/dev/null || true
+mkdir -p "${HOME}/.local/state/mise" 2>/dev/null || true
+
+# Create bun directories - ensure parent exists first
+mkdir -p "${HOME}/.bun" 2>/dev/null || true
+mkdir -p "${HOME}/.bun/bin" 2>/dev/null || true
 
 # Ensure directories are owned by the current user
-if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; then
+# Check multiple directories and fix ownership if needed
+NEED_FIX=false
+for dir in "${HOME}/.local/share/mise" "${HOME}/.config/mise" "${HOME}/.cache/mise" "${HOME}/.local/state/mise" "${HOME}/.bun"; do
+    if [ -d "${dir}" ]; then
+        DIR_OWNER=$(stat -c %u "${dir}" 2>/dev/null || echo "")
+        CURRENT_USER=$(id -u)
+        if [ -n "${DIR_OWNER}" ] && [ "${DIR_OWNER}" != "${CURRENT_USER}" ]; then
+            NEED_FIX=true
+            break
+        fi
+    fi
+done
+
+if [ "${NEED_FIX}" = "true" ]; then
     echo "Fixing ownership for mise directories..."
     # Try to fix ownership if we can
     if command -v sudo >/dev/null 2>&1; then
@@ -27,16 +49,17 @@ if [ "$(stat -c %u "${HOME}/.local/share/mise" 2>/dev/null)" != "$(id -u)" ]; th
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.config/mise" 2>/dev/null || true
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.cache/mise" 2>/dev/null || true
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/state/mise" 2>/dev/null || true
+        sudo chown -R "$(id -u):$(id -g)" "${HOME}/.local/bin" 2>/dev/null || true
         sudo chown -R "$(id -u):$(id -g)" "${HOME}/.bun" 2>/dev/null || true
     fi
 fi
 
 # Ensure all mise subdirectories have correct permissions
-mkdir -p "${HOME}/.local/share/mise/installs"
-mkdir -p "${HOME}/.local/share/mise/cache"
-mkdir -p "${HOME}/.local/share/mise/downloads"
-mkdir -p "${HOME}/.cache/mise/lockfiles"
-mkdir -p "${HOME}/.cache/mise/node"
+mkdir -p "${HOME}/.local/share/mise/installs" 2>/dev/null || true
+mkdir -p "${HOME}/.local/share/mise/cache" 2>/dev/null || true
+mkdir -p "${HOME}/.local/share/mise/downloads" 2>/dev/null || true
+mkdir -p "${HOME}/.cache/mise/lockfiles" 2>/dev/null || true
+mkdir -p "${HOME}/.cache/mise/node" 2>/dev/null || true
 
 # Ensure bun directories have correct permissions
 chmod 755 "${HOME}/.bun" 2>/dev/null || true
