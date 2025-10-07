@@ -60,7 +60,8 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && if [ -f /home/zero/.mise.toml ]; then cp /home/zero/.mise.toml /home/runner/.mise.toml; fi \
     && if [ -f /home/zero/.config/starship.toml ]; then cp /home/zero/.config/starship.toml /home/runner/.config/starship.toml; fi \
     && chown -R runner:runner /home/runner \
-    && if [ -f /home/runner/.local/bin/mise ]; then chmod +x /home/runner/.local/bin/mise; fi
+    && if [ -f /home/runner/.local/bin/mise ]; then chmod +x /home/runner/.local/bin/mise; fi \
+    && chmod -R 777 /home/zero
 
 # Set up mise environment variables for runner user
 ENV MISE_CACHE_DIR=/home/runner/.cache/mise
