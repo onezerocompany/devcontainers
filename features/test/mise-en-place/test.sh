@@ -21,6 +21,9 @@ check "installs directory exists" test -d ~/.local/share/mise
 # Check mise-init script is installed
 check "mise-init script exists" test -x /usr/local/bin/mise-init
 
+# Check entrypoint hook is installed
+check "entrypoint hook exists" test -x /usr/local/share/devcontainer-init.d/10-mise-dirs.sh
+
 # Check mise is accessible in PATH
 check "mise in path" which mise | grep -q "/usr/local/bin/mise"
 
