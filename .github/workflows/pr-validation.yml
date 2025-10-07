@@ -211,16 +211,16 @@ jobs:
             echo "Generated .devcontainer/devcontainer.json:"
             cat .devcontainer/devcontainer.json
             
-            # Build the devcontainer
-            devcontainer build --workspace-folder . --image-name test-${{ matrix.feature }}-${{ matrix.scenario }}
+            # Build and start the devcontainer
+            devcontainer up --workspace-folder . --id-label test=${{ matrix.feature }}-${{ matrix.scenario }}
             
-            echo "✓ Feature ${{ matrix.feature }} built successfully with scenario ${{ matrix.scenario }}"
+            echo "✓ Feature ${{ matrix.feature }} built and started successfully with scenario ${{ matrix.scenario }}"
             
             # Run the scenario-specific test if it exists
             if [ -f "${{ matrix.scenario }}.sh" ]; then
               echo "Running scenario-specific test script: ${{ matrix.scenario }}.sh"
               
-              # Run the test inside the built container
+              # Run the test inside the running container
               devcontainer exec --workspace-folder . bash -c "cd /workspaces/*/features/test/${{ matrix.feature }} && ./${{ matrix.scenario }}.sh"
             elif [ -f "test.sh" ]; then
               echo "Running generic test script: test.sh"
@@ -260,8 +260,21 @@ jobs:
           
           # Create a temporary directory for testing
           TEMP_DIR=$(mktemp -d)
-          cp -r templates/${{ matrix.template }}/* $TEMP_DIR/
-          cp -r templates/${{ matrix.template }}/.devcontainer $TEMP_DIR/ 2>/dev/null || echo "No .devcontainer directory to copy"
+          
+          # Use the image/ subdirectory which has the devcontainer.json with features
+          if [ -d "templates/${{ matrix.template }}/image" ]; then
+            echo "Using templates/${{ matrix.template }}/image for testing..."
+            cp -r templates/${{ matrix.template }}/image/* $TEMP_DIR/
+            
+            # Copy the devcontainer.json to .devcontainer/ directory
+            mkdir -p $TEMP_DIR/.devcontainer
+            cp templates/${{ matrix.template }}/image/devcontainer.json $TEMP_DIR/.devcontainer/
+          else
+            echo "Using templates/${{ matrix.template }} directory for testing..."
+            cp -r templates/${{ matrix.template }}/* $TEMP_DIR/
+            cp -r templates/${{ matrix.template }}/.devcontainer $TEMP_DIR/ 2>/dev/null || echo "No .devcontainer directory to copy"
+          fi
+          
           cd $TEMP_DIR
           
           # Modify devcontainer.json to use local features instead of published ones
@@ -282,18 +295,23 @@ jobs:
             # First, create a backup and then use jq to properly modify the JSON structure
             cp .devcontainer/devcontainer.json .devcontainer/devcontainer.json.bak
             
-            # Use jq to replace all feature references with local paths
-            jq '
-              .features |= with_entries(
-                if .key | startswith("ghcr.io/onezerocompany/features/") then
-                  # Extract feature name from the key
-                  (.key | split("/")[-1] | split(":")[0]) as $feature_name |
-                  .key = "./features/" + $feature_name
-                else
-                  .
-                end
-              )
-            ' .devcontainer/devcontainer.json.bak > .devcontainer/devcontainer.json
+            # Use jq to replace all feature references with local paths (only if features key exists)
+            if jq -e '.features' .devcontainer/devcontainer.json.bak > /dev/null 2>&1; then
+              jq '
+                .features |= with_entries(
+                  if .key | startswith("ghcr.io/onezerocompany/features/") then
+                    # Extract feature name from the key
+                    (.key | split("/")[-1] | split(":")[0]) as $feature_name |
+                    .key = "./features/" + $feature_name
+                  else
+                    .
+                  end
+                )
+              ' .devcontainer/devcontainer.json.bak > .devcontainer/devcontainer.json
+            else
+              echo "No features key found in devcontainer.json, skipping feature replacement"
+              cp .devcontainer/devcontainer.json.bak .devcontainer/devcontainer.json
+            fi
             
             echo "Modified devcontainer.json:"
             cat .devcontainer/devcontainer.json
