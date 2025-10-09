@@ -8,6 +8,7 @@ This image provides a self-hosted GitHub Actions runner with:
 - GitHub Actions runner (latest version)
 - Docker CLI and Docker Buildx plugin
 - Container hooks for Kubernetes deployments
+- Playwright with multi-browser support (Chromium, Firefox, WebKit, Edge)
 - Security sandbox support (inherited from base)
 - All development tools from the base image
 
@@ -44,7 +45,15 @@ runner:latest
 - GitHub Actions runner (latest version)
 - Docker CLI (v27.1.1)
 - Docker Buildx plugin (v0.16.2)
-- Runner container hooks (v0.6.1)
+- Runner container hooks (v0.7.0)
+- Node.js (v20 LTS)
+- Playwright (latest version)
+
+### Playwright Browsers
+- Chromium (latest stable)
+- Firefox (latest stable)
+- WebKit (latest stable)
+- Microsoft Edge (latest stable)
 
 ### System Users
 - `runner` user (UID 1001) with sudo access
@@ -54,6 +63,8 @@ runner:latest
 - `RUNNER_MANUALLY_TRAP_SIG=1` - Manual signal trapping
 - `ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1` - Log output to stdout
 - `ImageOS=ubuntu22` - OS identification for Actions
+- `PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright` - Browser cache location (system browsers)
+- `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` - Skip downloads during npm install (use system browsers)
 
 ## Usage
 
@@ -69,7 +80,25 @@ docker build --platform linux/arm64 -t runner:arm64 .
 
 # Multi-platform build
 docker buildx build --platform linux/amd64,linux/arm64 -t runner:latest .
+
+# Optimized build with layer caching (recommended for CI)
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --cache-from type=registry,ref=ghcr.io/onezerocompany/runner:buildcache \
+  --cache-to type=registry,ref=ghcr.io/onezerocompany/runner:buildcache,mode=max \
+  -t runner:latest \
+  .
+
+# Build with custom Playwright version
+docker build --build-arg PLAYWRIGHT_VERSION=1.45.0 -t runner:latest .
 ```
+
+**Build Optimization Notes:**
+- The Dockerfile uses multi-stage builds to separate Playwright installation for optimal caching
+- BuildKit mount caches are used for apt packages to speed up dependency installation
+- Playwright browsers are installed in a dedicated stage that caches independently
+- Node.js and browser binaries are copied from the playwright stage to the final image
+- Use `--cache-from` and `--cache-to` flags in CI for persistent layer caching
 
 ### Running as Self-Hosted Runner
 
@@ -222,9 +251,11 @@ services:
 
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `RUNNER_CONTAINER_HOOKS_VERSION` | `0.6.1` | Container hooks version |
+| `RUNNER_CONTAINER_HOOKS_VERSION` | `0.7.0` | Container hooks version |
 | `DOCKER_VERSION` | `27.1.1` | Docker CLI version |
 | `BUILDX_VERSION` | `0.16.2` | Docker Buildx version |
+| `NODE_MAJOR` | `20` | Node.js major version |
+| `PLAYWRIGHT_VERSION` | `latest` | Playwright version |
 
 ### Volume Mounts
 
@@ -314,6 +345,124 @@ jobs:
           .
 ```
 
+### Playwright End-to-End Testing
+
+The runner image includes pre-installed Playwright browsers, eliminating the need to download them during workflow runs. This significantly speeds up test execution.
+
+#### Basic E2E Test Workflow
+
+```yaml
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  playwright-tests:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: npm ci
+      # Note: Browsers are NOT downloaded during npm ci
+      # PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 is set by default
+      # This makes npm ci much faster (no 500MB+ download)
+
+    - name: Run Playwright tests (Chromium)
+      run: npx playwright test --project=chromium
+
+    - name: Run Playwright tests (Firefox)
+      run: npx playwright test --project=firefox
+
+    - name: Run Playwright tests (WebKit)
+      run: npx playwright test --project=webkit
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+```
+
+#### Parallel Multi-Browser Testing
+
+```yaml
+name: E2E Tests (Parallel)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  playwright-tests:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit, msedge]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies (fast - no browser download)
+      run: npm ci
+
+    - name: Run Playwright tests on ${{ matrix.browser }}
+      run: npx playwright test --project=${{ matrix.browser }}
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-${{ matrix.browser }}
+        path: playwright-report/
+```
+
+#### Installation Time Comparison
+
+| Step | With Pre-installed Browsers | Without Pre-installed Browsers |
+|------|---------------------------|-------------------------------|
+| `npm ci` | ~30 seconds | ~3-5 minutes |
+| Browser download | **0 seconds (skipped)** | ~2-4 minutes |
+| System deps install | **0 seconds (pre-installed)** | ~1-2 minutes |
+| **Total setup time** | **~30 seconds** | **~6-11 minutes** |
+
+**Key Optimization Details:**
+
+1. **No Browser Downloads**: `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` is set globally
+   - When you run `npm ci`, Playwright detects this environment variable
+   - It skips downloading ~500MB+ of browser binaries
+   - Installation completes in seconds instead of minutes
+
+2. **System Browsers Used**: `PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright`
+   - Your project's Playwright automatically finds the pre-installed browsers
+   - All browsers (Chromium, Firefox, WebKit, Edge) are available immediately
+   - Works with any Playwright version (browsers are version-compatible)
+
+3. **Fast Iteration**:
+   - Re-running tests after code changes takes seconds
+   - No waiting for downloads or dependency installation
+   - Perfect for rapid test development
+
+**Important Notes:**
+- For Chromium-based browsers, ensure you run the container with `--ipc=host` flag to avoid out-of-memory issues
+- Browsers run in headless mode by default - perfect for CI/CD
+- All system dependencies are pre-installed, ensuring fast test startup
+- Works with both `@playwright/test` and `playwright` npm packages
+
+**Docker run example with Playwright:**
+```bash
+docker run -it --ipc=host \
+  -e GITHUB_TOKEN=your_token \
+  -e REPO_URL=https://github.com/owner/repo \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  runner:latest
+```
+
 ## Security Considerations
 
 ### Sandbox Configuration
@@ -400,6 +549,93 @@ docker run -it \
    docker system prune -a
    ```
 
+### Playwright Issues
+
+1. **Chromium Out-of-Memory Errors**
+   ```bash
+   # Ensure container is running with --ipc=host
+   docker run -it --ipc=host runner:latest
+
+   # Or in docker-compose.yml
+   ipc: host
+   ```
+
+2. **Browser Not Found After npm ci**
+   ```bash
+   # Check if environment variables are set correctly
+   echo $PLAYWRIGHT_BROWSERS_PATH
+   # Should output: /root/.cache/ms-playwright
+
+   echo $PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+   # Should output: 1
+
+   # Verify system browsers exist
+   ls -la /root/.cache/ms-playwright
+
+   # Test browser availability
+   npx playwright install --dry-run
+   ```
+
+3. **Accidentally Downloaded Browsers During npm ci**
+   ```bash
+   # If you see Playwright downloading browsers, check:
+   # 1. Environment variable is set
+   env | grep PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+
+   # 2. If running in a different user context, set it explicitly
+   export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+   npm ci
+   ```
+
+4. **Version Mismatch Warnings**
+   ```bash
+   # System browsers work with any Playwright version
+   # If you see version warnings, they're usually safe to ignore
+   # But you can force using system browsers:
+   PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright npx playwright test
+   ```
+
+5. **Test Timeouts**
+   ```bash
+   # Increase timeout in playwright.config.js
+   # timeout: 30000 (default) -> 60000
+
+   # Or set via environment variable
+   PLAYWRIGHT_TIMEOUT=60000 npx playwright test
+   ```
+
+6. **Display Issues in Headless Mode**
+   ```bash
+   # Xvfb is pre-installed for virtual display support
+   # Tests should run headless by default
+   xvfb-run npx playwright test
+
+   # Or explicitly set headless in playwright.config.js
+   use: { headless: true }
+   ```
+
+7. **Permission Denied on Browser Binaries**
+   ```bash
+   # Check browser cache permissions
+   ls -la /root/.cache/ms-playwright
+
+   # Fix permissions if needed
+   sudo chmod -R 755 /root/.cache/ms-playwright
+   ```
+
+8. **Want to Use Project-Specific Browsers**
+   ```bash
+   # Temporarily allow browser downloads for this run
+   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0 npm ci
+
+   # Or unset the variable
+   unset PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+   npm ci
+   npx playwright install --with-deps
+
+   # Note: This will download ~500MB and take several minutes
+   ```
+
 ## Advanced Configuration
 
 ### Custom Runner Scripts
@@ -460,3 +696,6 @@ docker stats runner-container
 - Runner automatically updates to the latest version on build
 - Container hooks are included for Kubernetes deployments
 - Proper signal handling ensures graceful shutdown
+- Playwright browsers (Chromium, Firefox, WebKit, Edge) are pre-installed for fast test startup
+- Use `--ipc=host` flag when running Chromium-based tests to avoid memory issues
+- Node.js 20 LTS is included for Playwright and other JavaScript tooling

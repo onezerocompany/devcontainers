@@ -35,6 +35,35 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
         "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${TARGETARCH}" \
     && chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 
+# Playwright build stage - separate for optimal caching
+FROM ghcr.io/onezerocompany/base:latest AS playwright
+
+ARG NODE_MAJOR=20
+ARG PLAYWRIGHT_VERSION=latest
+
+USER root
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Node.js repository and Node.js in a single layer
+# This layer will cache well as NODE_MAJOR rarely changes
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends nodejs
+
+# Install Playwright globally - separate layer for better caching
+RUN npm install -g playwright@${PLAYWRIGHT_VERSION}
+
+# Install Playwright browsers and system dependencies
+# This is the heaviest layer but will be cached effectively
+RUN playwright install --with-deps chromium firefox webkit msedge && \
+    chmod -R 755 /root/.cache/ms-playwright 2>/dev/null || true
+
 FROM ghcr.io/onezerocompany/base:latest AS main
 
 USER root
@@ -44,9 +73,36 @@ ENV RUNNER_MANUALLY_TRAP_SIG=1
 ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 ENV ImageOS=ubuntu22
 
+# Playwright configuration
+# Set the browsers path so project installations can find system browsers
+ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+# Skip browser downloads during npm install since browsers are pre-installed
+# Projects should use system browsers instead of downloading their own
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
 # Install basic development tools for CI/CD
 COPY scripts/basic-tools.sh /tmp/basic-tools.sh
 RUN chmod +x /tmp/basic-tools.sh && /tmp/basic-tools.sh && rm /tmp/basic-tools.sh
+
+# Copy Node.js from playwright stage
+COPY --from=playwright /usr/bin/node /usr/bin/node
+COPY --from=playwright /usr/bin/npm /usr/bin/npm
+COPY --from=playwright /usr/bin/npx /usr/bin/npx
+COPY --from=playwright /usr/lib/node_modules /usr/lib/node_modules
+COPY --from=playwright /usr/include/node /usr/include/node
+COPY --from=playwright /usr/share/doc/nodejs /usr/share/doc/nodejs
+COPY --from=playwright /usr/share/man/man1/node.1.gz /usr/share/man/man1/node.1.gz
+
+# Copy Playwright installation from playwright stage
+COPY --from=playwright /root/.cache/ms-playwright /root/.cache/ms-playwright
+
+# Install Playwright system dependencies only (browsers already copied)
+# This reuses the browser binaries from the cached playwright stage
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -y && \
+    npx playwright install-deps && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
