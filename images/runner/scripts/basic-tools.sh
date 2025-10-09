@@ -49,7 +49,7 @@ apt-get install -y \
     mediainfo \
     mercurial \
     net-tools \
-    netcat \
+    netcat-openbsd \
     openssh-client \
     p7zip-full \
     p7zip-rar \
