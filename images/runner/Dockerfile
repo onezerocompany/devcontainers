@@ -38,33 +38,50 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
 # Playwright build stage - separate for optimal caching
 FROM ghcr.io/onezerocompany/base:latest AS playwright
 
-ARG NODE_MAJOR=20
 ARG PLAYWRIGHT_VERSION=latest
+ARG USERNAME=zero
+ARG NODE_VERSION=20
 
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Node.js repository and Node.js in a single layer
-# This layer will cache well as NODE_MAJOR rarely changes
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update -y && \
-    apt-get install -y --no-install-recommends ca-certificates curl gnupg && \
-    mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update -y && \
-    apt-get install -y --no-install-recommends nodejs
+# Install mise for runtime management
+# The mise installer runs as the current user (root) and installs to its home directory
+RUN curl https://mise.run | sh && \
+    mv $HOME/.local/bin/mise /usr/local/bin/mise
 
-# Install Playwright globally - separate layer for better caching
-RUN npm install -g playwright@${PLAYWRIGHT_VERSION}
+# Switch to zero user and install Node.js via mise
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
 
-# Install Playwright browsers and system dependencies
-# This is the heaviest layer but will be cached effectively
-RUN playwright install --with-deps chromium firefox webkit msedge && \
-    chmod -R 755 /root/.cache/ms-playwright 2>/dev/null || true
+# Configure mise and install Node.js
+RUN bash -c 'mise use -g node@${NODE_VERSION} && \
+    eval "$(mise activate bash)" && \
+    mise install'
+
+# Set Playwright cache directory for the user
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/${USERNAME}/.cache/ms-playwright
+
+# Install Playwright temporarily to download browsers, then remove it
+# Projects will install their own Playwright version but use these pre-installed browsers
+RUN bash -c 'eval "$(mise activate bash)" && \
+    npm install -g playwright@${PLAYWRIGHT_VERSION} && \
+    mkdir -p /home/${USERNAME}/.cache/ms-playwright && \
+    playwright install chromium firefox webkit && \
+    npm uninstall -g playwright'
+
+# Switch back to root for system dependencies
+USER root
+# Install system dependencies for all browsers
+# We need to temporarily reinstall playwright to run install-deps, then remove it again
+RUN bash -c 'eval "$(mise activate bash)" && \
+    npm install -g playwright@${PLAYWRIGHT_VERSION} && \
+    playwright install-deps && \
+    npm uninstall -g playwright'
 
 FROM ghcr.io/onezerocompany/base:latest AS main
+
+ARG USERNAME=zero
 
 USER root
 
@@ -75,7 +92,8 @@ ENV ImageOS=ubuntu22
 
 # Playwright configuration
 # Set the browsers path so project installations can find system browsers
-ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+# This will be available system-wide for all users
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/ms-playwright
 # Skip browser downloads during npm install since browsers are pre-installed
 # Projects should use system browsers instead of downloading their own
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
@@ -84,25 +102,14 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY scripts/basic-tools.sh /tmp/basic-tools.sh
 RUN chmod +x /tmp/basic-tools.sh && /tmp/basic-tools.sh && rm /tmp/basic-tools.sh
 
-# Copy Node.js from playwright stage
-COPY --from=playwright /usr/bin/node /usr/bin/node
-COPY --from=playwright /usr/bin/npm /usr/bin/npm
-COPY --from=playwright /usr/bin/npx /usr/bin/npx
-COPY --from=playwright /usr/lib/node_modules /usr/lib/node_modules
-COPY --from=playwright /usr/include/node /usr/include/node
-COPY --from=playwright /usr/share/doc/nodejs /usr/share/doc/nodejs
-COPY --from=playwright /usr/share/man/man1/node.1.gz /usr/share/man/man1/node.1.gz
+# Copy only Playwright browsers from playwright stage to system-wide location
+# This makes them available to all users (runner, zero, root)
+# Projects will install their own Playwright version and use these pre-installed browsers
+RUN mkdir -p /usr/local/share/ms-playwright
+COPY --from=playwright /home/${USERNAME}/.cache/ms-playwright /usr/local/share/ms-playwright
 
-# Copy Playwright installation from playwright stage
-COPY --from=playwright /root/.cache/ms-playwright /root/.cache/ms-playwright
-
-# Install Playwright system dependencies only (browsers already copied)
-# This reuses the browser binaries from the cached playwright stage
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update -y && \
-    npx playwright install-deps && \
-    rm -rf /var/lib/apt/lists/*
+# Playwright system dependencies were already installed in the playwright stage
+# No need to run install-deps again
 
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
@@ -117,25 +124,13 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && if [ -d /home/zero/.local/bin ] && [ "$(ls -A /home/zero/.local/bin)" ]; then cp -r /home/zero/.local/bin/* /home/runner/.local/bin/; fi \
     && if [ -d /home/zero/.local/share ] && [ "$(ls -A /home/zero/.local/share)" ]; then cp -r /home/zero/.local/share/* /home/runner/.local/share/; fi \
     && if [ -d /home/zero/.cache ] && [ "$(ls -A /home/zero/.cache)" ]; then cp -r /home/zero/.cache/* /home/runner/.cache/; fi \
-    && if [ -f /home/zero/.mise.toml ]; then cp /home/zero/.mise.toml /home/runner/.mise.toml; fi \
     && if [ -f /home/zero/.config/starship.toml ]; then cp /home/zero/.config/starship.toml /home/runner/.config/starship.toml; fi \
     && chown -R runner:runner /home/runner \
-    && if [ -f /home/runner/.local/bin/mise ]; then chmod +x /home/runner/.local/bin/mise; fi \
     && chmod -R 777 /home/zero
-
-# Set up mise environment variables for runner user
-ENV MISE_CACHE_DIR=/home/runner/.cache/mise
-ENV MISE_DATA_DIR=/home/runner/.local/share/mise
-ENV MISE_TRUSTED_CONFIG_PATHS="/"
-ENV MISE_YES=1
 
 WORKDIR /home/runner
 
-# Switch to runner user and activate mise tools if available
 USER runner
-RUN if [ -f /home/runner/.local/bin/mise ]; then \
-        /bin/bash -c 'eval "$(/home/runner/.local/bin/mise activate bash)" && /home/runner/.local/bin/mise install && /home/runner/.local/bin/mise reshim'; \
-    fi
 
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
