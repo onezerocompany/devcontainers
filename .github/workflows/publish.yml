@@ -256,6 +256,37 @@ jobs:
             type=registry,ref=ghcr.io/onezerocompany/runner:latest
           cache-to: type=registry,ref=ghcr.io/onezerocompany/runner:buildcache,mode=max
 
+  # Test runner Docker image
+  test-runner:
+    name: Test runner Docker Image
+    runs-on: ubuntu-latest
+    needs: [publish-runner]
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull runner image
+        run: docker pull ghcr.io/onezerocompany/runner:latest
+
+      - name: Run integration tests
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/.github/test-fixtures/runner:/workspace \
+            -w /workspace \
+            -e CI=true \
+            ghcr.io/onezerocompany/runner:latest \
+            bash -c "chmod +x ./test-runner.sh && ./test-runner.sh"
+
   # Build settings-gen Docker image
   publish-settings-gen:
     name: Build and Push settings-gen Docker Image

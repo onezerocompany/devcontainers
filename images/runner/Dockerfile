@@ -108,8 +108,17 @@ RUN chmod +x /tmp/basic-tools.sh && /tmp/basic-tools.sh && rm /tmp/basic-tools.s
 RUN mkdir -p /usr/local/share/ms-playwright
 COPY --from=playwright /home/${USERNAME}/.cache/ms-playwright /usr/local/share/ms-playwright
 
-# Playwright system dependencies were already installed in the playwright stage
-# No need to run install-deps again
+# Install Playwright system dependencies
+# We temporarily install playwright just to run install-deps, then remove it
+# The browsers are already copied above and will be reused
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends nodejs npm && \
+    npx --yes playwright@latest install-deps && \
+    apt-get remove -y nodejs npm && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
