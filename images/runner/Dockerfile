@@ -139,7 +139,9 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && if [ -d /home/zero/.cache ] && [ "$(ls -A /home/zero/.cache)" ]; then cp -r /home/zero/.cache/* /home/runner/.cache/; fi \
     && if [ -f /home/zero/.config/starship.toml ]; then cp /home/zero/.config/starship.toml /home/runner/.config/starship.toml; fi \
     && chown -R runner:runner /home/runner \
-    && chmod -R 777 /home/zero
+    && chmod -R 777 /home/zero \
+    && mkdir -p /home/zero/.cache/mise /home/zero/.local/state/mise /home/zero/.local/share/mise \
+    && chmod -R 777 /home/zero/.cache /home/zero/.local
 
 # Install Claude-friendly development tools via mise for both root and runner
 COPY scripts/claude-tools.sh /tmp/claude-tools.sh
