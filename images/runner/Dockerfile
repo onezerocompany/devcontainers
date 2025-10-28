@@ -102,6 +102,10 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY scripts/basic-tools.sh /tmp/basic-tools.sh
 RUN chmod +x /tmp/basic-tools.sh && /tmp/basic-tools.sh && rm /tmp/basic-tools.sh
 
+# Install Claude-friendly development tools via mise
+COPY scripts/claude-tools.sh /tmp/claude-tools.sh
+RUN chmod +x /tmp/claude-tools.sh && /tmp/claude-tools.sh && rm /tmp/claude-tools.sh
+
 # Copy only Playwright browsers from playwright stage to system-wide location
 # This makes them available to all users (runner, zero, root)
 # Projects will install their own Playwright version and use these pre-installed browsers
