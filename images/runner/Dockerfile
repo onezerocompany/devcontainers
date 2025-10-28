@@ -141,6 +141,7 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && chown -R runner:runner /home/runner \
     && chmod -R 777 /home/zero \
     && mkdir -p /home/zero/.cache/mise /home/zero/.local/state/mise /home/zero/.local/share/mise \
+    && chown -R ${USERNAME}:${USERNAME} /home/zero/.cache /home/zero/.local \
     && chmod -R 777 /home/zero/.cache /home/zero/.local
 
 # Install Claude-friendly development tools via mise for both root and runner
