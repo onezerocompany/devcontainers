@@ -106,10 +106,6 @@ RUN chmod +x /tmp/basic-tools.sh && /tmp/basic-tools.sh && rm /tmp/basic-tools.s
 RUN curl https://mise.run | sh && \
     mv $HOME/.local/bin/mise /usr/local/bin/mise
 
-# Install Claude-friendly development tools via mise
-COPY scripts/claude-tools.sh /tmp/claude-tools.sh
-RUN chmod +x /tmp/claude-tools.sh && /tmp/claude-tools.sh && rm /tmp/claude-tools.sh
-
 # Copy only Playwright browsers from playwright stage to system-wide location
 # This makes them available to all users (runner, zero, root)
 # Projects will install their own Playwright version and use these pre-installed browsers
@@ -144,6 +140,13 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && if [ -f /home/zero/.config/starship.toml ]; then cp /home/zero/.config/starship.toml /home/runner/.config/starship.toml; fi \
     && chown -R runner:runner /home/runner \
     && chmod -R 777 /home/zero
+
+# Install Claude-friendly development tools via mise for both root and runner
+COPY scripts/claude-tools.sh /tmp/claude-tools.sh
+RUN chmod +x /tmp/claude-tools.sh && \
+    /tmp/claude-tools.sh root && \
+    /tmp/claude-tools.sh runner && \
+    rm /tmp/claude-tools.sh
 
 WORKDIR /home/runner
 

@@ -25,20 +25,24 @@ echo "Mise is available: $(mise --version)"
 
 TOOLS="gh yq deno usage python"
 
-# Install tools globally for runner user
-echo "Installing tools for runner user: $TOOLS"
-su - runner -c "mise use -g $TOOLS -y" || {
-    echo "Warning: Some tools may have failed to install for runner user"
-}
+# Check if we have a specific user to install for
+if [ -n "$1" ]; then
+    TARGET_USER="$1"
+    echo "Installing tools for user: $TARGET_USER"
 
-# Also install for root user (for privileged operations)
-echo "Installing tools for root user: $TOOLS"
-cd /root && mise use -g $TOOLS -y || {
-    echo "Warning: Some tools may have failed to install for root user"
-}
+    if [ "$TARGET_USER" = "root" ]; then
+        cd /root && mise use -g $TOOLS -y
+    else
+        su - "$TARGET_USER" -c "mise use -g $TOOLS -y"
+    fi
+else
+    # Install for root by default
+    echo "Installing tools for root user: $TOOLS"
+    cd /root && mise use -g $TOOLS -y
+fi
 
-# Verify installations
+# Verify installation
 echo "Verifying tool installations..."
-su - runner -c "mise ls" || true
+mise ls || true
 
 echo "Claude tools installation completed successfully!"
