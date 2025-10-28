@@ -154,6 +154,7 @@ RUN chmod +x /tmp/claude-tools.sh && \
 WORKDIR /home/runner
 
 USER runner
+ENV HOME=/home/runner
 
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
