@@ -161,6 +161,8 @@ WORKDIR /home/runner
 
 USER runner
 ENV HOME=/home/runner
+# Set PATH to include mise shims and local bin for non-interactive shells (like GitHub Actions)
+ENV PATH=/home/runner/.local/share/mise/shims:/home/runner/.local/bin:/home/runner/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
