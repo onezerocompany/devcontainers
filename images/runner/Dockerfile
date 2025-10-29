@@ -102,7 +102,20 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY scripts/basic-tools.sh /tmp/basic-tools.sh
 RUN chmod +x /tmp/basic-tools.sh && /tmp/basic-tools.sh && rm /tmp/basic-tools.sh
 
-# Install mise for runtime management (required for Claude tools)
+# Install GitHub CLI (gh) from official repository
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install yq (YAML processor) via binary download
+ARG YQ_VERSION=4.48.1
+RUN curl -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_$(dpkg --print-architecture)" -o /usr/local/bin/yq \
+    && chmod +x /usr/local/bin/yq
+
+# Install mise for runtime management
 RUN curl https://mise.run | sh && \
     mv $HOME/.local/bin/mise /usr/local/bin/mise
 
@@ -149,13 +162,6 @@ COPY scripts/setup-runner-shell.sh /tmp/setup-runner-shell.sh
 RUN chmod +x /tmp/setup-runner-shell.sh && \
     /tmp/setup-runner-shell.sh && \
     rm /tmp/setup-runner-shell.sh
-
-# Install Claude-friendly development tools via mise for both root and runner
-COPY scripts/claude-tools.sh /tmp/claude-tools.sh
-RUN chmod +x /tmp/claude-tools.sh && \
-    /tmp/claude-tools.sh root && \
-    /tmp/claude-tools.sh runner && \
-    rm /tmp/claude-tools.sh
 
 WORKDIR /home/runner
 
