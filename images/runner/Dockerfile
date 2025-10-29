@@ -144,6 +144,12 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && chown -R ${USERNAME}:${USERNAME} /home/zero/.cache /home/zero/.local \
     && chmod -R 777 /home/zero/.cache /home/zero/.local
 
+# Setup shell configurations for runner user (required for mise integration)
+COPY scripts/setup-runner-shell.sh /tmp/setup-runner-shell.sh
+RUN chmod +x /tmp/setup-runner-shell.sh && \
+    /tmp/setup-runner-shell.sh && \
+    rm /tmp/setup-runner-shell.sh
+
 # Install Claude-friendly development tools via mise for both root and runner
 COPY scripts/claude-tools.sh /tmp/claude-tools.sh
 RUN chmod +x /tmp/claude-tools.sh && \
@@ -161,6 +167,11 @@ COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib
 
 USER root
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
+
+# Apply binary patch to allow custom ACTIONS_RESULTS_URL for cache server
+# This patches Runner.Worker.dll to change ACTIONS_RESULTS_URL to ACTIONS_RESULTS_ORL
+# allowing us to set CUSTOM_ACTIONS_RESULTS_URL environment variable
+RUN sed -i 's/\x41\x00\x43\x00\x54\x00\x49\x00\x4F\x00\x4E\x00\x53\x00\x5F\x00\x52\x00\x45\x00\x53\x00\x55\x00\x4C\x00\x54\x00\x53\x00\x5F\x00\x55\x00\x52\x00\x4C\x00/\x41\x00\x43\x00\x54\x00\x49\x00\x4F\x00\x4E\x00\x53\x00\x5F\x00\x52\x00\x45\x00\x53\x00\x55\x00\x4C\x00\x54\x00\x53\x00\x5F\x00\x4F\x00\x52\x00\x4C\x00/g' /home/runner/bin/Runner.Worker.dll
 
 # Create an entrypoint that initializes sandbox before running actions
 RUN echo '#!/bin/bash' > /usr/local/bin/runner-entrypoint && \
